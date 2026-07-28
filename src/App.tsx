@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { BoardView } from './components/BoardView';
 import { useGame } from './hooks/useGame';
 import { getLevels } from './levels/levels';
+import { createSolvedSquare4x4 } from './core/board';
 
 /**
  * 应用入口组件
  *
- * 状态管理：当前关卡 ID、已完成关卡集合。
- * 后续可扩展：关卡选择页、设置页、关卡编辑器等。
+ * v0.1.1 改动：
+ * - 去除操作地图下方的文字说明
+ * - 在操作地图右侧添加目标地图预览（缩小版棋盘，无旋钮）
+ * - 接入旋转动画 hook（animating / onAnimationEnd）
  */
 export function App() {
   const levels = getLevels();
@@ -16,8 +19,8 @@ export function App() {
 
   const level = levels.find((l) => l.id === currentLevelId)!;
   const game = useGame(level);
+  const solvedBoard = createSolvedSquare4x4();
 
-  // 切换关卡时重置游戏
   useEffect(() => {
     game.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,14 +67,25 @@ export function App() {
           </span>
         </div>
 
-        <BoardView
-          board={game.board}
-          knobs={game.knobs}
-          onKnobClick={game.handleKnobClick}
-          disabled={game.won}
-        />
-
-        <p className="goal-hint">{level.goal.describe?.()}</p>
+        {/* 操作地图（左）+ 目标地图（右）并排 */}
+        <div className="boards-layout">
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            disabled={game.won}
+            label="操作地图"
+          />
+          <BoardView
+            board={solvedBoard}
+            knobs={[]}
+            onKnobClick={() => {}}
+            preview
+            label="目标地图"
+          />
+        </div>
 
         <div className="controls">
           <button className="btn" onClick={game.reset}>
@@ -100,10 +114,7 @@ export function App() {
                   重新开始
                 </button>
               )}
-              <button
-                className="btn"
-                onClick={() => game.reset()}
-              >
+              <button className="btn" onClick={() => game.reset()}>
                 再玩一次
               </button>
             </div>
