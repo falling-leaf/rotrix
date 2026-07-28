@@ -1,9 +1,11 @@
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState } from '../hooks/useGame';
 
 /** 旋转动画时长（ms）——足够感知过程，不至卡顿 */
 const ROTATE_DURATION = 350;
+/** 旋转到达目标角度后停留的额外帧数，确保 board commit 后再卸载 overlay */
+const SETTLE_FRAMES = 3;
 
 interface CellProps {
   color: Color;
@@ -22,6 +24,17 @@ function CellBlock({ color, className }: CellProps) {
  *
  * 旋钮位置：center = [row+0.5, col+0.5]
  * 百分比换算：top/left = (coord + 0.5) / dims * 100
+ *
+ * v0.1.2 动画改造：
+ * 原实现用 CSS keyframe 动画，实测在浏览器中表现为"卡顿后跳变"——
+ * 根因有二：
+ *   1) .rotate-inner 是 2x2 grid，DOM 顺序按行优先（TL, TR, BL, BR），
+ *      但代码按顺时针 tl/tr/br/bl 渲染，导致 BL/BR 颜色对调，
+ *      动画 0° 时已是错位状态，到 90° 跳变到"正确"排列。
+ *   2) 用户反馈希望改为实际的图形旋转操作。
+ * 改用 requestAnimationFrame 逐帧驱动 transform: rotate(angle) scale(s)。
+ * scale = 1 / (cosθ + sinθ)：使旋转中的正方形始终内切于 2x2 边界框，
+ * 避免出格与相邻色块重叠。
  */
 interface BoardViewProps {
   board: Board;
@@ -61,13 +74,96 @@ function BoardViewInner({
     // 转百分比：2x2 区域占棋盘的 50%
     const top = (r / board.dims[0]) * 100;
     const left = (c / board.dims[1]) * 100;
-    return { colors, top, left, width: 50, height: 50 };
+    // 目标旋转角度：CW=+90, CCW=-90
+    const targetAngle = animating.direction === 'CW' ? 90 : -90;
+    return { colors, top, left, width: 50, height: 50, targetAngle };
   }, [animating, board, preview]);
+
+  // rAF 驱动：angle 从 0 度动画到 targetAngle。
+  // 完成后调用 onAnimationEnd，由上层提交棋盘状态。
+  const [angle, setAngle] = useState(0);
+  // 当 animating 清除后，再保持 .board.animating 类几帧，
+  // 让旋转提交的 cell 颜色变化在 transition 被禁用期间完成，
+  // 避免恢复 transition 后底层从原始色 150ms 渐变到目标色（=闪烁）。
+  const [keepAnimating, setKeepAnimating] = useState(false);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!rotateOverlay) {
+      setAngle(0);
+      startRef.current = null;
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      return;
+    }
+    // 启动 rAF 动画
+    startRef.current = null;
+    const target = rotateOverlay.targetAngle;
+    // v0.1.2 修复"旋转后闪现原始状态"：
+    // 旋转到目标角度后，再多停留几帧（SETTLE_FRAMES）再调用 onAnimationEnd。
+    // 这样 overlay 在 90°（=目标排列）保持覆盖底层棋盘，直到上层 setBoard
+    // 真正 commit 到 DOM；避免 overlay 卸载与 cell-grid 更新之间存在
+    // 一帧间隙导致底层原始色块短暂可见。3 帧 ≈ 50ms，人眼几乎无感但能跨过
+    // React 的 commit 与浏览器 paint 间隙。
+    let settled = 0;
+    const tick = (now: number) => {
+      if (startRef.current == null) startRef.current = now;
+      const elapsed = now - startRef.current;
+      const progress = Math.min(1, elapsed / ROTATE_DURATION);
+      // ease-out cubic: 先快后慢，模拟物理旋转感
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setAngle(target * eased);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        // 到达目标角度后，保持 settle 阶段再结束
+        settled++;
+        if (settled < SETTLE_FRAMES) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          rafRef.current = null;
+          onAnimationEnd?.();
+        }
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+    // onAnimationEnd 来自上层 useCallback，依赖稳定；rotateOverlay 是 useMemo 派生
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotateOverlay]);
+
+  // 旋转结束后保持 .board.animating 几帧，让 cell 颜色提交在 transition 禁用期间完成。
+  // rotateOverlay 变 null 的瞬间（onAnimationEnd 清了 animating）触发，
+  // 用 setTimeout 30ms 后清 keepAnimating，恢复 transition（此时 cell 已是目标色）。
+  useEffect(() => {
+    if (!rotateOverlay && keepAnimating) {
+      const id = setTimeout(() => setKeepAnimating(false), 30);
+      return () => clearTimeout(id);
+    }
+    if (rotateOverlay && !keepAnimating) {
+      setKeepAnimating(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotateOverlay]);
+
+  // 计算旋转中保持不出格的缩放因子
+  // 旋转 θ 的正方形，外接矩形边长 = side*(cosθ + sinθ)
+  // 令外接矩形 = 原边界框，则 scale = 1 / (cosθ + sinθ)
+  const rad = (angle * Math.PI) / 180;
+  const scale = 1 / (Math.cos(rad) + Math.sin(rad));
 
   return (
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>
       {label && <div className="board-label">{label}</div>}
-      <div className="board">
+      <div className={`board ${animating || keepAnimating ? 'animating' : ''}`}>
         <div className="cell-grid">
           {cells.map((cell, i) => (
             <CellBlock key={i} color={cell.color} />
@@ -83,15 +179,29 @@ function BoardViewInner({
               left: `${rotateOverlay.left}%`,
               width: `${rotateOverlay.width}%`,
               height: `${rotateOverlay.height}%`,
-              animationDuration: `${ROTATE_DURATION}ms`,
             }}
-            onAnimationEnd={onAnimationEnd}
           >
-            <div className="rotate-inner">
-              <div className="rot-cell tl"><div className={`cell ${rotateOverlay.colors[0]}`} /></div>
-              <div className="rot-cell tr"><div className={`cell ${rotateOverlay.colors[1]}`} /></div>
-              <div className="rot-cell br"><div className={`cell ${rotateOverlay.colors[2]}`} /></div>
-              <div className="rot-cell bl"><div className={`cell ${rotateOverlay.colors[3]}`} /></div>
+            <div
+              className="rotate-inner"
+              style={{
+                transform: `rotate(${angle}deg) scale(${scale})`,
+                transformOrigin: 'center center',
+              }}
+            >
+              {/* 2x2 grid 按 DOM 行优先顺序排列：TL, TR, BL, BR */}
+              {/* knob.cells 顺序为 [TL, TR, BR, BL]，因此 3/4 需交换 */}
+              <div className="rot-cell tl">
+                <div className={`cell ${rotateOverlay.colors[0]}`} />
+              </div>
+              <div className="rot-cell tr">
+                <div className={`cell ${rotateOverlay.colors[1]}`} />
+              </div>
+              <div className="rot-cell bl">
+                <div className={`cell ${rotateOverlay.colors[3]}`} />
+              </div>
+              <div className="rot-cell br">
+                <div className={`cell ${rotateOverlay.colors[2]}`} />
+              </div>
             </div>
           </div>
         )}

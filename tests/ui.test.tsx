@@ -1,8 +1,11 @@
 /**
  * 冒烟测试 - UI 渲染
  *
- * v0.1.1 更新：适配新的动画流程（handleKnobClick → animating → onAnimationEnd）。
- * 测试中需手动调用 onAnimationEnd 来模拟动画结束。
+ * v0.1.2 更新：
+ * - 旋转动画改由 requestAnimationFrame 逐帧驱动 transform，不再用 CSS keyframe。
+ * - 新增测试：overlay 在挂载时按正确网格顺序（行优先 TL,TR,BL,BR）渲染色块，
+ *   避免旧实现 BL/BR 颜色对调导致动画 0° 时已错位、到 90° 跳变。
+ * - 原有"点击启动动画 + 步数+1"测试保留，手动调用 onAnimationEnd 模拟动画结束。
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -76,10 +79,10 @@ describe('BoardView 组件渲染', () => {
     rerender(<Wrapper />);
     // 动画启动后，animating 不为空
     expect(capturedGame!.animating).not.toBeNull();
-    // 此时棋盘还未更新
+    // 此时棋盘还未更新（动画未提交）
     expect(capturedGame!.board.cells.map((c) => c.color)).toEqual(colorsBefore);
 
-    // 模拟动画结束
+    // 模拟动画结束（rAF 在 jsdom 中行为不稳定，直接调 onAnimationEnd）
     act(() => {
       capturedGame!.onAnimationEnd();
     });
@@ -92,5 +95,56 @@ describe('BoardView 组件渲染', () => {
 
     // 步数 +1（修复 bug 验证）
     expect(capturedGame!.moveCount).toBe(movesBefore + 1);
+  });
+
+  it('旋转 overlay 挂载时按行优先顺序（TL,TR,BL,BR）正确放置色块', () => {
+    // v0.1.2 回归测试：旧实现按顺时针 tl/tr/br/bl 渲染，
+    // 在 2x2 grid（行优先）下 BL/BR 颜色对调，导致动画 0° 已错位、90° 跳变。
+    const level = getLevel(1)!;
+    let capturedGame: ReturnType<typeof useGame> | null = null;
+
+    const Wrapper = () => {
+      const game = useGame(level);
+      capturedGame = game;
+      return (
+        <BoardView
+          board={game.board}
+          knobs={game.knobs}
+          onKnobClick={game.handleKnobClick}
+          onAnimationEnd={game.onAnimationEnd}
+          animating={game.animating}
+        />
+      );
+    };
+    render(<Wrapper />);
+    const knob = capturedGame!.knobs[0]; // K00
+    // 底层棋盘在旋钮覆盖的 4 格（顺时针 [TL,TR,BR,BL]）的颜色
+    const underlying = knob.cells.map((i) => capturedGame!.board.cells[i].color);
+
+    act(() => {
+      fireEvent.click(screen.getAllByRole('button')[0]);
+    });
+
+    // overlay 挂载后，4 个 rot-cell 内 cell 的颜色应与底层一致，
+    // 且 DOM 顺序为 tl,tr,bl,br（行优先）——即 overlay[0..3] 对应 [TL,TR,BL,BR]
+    const rotCells = document.querySelectorAll('.rot-cell');
+    expect(rotCells.length).toBe(4);
+    const positions = Array.from(rotCells).map((c) =>
+      Array.from(c.classList).filter((x) => ['tl', 'tr', 'bl', 'br'].includes(x as string))[0],
+    );
+    expect(positions).toEqual(['tl', 'tr', 'bl', 'br']);
+    const overlayColors = Array.from(rotCells).map((c) => {
+      const cell = c.querySelector('.cell')!;
+      return Array.from(cell.classList).filter((x) =>
+        ['red', 'yellow', 'blue', 'green'].includes(x as string),
+      )[0];
+    });
+    // overlay 行优先顺序 [TL,TR,BL,BR] 应对应底层 [TL,TR,BR,BL] 中的 [0,1,3,2]
+    expect(overlayColors).toEqual([
+      underlying[0],
+      underlying[1],
+      underlying[3],
+      underlying[2],
+    ]);
   });
 });

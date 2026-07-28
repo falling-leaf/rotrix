@@ -68,22 +68,24 @@ export function useGame(level: Level) {
     const { knob, direction } = current;
     const move: Move = { knobId: knob.id, direction };
 
-    // 更新棋盘（updater 是纯函数，StrictMode 双调用无副作用）
-    // setWon 放在 updater 内是安全的：它是幂等的（true → true）
-    setBoard((prev) => {
-      const next = applyMove(prev, knob, direction);
-      if (level.goal.satisfied(next, topology)) {
-        setWon(true);
-      }
-      return next;
-    });
-
-    // 更新历史和步数 —— 顶层独立调用，各只派发一次
+    // v0.1.2 修复：原实现把 setWon 嵌套在 setBoard 的 updater 函数体内，
+    // 违反 React 纯函数 updater 规则。StrictMode 下 updater 被双调用，
+    // 嵌套 setState 使批处理顺序不可预测，可能导致 board commit 与
+    // animating 清除之间存在一帧间隙——overlay 卸载但棋盘尚未更新，
+    // 表现为"一瞬间回到原始状态"的闪烁。
+    //
+    // 修复：先用 board 的当前值（闭包捕获的 board）计算下一态与胜利判定，
+    // 再在顶层独立调用 setBoard / setWon / setHistory / setMoveCount / setAnimating，
+    // 全部为顶层独立 setState，React 18 automatic batching 合并成一次 render，
+    // overlay 卸载与 cell-grid 更新在同一 commit，无中间原始态。
+    const next = applyMove(board, knob, direction);
+    const won = level.goal.satisfied(next, topology);
+    setBoard(next);
+    if (won) setWon(true);
     setHistory((h) => [...h, move]);
     setMoveCount((c) => c + 1);
-
     setAnimating(null);
-  }, [level, topology]);
+  }, [level, topology, board]);
 
   const reset = useCallback(() => {
     animatingRef.current = null;
