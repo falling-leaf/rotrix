@@ -4,6 +4,11 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // v0.2.2：监听所有网卡，允许同一局域网下其他设备通过 IP:端口 访问
+    // `true` 等同于 0.0.0.0，Vite 启动时会额外打印 Network: http://<LAN-IP>:5173
+    host: true,
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
