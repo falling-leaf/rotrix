@@ -538,3 +538,134 @@ button, .knob, .level-chip, .btn {
     font-size: 30px;
   }
 }
+
+/* v0.2.3：初始界面 StartScreen */
+.start-screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px 24px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  gap: 24px;
+}
+
+.start-logo {
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--color-red), var(--color-yellow), var(--color-green), var(--color-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.start-tagline {
+  font-size: 24px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.mode-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 420px;
+  align-items: center;
+}
+
+.mode-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 24px 32px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 2px solid var(--grid-line);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  touch-action: manipulation;
+}
+
+.mode-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.mode-card.campaign {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-soft), var(--panel));
+}
+
+.mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.mode-group-title {
+  font-size: 18px;
+  color: var(--text-dim);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.mode-card.endless {
+  padding: 16px 24px;
+  max-width: 340px;
+}
+
+.mode-icon {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.mode-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mode-desc {
+  font-size: 16px;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* v0.2.3：无尽/闯关模式顶部返回栏 */
+.endless-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.back-btn {
+  padding: 8px 18px;
+  font-size: 18px;
+}
+
+.endless-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+.endless-stats strong {
+  color: var(--accent);
+  font-weight: 700;
+}

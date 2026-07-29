@@ -216,3 +216,24 @@ export function generatePuzzle(
   const rng = new SeededRNG(seed);
   return generateLevel({ solved, topology, scrambleCount: scramble, rng });
 }
+
+/**
+ * v0.2.3：无尽模式题目生成。
+ *
+ * 与 generatePuzzle 不同，使用 defaultRNG()（Math.random）而非确定性种子，
+ * 每次调用产生不同的题目。拓扑与打乱步数固定（4x4: 30 步 / 6x6: 60 步），
+ * 保证难度一致而布局各异。
+ *
+ * @param topologyKind 拓扑类型（'square-4x4' 或 'square-6x6'）
+ * @param scramble 打乱步数
+ */
+export function generateRandomPuzzle(
+  topologyKind: string,
+  scramble: number,
+): GeneratedLevel {
+  const entry = getTopologyEntry(topologyKind);
+  const topology = entry.topology();
+  const solved = entry.defaultSolvedBoard();
+  const rng = defaultRNG();
+  return generateLevel({ solved, topology, scrambleCount: scramble, rng });
+}

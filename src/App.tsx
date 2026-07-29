@@ -1,25 +1,71 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BoardView } from './components/BoardView';
+import { StartScreen } from './components/StartScreen';
+import { EndlessScreen } from './components/EndlessScreen';
 import { useGame } from './hooks/useGame';
 import { getLevels } from './levels/levels';
 import { getTopologyEntry } from './core/goals';
 
+/** 无尽模式子类型 */
+export type EndlessKind = '4x4' | '6x6';
+
+/** 顶层视图状态 */
+type View = { mode: 'start' } | { mode: 'campaign' } | { mode: 'endless'; kind: EndlessKind };
+
 /**
- * 应用入口组件
+ * v0.2.3：App 重构为视图状态机。
+ * - start: 初始界面，选择闯关 / 4x4 无尽 / 6x6 无尽
+ * - campaign: 原闯关模式（v0.2.1 逻辑完整保留）
+ * - endless: 无尽模式，随机生成题目，记录通关数
  *
- * v0.1.1 改动：
- * - 去除操作地图下方的文字说明
- * - 在操作地图右侧添加目标地图预览（缩小版棋盘，无旋钮）
- * - 接入旋转动画 hook（animating / onAnimationEnd）
+ * 闯关模式在原有逻辑上加了一个"返回主菜单"按钮，其余不变。
  */
 export function App() {
+  const [view, setView] = useState<View>({ mode: 'start' });
+  const [best4x4, setBest4x4] = useState(0);
+  const [best6x6, setBest6x6] = useState(0);
+
+  // 进入初始界面时读取无尽模式历史最佳
+  useEffect(() => {
+    if (view.mode === 'start') {
+      try {
+        setBest4x4(parseInt(localStorage.getItem('rotrix:endless:4x4') || '0', 10) || 0);
+        setBest6x6(parseInt(localStorage.getItem('rotrix:endless:6x6') || '0', 10) || 0);
+      } catch {
+        // localStorage 不可用
+      }
+    }
+  }, [view]);
+
+  if (view.mode === 'start') {
+    return (
+      <StartScreen
+        bestScore4x4={best4x4}
+        bestScore6x6={best6x6}
+        onStart={() => setView({ mode: 'campaign' })}
+        onEndless={(kind) => setView({ mode: 'endless', kind })}
+      />
+    );
+  }
+
+  if (view.mode === 'endless') {
+    return <EndlessScreen kind={view.kind} onBack={() => setView({ mode: 'start' })} />;
+  }
+
+  // campaign 模式
+  return <CampaignScreen onBack={() => setView({ mode: 'start' })} />;
+}
+
+/**
+ * 闯关模式——v0.2.1 的完整逻辑，仅新增 onBack prop。
+ */
+function CampaignScreen({ onBack }: { onBack: () => void }) {
   const levels = getLevels();
   const [currentLevelId, setCurrentLevelId] = useState(1);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
 
   const level = levels.find((l) => l.id === currentLevelId)!;
   const game = useGame(level);
-  // v0.2.0：从注册表按当前关卡拓扑获取目标棋盘，不再硬编码 4x4
   const solvedBoard = useMemo(
     () => getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
     [level.topologyKind],
@@ -43,6 +89,12 @@ export function App() {
 
   return (
     <div className="app">
+      <div className="endless-header">
+        <button className="btn back-btn" onClick={onBack}>
+          ← 返回
+        </button>
+      </div>
+
       <header className="app-header">
         <h1 className="app-title">ROTRIX</h1>
         <p className="app-subtitle">旋转拼图 · 通关挑战</p>
@@ -71,7 +123,6 @@ export function App() {
           </span>
         </div>
 
-        {/* 操作地图（左）+ 目标地图（右）并排 */}
         <div className="boards-layout">
           <BoardView
             board={game.board}
@@ -99,8 +150,6 @@ export function App() {
         </div>
       </div>
 
-      {/* v0.2.1：胜利后先播放庆祝动画（对角线波纹），动画结束后再显示弹窗。
-       * celebrating=true 期间不渲染 win-overlay，让用户看到棋盘上的波纹效果。 */}
       {game.won && !game.celebrating && (
         <div className="win-overlay" onClick={() => {}}>
           <div className="win-card">

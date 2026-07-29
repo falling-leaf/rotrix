@@ -9,6 +9,7 @@ import {
   createSolvedSquare4x4,
   createSolvedSquare6x6,
   applyMove,
+  applyMoves,
   cloneBoard,
   boardsEqual,
   rotateCellsCW,
@@ -16,7 +17,7 @@ import {
 } from '../src/core/board';
 import { square4x4, square6x6 } from '../src/core/topology';
 import { QuadrantUniformGoal } from '../src/core/goals';
-import { generateLevel, generateDifficultyCurve, displacementRate } from '../src/core/generator';
+import { generateLevel, generateDifficultyCurve, generateRandomPuzzle, displacementRate } from '../src/core/generator';
 import { SeededRNG } from '../src/core/rng';
 import { getLevels } from '../src/levels/levels';
 import type { Cell } from '../src/core/types';
@@ -456,5 +457,43 @@ describe('Levels - 6x6 关卡数据', () => {
     for (let i = 10; i < 20; i++) {
       expect(boardsEqual(levels[i].initial, solved)).toBe(false);
     }
+  });
+});
+
+// v0.2.3：无尽模式题目生成
+describe('generateRandomPuzzle - 无尽模式生成', () => {
+  it('4x4: 生成与目标不同的题目', () => {
+    const solved = createSolvedSquare4x4();
+    const gen = generateRandomPuzzle('square-4x4', 30);
+    expect(gen.initial.dims).toEqual([4, 4]);
+    expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+
+  it('6x6: 生成与目标不同的题目', () => {
+    const solved = createSolvedSquare6x6();
+    const gen = generateRandomPuzzle('square-6x6', 60);
+    expect(gen.initial.dims).toEqual([6, 6]);
+    expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+
+  it('连续两次调用产生不同题目（非确定性）', () => {
+    const a = generateRandomPuzzle('square-4x4', 30);
+    const b = generateRandomPuzzle('square-4x4', 30);
+    // 极小概率两次相同，但 scramble=30 下基本不可能
+    expect(boardsEqual(a.initial, b.initial)).toBe(false);
+  });
+
+  it('生成的题目可解（逆序还原）', () => {
+    const topo = square4x4();
+    const gen = generateRandomPuzzle('square-4x4', 30);
+    // 逆向执行 solution 应该还原到 solved
+    const knobs = topo.knobs();
+    const solved = createSolvedSquare4x4();
+    const restored = applyMoves(
+      gen.initial,
+      knobs,
+      gen.solution.map((m) => ({ ...m, direction: 'CCW' as const })).reverse(),
+    );
+    expect(boardsEqual(restored, solved)).toBe(true);
   });
 });
