@@ -64,7 +64,7 @@ export function App() {
       <div className="game-area">
         <div className="info-bar">
           <span>
-            <span className="label">{level.name}</span>
+            <span className="label">第 {level.id} 关</span>
           </span>
           <span>
             步数 <span className="label">{game.moveCount}</span>
@@ -80,6 +80,7 @@ export function App() {
             onAnimationEnd={game.onAnimationEnd}
             animating={game.animating}
             disabled={game.won}
+            celebrating={game.celebrating}
             label="操作地图"
           />
           <BoardView
@@ -98,12 +99,14 @@ export function App() {
         </div>
       </div>
 
-      {game.won && (
+      {/* v0.2.1：胜利后先播放庆祝动画（对角线波纹），动画结束后再显示弹窗。
+       * celebrating=true 期间不渲染 win-overlay，让用户看到棋盘上的波纹效果。 */}
+      {game.won && !game.celebrating && (
         <div className="win-overlay" onClick={() => {}}>
           <div className="win-card">
             <h2 className="win-title">🎉 通关！</h2>
             <p className="win-stats">
-              第 {level.id} 关 · {level.name} · 用了 {game.moveCount} 步
+              第 {level.id} 关 · 用了 {game.moveCount} 步
             </p>
             <div className="win-actions">
               {currentLevelId < levels.length ? (

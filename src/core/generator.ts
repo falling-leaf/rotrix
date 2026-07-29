@@ -16,6 +16,9 @@
 import type { Board, GeneratedLevel, Knob, Move, Topology } from './types';
 import { applyMove, cloneBoard, defaultRNG, type RNG } from './board';
 import { boardsEqual } from './board';
+// v0.2.1：generatePuzzle 统一接口所需的注册表与 RNG
+import { getTopologyEntry } from './goals';
+import { SeededRNG } from './rng';
 
 export interface GenerateOptions {
   /** 目标棋盘（生成起点） */
@@ -164,7 +167,6 @@ export function displacementRate(board: Board, solved: Board): number {
   }
   return diff / board.cells.length;
 }
-
 /**
  * 生成一批由易到难的关卡。
  * @param solved 目标棋盘
@@ -172,6 +174,7 @@ export function displacementRate(board: Board, solved: Board): number {
  * @param count 关卡数
  * @param baseScramble 基础打乱次数
  * @param step 每关增加的打乱次数
+ * @param rng 可选 RNG
  */
 export function generateDifficultyCurve(
   solved: Board,
@@ -189,4 +192,27 @@ export function generateDifficultyCurve(
     );
   }
   return levels;
+}
+
+/**
+ * v0.2.1：题目生成统一接口。
+ *
+ * 输入拓扑类型 + 打乱步数 + 种子，输出一个完整的 GeneratedLevel
+ * （含题目棋盘、旋转序列、难度）。内部从注册表自动获取 topology /
+ * solved，调用方无需重复访问 getTopologyEntry / generateLevel / SeededRNG。
+ *
+ * @param topologyKind 拓扑类型（如 'square-4x4'）
+ * @param scramble 打乱步数
+ * @param seed 种子（保证确定性）
+ */
+export function generatePuzzle(
+  topologyKind: string,
+  scramble: number,
+  seed: number,
+): GeneratedLevel {
+  const entry = getTopologyEntry(topologyKind);
+  const topology = entry.topology();
+  const solved = entry.defaultSolvedBoard();
+  const rng = new SeededRNG(seed);
+  return generateLevel({ solved, topology, scrambleCount: scramble, rng });
 }

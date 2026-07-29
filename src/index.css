@@ -208,6 +208,33 @@ html, body, #root {
 .cell.blue { background: var(--color-blue); }
 .cell.green { background: var(--color-green); }
 
+/* v0.2.1：胜利庆祝动画——对角线波纹。
+ * 胜利后棋盘上加 .celebrating 类，每个 .cell 按 (row+col)*60ms 延迟
+ * 启动 celebrate-pulse 动画，形成从左上角到右下角的对角线波浪扫过效果。
+ * 动画：scale 1 → 1.18 → 1 + 亮度提升 + 圆角变化，单次 400ms。 */
+@keyframes celebrate-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+    border-radius: 6px;
+  }
+  40% {
+    transform: scale(1.18);
+    filter: brightness(1.25);
+    border-radius: 12px;
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+    border-radius: 6px;
+  }
+}
+
+.board.celebrating .cell {
+  animation: celebrate-pulse 0.4s ease-in-out forwards;
+  /* animation-delay 由 BoardView 内联按 (row+col)*60ms 设置 */
+}
+
 /* Knob overlay */
 .knob-layer {
   position: absolute;

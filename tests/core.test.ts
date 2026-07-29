@@ -234,14 +234,17 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 10 个关卡', () => {
+  it('生成 20 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(10);
+    expect(levels).toHaveLength(20);
   });
 
-  it('关卡 ID 从 1 到 10', () => {
+  it('关卡 ID 从 1 到 20', () => {
     const levels = getLevels();
-    expect(levels.map((l) => l.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(levels.map((l) => l.id)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    ]);
   });
 
   it('关卡难度在同拓扑内递增', () => {
@@ -253,9 +256,9 @@ describe('Levels - 关卡数据', () => {
       }
     }
     // 4x4 最难关 > 4x4 最易关
-    expect(levels[4].difficulty).toBeGreaterThan(levels[0].difficulty);
+    expect(levels[9].difficulty).toBeGreaterThan(levels[0].difficulty);
     // 6x6 最难关 > 6x6 最易关
-    expect(levels[9].difficulty).toBeGreaterThan(levels[5].difficulty);
+    expect(levels[19].difficulty).toBeGreaterThan(levels[10].difficulty);
   });
 
   it('每个关卡题目非已解决状态', () => {
@@ -417,28 +420,31 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 10 个关卡（5 个 4x4 + 5 个 6x6）', () => {
+  it('生成 20 个关卡（10 个 4x4 + 10 个 6x6）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(10);
+    expect(levels).toHaveLength(20);
   });
 
-  it('关卡 ID 从 1 到 10', () => {
+  it('关卡 ID 从 1 到 20', () => {
     const levels = getLevels();
-    expect(levels.map((l) => l.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(levels.map((l) => l.id)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    ]);
   });
 
-  it('第 6-10 关为 6x6 网格', () => {
+  it('第 11-20 关为 6x6 网格', () => {
     const levels = getLevels();
-    for (let i = 5; i < 10; i++) {
+    for (let i = 10; i < 20; i++) {
       expect(levels[i].topologyKind).toBe('square-6x6');
       expect(levels[i].initial.dims).toEqual([6, 6]);
       expect(levels[i].initial.cells).toHaveLength(36);
     }
   });
 
-  it('第 1-5 关仍为 4x4 网格（回归）', () => {
+  it('第 1-10 关仍为 4x4 网格（回归）', () => {
     const levels = getLevels();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(levels[i].topologyKind).toBe('square-4x4');
       expect(levels[i].initial.dims).toEqual([4, 4]);
     }
@@ -447,7 +453,7 @@ describe('Levels - 6x6 关卡数据', () => {
   it('每个 6x6 关卡题目非已解决状态', () => {
     const solved = createSolvedSquare6x6();
     const levels = getLevels();
-    for (let i = 5; i < 10; i++) {
+    for (let i = 10; i < 20; i++) {
       expect(boardsEqual(levels[i].initial, solved)).toBe(false);
     }
   });

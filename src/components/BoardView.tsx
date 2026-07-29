@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState } from '../hooks/useGame';
 
@@ -10,10 +11,11 @@ const SETTLE_FRAMES = 3;
 interface CellProps {
   color: Color;
   className?: string;
+  style?: CSSProperties;
 }
 
-function CellBlock({ color, className }: CellProps) {
-  return <div className={`cell ${color} ${className ?? ''}`} />;
+function CellBlock({ color, className, style }: CellProps) {
+  return <div className={`cell ${color} ${className ?? ''}`} style={style} />;
 }
 
 /**
@@ -47,6 +49,8 @@ interface BoardViewProps {
   preview?: boolean;
   /** 预览模式标题 */
   label?: string;
+  /** v0.2.1：是否正在播放胜利庆祝动画 */
+  celebrating?: boolean;
 }
 
 function BoardViewInner({
@@ -58,6 +62,7 @@ function BoardViewInner({
   disabled,
   preview = false,
   label,
+  celebrating = false,
 }: BoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -166,7 +171,7 @@ function BoardViewInner({
   return (
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>
       {label && <div className="board-label">{label}</div>}
-      <div className={`board ${animating || keepAnimating ? 'animating' : ''}`}>
+      <div className={`board ${(animating || keepAnimating) ? 'animating' : ''} ${celebrating ? 'celebrating' : ''}`}>
         <div
           className="cell-grid"
           style={{
@@ -174,9 +179,20 @@ function BoardViewInner({
             gridTemplateRows: `repeat(${board.dims[0]}, 1fr)`,
           }}
         >
-          {cells.map((cell, i) => (
-            <CellBlock key={i} color={cell.color} />
-          ))}
+          {cells.map((cell, i) => {
+            // v0.2.1：胜利庆祝——对角线波纹延迟
+            // 每个 cell 的延迟 = (row+col) * 60ms，形成从左上到右下的波浪
+            const row = Math.floor(i / board.dims[1]);
+            const col = i % board.dims[1];
+            const delay = celebrating ? (row + col) * 60 : 0;
+            return (
+              <CellBlock
+                key={i}
+                color={cell.color}
+                style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
+              />
+            );
+          })}
         </div>
 
         {/* 旋转动画 overlay：在被旋转的 2x2 区域上叠加旋转层 */}

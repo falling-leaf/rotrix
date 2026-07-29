@@ -149,8 +149,8 @@ describe('BoardView 组件渲染', () => {
   });
 
   it('6x6 棋盘渲染 36 色块和 25 旋钮', () => {
-    // v0.2.0：6x6 网格渲染测试
-    const level = getLevel(6)!;
+    // v0.2.0：6x6 网格渲染测试；v0.2.1：6x6 关卡移至第 11 关
+    const level = getLevel(11)!;
     const Wrapper = () => {
       const game = useGame(level);
       return (

@@ -1,20 +1,19 @@
 /**
  * 关卡数据
  *
- * 5 个由易到难的关卡。使用确定性种子生成，保证关卡内容固定。
- * 难度梯度：scramble 次数递增，有效旋转步数（difficulty）随之上升。
+ * v0.2.1：扩展为 20 关——10 个 4x4 + 10 个 6x6，各从易到难。
+ * 使用 v0.2.1 新增的 generatePuzzle 统一接口生成题目，
+ * 无需在文件内重复访问 getTopologyEntry / generateLevel / SeededRNG。
  *
- * 关卡结构化定义，便于后续扩展到 50 关时只需补充数据。
+ * 关卡结构化定义，便于后续扩展到 50+ 关时只需补充数据。
  */
 
 import type { GeneratedLevel, Level } from '../core/types';
-import { getTopologyEntry } from '../core/goals';
-import { generateLevel } from '../core/generator';
-import { SeededRNG } from '../core/rng';
+import { generatePuzzle } from '../core/generator';
+import { QuadrantUniformGoal } from '../core/goals';
 
 interface LevelSpec {
   id: number;
-  name: string;
   /** 拓扑类型，从注册表获取 */
   topologyKind: string;
   scramble: number;
@@ -22,18 +21,28 @@ interface LevelSpec {
 }
 
 const LEVEL_SPECS: LevelSpec[] = [
-  // 第 1-5 关：4x4 网格
-  { id: 1, name: '初探旋钮', topologyKind: 'square-4x4', scramble: 3, seed: 101 },
-  { id: 2, name: '渐入佳境', topologyKind: 'square-4x4', scramble: 6, seed: 202 },
-  { id: 3, name: '错综复杂', topologyKind: 'square-4x4', scramble: 9, seed: 303 },
-  { id: 4, name: '混沌迷局', topologyKind: 'square-4x4', scramble: 12, seed: 404 },
-  { id: 5, name: '终极挑战', topologyKind: 'square-4x4', scramble: 18, seed: 505 },
-  // 第 6-10 关：6x6 网格（新玩法）
-  { id: 6, name: '六六初探', topologyKind: 'square-6x6', scramble: 5, seed: 606 },
-  { id: 7, name: '矩阵迷踪', topologyKind: 'square-6x6', scramble: 10, seed: 707 },
-  { id: 8, name: '星罗棋布', topologyKind: 'square-6x6', scramble: 15, seed: 808 },
-  { id: 9, name: '万象旋转', topologyKind: 'square-6x6', scramble: 22, seed: 909 },
-  { id: 10, name: '六维终极', topologyKind: 'square-6x6', scramble: 30, seed: 1001 },
+  // 第 1-10 关：4x4 网格（打乱步数递增）
+  { id: 1,  topologyKind: 'square-4x4', scramble: 3,  seed: 101 },
+  { id: 2,  topologyKind: 'square-4x4', scramble: 5,  seed: 102 },
+  { id: 3,  topologyKind: 'square-4x4', scramble: 7,  seed: 103 },
+  { id: 4,  topologyKind: 'square-4x4', scramble: 9,  seed: 104 },
+  { id: 5,  topologyKind: 'square-4x4', scramble: 12, seed: 105 },
+  { id: 6,  topologyKind: 'square-4x4', scramble: 15, seed: 106 },
+  { id: 7,  topologyKind: 'square-4x4', scramble: 18, seed: 107 },
+  { id: 8,  topologyKind: 'square-4x4', scramble: 22, seed: 108 },
+  { id: 9,  topologyKind: 'square-4x4', scramble: 26, seed: 109 },
+  { id: 10, topologyKind: 'square-4x4', scramble: 30, seed: 110 },
+  // 第 11-20 关：6x6 网格
+  { id: 11, topologyKind: 'square-6x6', scramble: 5,  seed: 201 },
+  { id: 12, topologyKind: 'square-6x6', scramble: 8,  seed: 202 },
+  { id: 13, topologyKind: 'square-6x6', scramble: 12, seed: 203 },
+  { id: 14, topologyKind: 'square-6x6', scramble: 16, seed: 204 },
+  { id: 15, topologyKind: 'square-6x6', scramble: 20, seed: 205 },
+  { id: 16, topologyKind: 'square-6x6', scramble: 25, seed: 206 },
+  { id: 17, topologyKind: 'square-6x6', scramble: 30, seed: 207 },
+  { id: 18, topologyKind: 'square-6x6', scramble: 36, seed: 208 },
+  { id: 19, topologyKind: 'square-6x6', scramble: 42, seed: 209 },
+  { id: 20, topologyKind: 'square-6x6', scramble: 50, seed: 210 },
 ];
 
 let _cache: Level[] | null = null;
@@ -42,24 +51,19 @@ export function getLevels(): Level[] {
   if (_cache) return _cache;
 
   const levels: Level[] = LEVEL_SPECS.map((spec) => {
-    const entry = getTopologyEntry(spec.topologyKind);
-    const topology = entry.topology();
-    const solved = entry.defaultSolvedBoard();
-    const goal = entry.defaultGoal();
-    const rng = new SeededRNG(spec.seed);
-    const gen: GeneratedLevel = generateLevel({
-      solved,
-      topology,
-      scrambleCount: spec.scramble,
-      rng,
-    });
+    // v0.2.1：一行调用，无需重复访问注册表/RNG
+    const gen: GeneratedLevel = generatePuzzle(
+      spec.topologyKind,
+      spec.scramble,
+      spec.seed,
+    );
     return {
       id: spec.id,
-      name: spec.name,
+      name: `第 ${spec.id} 关`, // v0.2.1：不再单独取名
       difficulty: gen.difficulty,
       topologyKind: spec.topologyKind,
       initial: gen.initial,
-      goal,
+      goal: new QuadrantUniformGoal(),
       solution: gen.solution,
     };
   });

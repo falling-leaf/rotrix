@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Board, Knob, Level, Move, Topology } from '../core/types';
 import { applyMove } from '../core/board';
 import { getTopologyEntry } from '../core/goals';
@@ -8,6 +8,13 @@ export interface AnimationState {
   knob: Knob;
   direction: 'CW' | 'CCW';
 }
+
+/**
+ * v0.2.1：庆祝动画状态。
+ * won 为 true 后，BoardView 根据此状态启动对角线波纹动画。
+ * 动画持续 CELEBRATE_DURATION 后自动清除。
+ */
+const CELEBRATE_DURATION = 1400;
 
 /**
  * 游戏主 hook：管理棋盘状态、旋钮点击、移动历史、胜利判定、旋转动画。
@@ -38,6 +45,8 @@ export function useGame(level: Level) {
   const [won, setWon] = useState(false);
   const [animating, setAnimating] = useState<AnimationState | null>(null);
   const [moveCount, setMoveCount] = useState(0);
+  // v0.2.1：庆祝动画状态——won 置 true 后启动，CELEBRATE_DURATION 后清除
+  const [celebrating, setCelebrating] = useState(false);
 
   // 用 ref 存动画状态，避免在 updater body 内嵌套 setState
   const animatingRef = useRef<AnimationState | null>(null);
@@ -86,7 +95,11 @@ export function useGame(level: Level) {
     const next = applyMove(board, knob, direction);
     const won = level.goal.satisfied(next, topology);
     setBoard(next);
-    if (won) setWon(true);
+    if (won) {
+      setWon(true);
+      // v0.2.1：启动庆祝动画，弹窗在 App 层延迟显示
+      setCelebrating(true);
+    }
     setHistory((h) => [...h, move]);
     setMoveCount((c) => c + 1);
     setAnimating(null);
@@ -102,7 +115,16 @@ export function useGame(level: Level) {
     setMoveCount(0);
     setWon(false);
     setAnimating(null);
+    setCelebrating(false);
   }, [level]);
+
+  // v0.2.1：庆祝动画自动清除——celebrating 置 true 后，
+  // 经 CELEBRATE_DURATION 毫秒自动清 false。
+  useEffect(() => {
+    if (!celebrating) return;
+    const id = setTimeout(() => setCelebrating(false), CELEBRATE_DURATION);
+    return () => clearTimeout(id);
+  }, [celebrating]);
 
   return {
     board,
@@ -112,6 +134,7 @@ export function useGame(level: Level) {
     moveCount,
     won,
     animating,
+    celebrating,
     handleKnobClick,
     onAnimationEnd,
     reset,
