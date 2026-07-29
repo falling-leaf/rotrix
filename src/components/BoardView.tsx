@@ -2,8 +2,8 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState } from '../hooks/useGame';
 
-/** 旋转动画时长（ms）——足够感知过程，不至卡顿 */
-const ROTATE_DURATION = 350;
+/** 旋转动画时长（ms）——v0.1.3：350ms → 200ms，缩减单次旋转开销 */
+const ROTATE_DURATION = 200;
 /** 旋转到达目标角度后停留的额外帧数，确保 board commit 后再卸载 overlay */
 const SETTLE_FRAMES = 3;
 
