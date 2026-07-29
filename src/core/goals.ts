@@ -53,13 +53,18 @@ export function getTopologyEntry(kind: string): TopologyRegistryEntry {
   return entry;
 }
 
-/** 注册当前已有的 4x4 方形拓扑 */
-import { square4x4, SQUARE_4X4_KIND } from './topology';
-import { createSolvedSquare4x4 } from './board';
+/** 注册当前已有的方形拓扑 */
+import { square4x4, SQUARE_4X4_KIND, square6x6, SQUARE_6X6_KIND } from './topology';
+import { createSolvedSquare4x4, createSolvedSquare6x6 } from './board';
 registerTopology(SQUARE_4X4_KIND, {
   topology: square4x4,
   defaultGoal: () => new QuadrantUniformGoal(),
   defaultSolvedBoard: createSolvedSquare4x4,
+});
+registerTopology(SQUARE_6X6_KIND, {
+  topology: square6x6,
+  defaultGoal: () => new QuadrantUniformGoal(),
+  defaultSolvedBoard: createSolvedSquare6x6,
 });
 
 /** 供外部使用的颜色集合 */

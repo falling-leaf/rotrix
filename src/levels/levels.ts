@@ -8,25 +8,32 @@
  */
 
 import type { GeneratedLevel, Level } from '../core/types';
-import { createSolvedSquare4x4 } from '../core/board';
-import { square4x4 } from '../core/topology';
-import { QuadrantUniformGoal } from '../core/goals';
+import { getTopologyEntry } from '../core/goals';
 import { generateLevel } from '../core/generator';
 import { SeededRNG } from '../core/rng';
 
 interface LevelSpec {
   id: number;
   name: string;
+  /** 拓扑类型，从注册表获取 */
+  topologyKind: string;
   scramble: number;
   seed: number;
 }
 
 const LEVEL_SPECS: LevelSpec[] = [
-  { id: 1, name: '初探旋钮', scramble: 3, seed: 101 },
-  { id: 2, name: '渐入佳境', scramble: 6, seed: 202 },
-  { id: 3, name: '错综复杂', scramble: 9, seed: 303 },
-  { id: 4, name: '混沌迷局', scramble: 12, seed: 404 },
-  { id: 5, name: '终极挑战', scramble: 18, seed: 505 },
+  // 第 1-5 关：4x4 网格
+  { id: 1, name: '初探旋钮', topologyKind: 'square-4x4', scramble: 3, seed: 101 },
+  { id: 2, name: '渐入佳境', topologyKind: 'square-4x4', scramble: 6, seed: 202 },
+  { id: 3, name: '错综复杂', topologyKind: 'square-4x4', scramble: 9, seed: 303 },
+  { id: 4, name: '混沌迷局', topologyKind: 'square-4x4', scramble: 12, seed: 404 },
+  { id: 5, name: '终极挑战', topologyKind: 'square-4x4', scramble: 18, seed: 505 },
+  // 第 6-10 关：6x6 网格（新玩法）
+  { id: 6, name: '六六初探', topologyKind: 'square-6x6', scramble: 5, seed: 606 },
+  { id: 7, name: '矩阵迷踪', topologyKind: 'square-6x6', scramble: 10, seed: 707 },
+  { id: 8, name: '星罗棋布', topologyKind: 'square-6x6', scramble: 15, seed: 808 },
+  { id: 9, name: '万象旋转', topologyKind: 'square-6x6', scramble: 22, seed: 909 },
+  { id: 10, name: '六维终极', topologyKind: 'square-6x6', scramble: 30, seed: 1001 },
 ];
 
 let _cache: Level[] | null = null;
@@ -34,15 +41,15 @@ let _cache: Level[] | null = null;
 export function getLevels(): Level[] {
   if (_cache) return _cache;
 
-  const solved = createSolvedSquare4x4();
-  const topo = square4x4();
-  const goal = new QuadrantUniformGoal();
-
   const levels: Level[] = LEVEL_SPECS.map((spec) => {
+    const entry = getTopologyEntry(spec.topologyKind);
+    const topology = entry.topology();
+    const solved = entry.defaultSolvedBoard();
+    const goal = entry.defaultGoal();
     const rng = new SeededRNG(spec.seed);
     const gen: GeneratedLevel = generateLevel({
       solved,
-      topology: topo,
+      topology,
       scrambleCount: spec.scramble,
       rng,
     });
@@ -50,7 +57,7 @@ export function getLevels(): Level[] {
       id: spec.id,
       name: spec.name,
       difficulty: gen.difficulty,
-      topologyKind: topo.kind,
+      topologyKind: spec.topologyKind,
       initial: gen.initial,
       goal,
       solution: gen.solution,

@@ -76,7 +76,10 @@ function BoardViewInner({
     const left = (c / board.dims[1]) * 100;
     // 目标旋转角度：CW=+90, CCW=-90
     const targetAngle = animating.direction === 'CW' ? 90 : -90;
-    return { colors, top, left, width: 50, height: 50, targetAngle };
+    // v0.2.0：overlay 尺寸按网格维度动态计算（2x2 区域占整盘比例）
+    // 4x4: 2/4=50%，6x6: 2/6≈33.3%
+    const overlayPct = (2 / board.dims[0]) * 100;
+    return { colors, top, left, width: overlayPct, height: overlayPct, targetAngle };
   }, [animating, board, preview]);
 
   // rAF 驱动：angle 从 0 度动画到 targetAngle。
@@ -164,7 +167,13 @@ function BoardViewInner({
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>
       {label && <div className="board-label">{label}</div>}
       <div className={`board ${animating || keepAnimating ? 'animating' : ''}`}>
-        <div className="cell-grid">
+        <div
+          className="cell-grid"
+          style={{
+            gridTemplateColumns: `repeat(${board.dims[1]}, 1fr)`,
+            gridTemplateRows: `repeat(${board.dims[0]}, 1fr)`,
+          }}
+        >
           {cells.map((cell, i) => (
             <CellBlock key={i} color={cell.color} />
           ))}

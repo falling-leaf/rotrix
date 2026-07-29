@@ -69,3 +69,83 @@ export function square4x4(): Square4x4Topology {
   if (!_instance) _instance = new Square4x4Topology();
   return _instance;
 }
+
+/**
+ * 6x6 正方形拓扑
+ *
+ * 旋钮位于每个 2x2 区域的中心，共 25 个旋钮（5x5 排布）。
+ * 每个旋钮旋转其覆盖的 4 个色块。
+ *
+ * 旋钮编号与覆盖索引：
+ *   旋钮 K(r,c) 中心位于 (r+0.5, c+0.5)，覆盖
+ *   [r][c], [r][c+1], [r+1][c], [r+1][c+1] —— r,c ∈ {0,1,2,3,4}
+ *
+ * cells 顺序：[左上, 右上, 右下, 左下]（顺时针）以便 rotateCW 语义明确。
+ *
+ * 目标区域为 4 个 3x3 象限（非旋钮的 2x2）：
+ *   TL: rows 0-2, cols 0-2
+ *   TR: rows 0-2, cols 3-5
+ *   BL: rows 3-5, cols 0-2
+ *   BR: rows 3-5, cols 3-5
+ */
+
+export const SQUARE_6X6_KIND = 'square-6x6';
+
+export class Square6x6Topology implements Topology {
+  readonly kind = SQUARE_6X6_KIND;
+  private readonly rows = 6;
+  private readonly cols = 6;
+
+  size(): number {
+    return this.rows * this.cols;
+  }
+
+  /** 5x5 = 25 个旋钮 */
+  knobs(): Knob[] {
+    const result: Knob[] = [];
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const tl = r * this.cols + c;
+        const tr = r * this.cols + (c + 1);
+        const br = (r + 1) * this.cols + (c + 1);
+        const bl = (r + 1) * this.cols + c;
+        result.push({
+          id: `K${r}${c}`,
+          center: [r + 0.5, c + 0.5],
+          cells: [tl, tr, br, bl], // 顺时针
+          directions: ['CW'],
+        });
+      }
+    }
+    return result;
+  }
+
+  /** 4 个 3x3 象限作为目标区域 */
+  regions(): Region[] {
+    const tl: number[] = [];
+    const tr: number[] = [];
+    const bl: number[] = [];
+    const br: number[] = [];
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        tl.push(r * this.cols + c);
+        tr.push(r * this.cols + (c + 3));
+        bl.push((r + 3) * this.cols + c);
+        br.push((r + 3) * this.cols + (c + 3));
+      }
+    }
+    return [
+      { id: 'TL', cells: tl },
+      { id: 'TR', cells: tr },
+      { id: 'BL', cells: bl },
+      { id: 'BR', cells: br },
+    ];
+  }
+}
+
+/** 单例 */
+let _instance6: Square6x6Topology | null = null;
+export function square6x6(): Square6x6Topology {
+  if (!_instance6) _instance6 = new Square6x6Topology();
+  return _instance6;
+}

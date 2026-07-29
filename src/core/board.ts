@@ -28,6 +28,26 @@ export function createSolvedSquare4x4(): Board {
   return { dims: [4, 4], cells };
 }
 
+/** 构建一个已求解的目标棋盘（6x6 玩法） */
+export function createSolvedSquare6x6(): Board {
+  // 目标：左上红、右上黄、左下蓝、右下绿，每区 3x3
+  // 索引: 0..8  | 9..17
+  //       18..26 | 27..35
+  const colorOf = (r: number, c: number): Color => {
+    if (r < 3 && c < 3) return 'red';
+    if (r < 3 && c >= 3) return 'yellow';
+    if (r >= 3 && c < 3) return 'blue';
+    return 'green';
+  };
+  const cells: Cell[] = [];
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 6; c++) {
+      cells.push({ color: colorOf(r, c) });
+    }
+  }
+  return { dims: [6, 6], cells };
+}
+
 /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
   return {

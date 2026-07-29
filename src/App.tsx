@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BoardView } from './components/BoardView';
 import { useGame } from './hooks/useGame';
 import { getLevels } from './levels/levels';
-import { createSolvedSquare4x4 } from './core/board';
+import { getTopologyEntry } from './core/goals';
 
 /**
  * 应用入口组件
@@ -19,7 +19,11 @@ export function App() {
 
   const level = levels.find((l) => l.id === currentLevelId)!;
   const game = useGame(level);
-  const solvedBoard = createSolvedSquare4x4();
+  // v0.2.0：从注册表按当前关卡拓扑获取目标棋盘，不再硬编码 4x4
+  const solvedBoard = useMemo(
+    () => getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
+    [level.topologyKind],
+  );
 
   useEffect(() => {
     game.reset();

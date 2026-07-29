@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { Board, Knob, Level, Move } from '../core/types';
+import type { Board, Knob, Level, Move, Topology } from '../core/types';
 import { applyMove } from '../core/board';
-import { square4x4 } from '../core/topology';
+import { getTopologyEntry } from '../core/goals';
 
 /** 动画状态：正在旋转哪个旋钮 */
 export interface AnimationState {
@@ -23,7 +23,12 @@ export interface AnimationState {
  * 不嵌套在任何 updater body 内。
  */
 export function useGame(level: Level) {
-  const topology = useMemo(() => square4x4(), []);
+  // v0.2.0：从拓扑注册表按 level.topologyKind 动态获取拓扑，
+  // 不再硬编码 square4x4()，支持 6x6 等新拓扑。
+  const topology = useMemo<Topology>(
+    () => getTopologyEntry(level.topologyKind).topology(),
+    [level.topologyKind],
+  );
   const knobs = useMemo(() => topology.knobs(), [topology]);
   const [board, setBoard] = useState<Board>(() => ({
     dims: [...level.initial.dims],

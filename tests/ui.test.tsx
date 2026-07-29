@@ -147,4 +147,24 @@ describe('BoardView 组件渲染', () => {
       underlying[2],
     ]);
   });
+
+  it('6x6 棋盘渲染 36 色块和 25 旋钮', () => {
+    // v0.2.0：6x6 网格渲染测试
+    const level = getLevel(6)!;
+    const Wrapper = () => {
+      const game = useGame(level);
+      return (
+        <BoardView
+          board={game.board}
+          knobs={game.knobs}
+          onKnobClick={game.handleKnobClick}
+          onAnimationEnd={game.onAnimationEnd}
+          animating={game.animating}
+        />
+      );
+    };
+    render(<Wrapper />);
+    expect(screen.getAllByRole('button')).toHaveLength(25);
+    expect(document.querySelectorAll('.cell')).toHaveLength(36);
+  });
 });
