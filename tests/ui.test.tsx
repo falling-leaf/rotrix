@@ -9,7 +9,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { BoardView } from '../src/components/BoardView';
+import { BoardView, BoardViewRouter } from '../src/components/BoardView';
 import { useGame } from '../src/hooks/useGame';
 import { getLevel } from '../src/levels/levels';
 import { createSolvedSquare4x4 } from '../src/core/board';
@@ -166,5 +166,82 @@ describe('BoardView 组件渲染', () => {
     render(<Wrapper />);
     expect(screen.getAllByRole('button')).toHaveLength(25);
     expect(document.querySelectorAll('.cell')).toHaveLength(36);
+  });
+
+  // v0.3.0：六边形三角形棋盘
+  it('六边形棋盘渲染 54 三角形和 19 旋钮', () => {
+    const level = getLevel(21)!;
+    const Wrapper = () => {
+      const game = useGame(level);
+      return (
+        <BoardViewRouter
+          board={game.board}
+          knobs={game.knobs}
+          onKnobClick={game.handleKnobClick}
+          onAnimationEnd={game.onAnimationEnd}
+          animating={game.animating}
+        />
+      );
+    };
+    render(<Wrapper />);
+    expect(screen.getAllByRole('button')).toHaveLength(19);
+    expect(document.querySelectorAll('polygon')).toHaveLength(54);
+  });
+
+  it('六边形：点击旋钮启动动画，动画结束后步数+1', () => {
+    const level = getLevel(21)!;
+    let capturedGame: ReturnType<typeof useGame> | null = null;
+
+    const Wrapper = () => {
+      const game = useGame(level);
+      capturedGame = game;
+      return (
+        <BoardViewRouter
+          board={game.board}
+          knobs={game.knobs}
+          onKnobClick={game.handleKnobClick}
+          onAnimationEnd={game.onAnimationEnd}
+          animating={game.animating}
+        />
+      );
+    };
+    const { rerender } = render(<Wrapper />);
+    const movesBefore = capturedGame!.moveCount;
+
+    const knobButton = screen.getAllByRole('button')[0]; // H0
+    act(() => {
+      fireEvent.click(knobButton);
+    });
+
+    rerender(<Wrapper />);
+    // 动画启动后，animating 不为空
+    expect(capturedGame!.animating).not.toBeNull();
+
+    // 模拟动画结束
+    act(() => {
+      capturedGame!.onAnimationEnd();
+    });
+    rerender(<Wrapper />);
+
+    // 步数 +1
+    expect(capturedGame!.moveCount).toBe(movesBefore + 1);
+    // animating 清除
+    expect(capturedGame!.animating).toBeNull();
+  });
+
+  it('六边形：预览模式不渲染旋钮', () => {
+    const solved = getLevel(21)!.initial; // 用题目棋盘也行
+    render(
+      <BoardViewRouter
+        board={solved}
+        knobs={[]}
+        onKnobClick={() => {}}
+        preview
+        label="目标地图"
+      />,
+    );
+    expect(document.querySelectorAll('.knob')).toHaveLength(0);
+    expect(document.querySelectorAll('polygon')).toHaveLength(54);
+    expect(screen.getByText('目标地图')).toBeTruthy();
   });
 });

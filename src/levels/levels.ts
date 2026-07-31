@@ -2,6 +2,7 @@
  * 关卡数据
  *
  * v0.2.1：扩展为 20 关——10 个 4x4 + 10 个 6x6，各从易到难。
+ * v0.3.0：新增第 21 关——六边形三角形拓扑（54 三角形 / 19 旋钮）。
  * 使用 v0.2.1 新增的 generatePuzzle 统一接口生成题目，
  * 无需在文件内重复访问 getTopologyEntry / generateLevel / SeededRNG。
  *
@@ -10,7 +11,7 @@
 
 import type { GeneratedLevel, Level } from '../core/types';
 import { generatePuzzle } from '../core/generator';
-import { QuadrantUniformGoal } from '../core/goals';
+import { QuadrantUniformGoal, HexUniformGoal } from '../core/goals';
 
 interface LevelSpec {
   id: number;
@@ -43,6 +44,8 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 18, topologyKind: 'square-6x6', scramble: 36, seed: 208 },
   { id: 19, topologyKind: 'square-6x6', scramble: 42, seed: 209 },
   { id: 20, topologyKind: 'square-6x6', scramble: 50, seed: 210 },
+  // 第 21 关：六边形三角形（v0.3.0 新玩法）
+  { id: 21, topologyKind: 'hex-triangle', scramble: 40, seed: 301 },
 ];
 
 let _cache: Level[] | null = null;
@@ -57,13 +60,18 @@ export function getLevels(): Level[] {
       spec.scramble,
       spec.seed,
     );
+    // v0.3.0：根据拓扑类型选择对应 Goal
+    const goal =
+      spec.topologyKind === 'hex-triangle'
+        ? new HexUniformGoal()
+        : new QuadrantUniformGoal();
     return {
       id: spec.id,
       name: `第 ${spec.id} 关`, // v0.2.1：不再单独取名
       difficulty: gen.difficulty,
       topologyKind: spec.topologyKind,
       initial: gen.initial,
-      goal: new QuadrantUniformGoal(),
+      goal,
       solution: gen.solution,
     };
   });

@@ -229,6 +229,14 @@ button, .knob, .level-chip, .btn {
 .cell.yellow { background: var(--color-yellow); }
 .cell.blue { background: var(--color-blue); }
 .cell.green { background: var(--color-green); }
+.cell.cyan { background: var(--color-cyan); }
+.cell.magenta { background: var(--color-magenta); }
+
+/* v0.3.0：六边形新色变量 */
+:root {
+  --color-cyan: #22d3ee;
+  --color-magenta: #e056fd;
+}
 
 /* v0.2.1：胜利庆祝动画——对角线波纹。
  * 胜利后棋盘上加 .celebrating 类，每个 .cell 按 (row+col)*60ms 延迟
@@ -356,6 +364,23 @@ button, .knob, .level-chip, .btn {
 /* 预览模式下隐藏旋转 overlay */
 .board-wrapper.preview .rotate-overlay {
   display: none;
+}
+
+/* v0.3.0：六边形三角形棋盘 */
+.hex-board {
+  /* .board 基础样式继承——宽高由 --board-size 控制 */
+}
+
+.hex-svg {
+  display: block;
+}
+
+.hex-svg polygon {
+  transition: fill 0.15s ease;
+}
+
+.hex-board.celebrating .hex-svg polygon {
+  animation: celebrate-pulse 0.4s ease-in-out forwards;
 }
 
 /* Controls */

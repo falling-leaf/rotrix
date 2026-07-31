@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState } from '../hooks/useGame';
+import { HexBoardView } from './HexBoardView';
 
 /** 旋转动画时长（ms）——v0.1.3：350ms → 200ms，缩减单次旋转开销 */
 const ROTATE_DURATION = 200;
@@ -255,3 +256,16 @@ function BoardViewInner({
 }
 
 export const BoardView = memo(BoardViewInner);
+
+/**
+ * v0.3.0：BoardView 路由器——根据 board.dims 分发到正方形或六边形渲染器。
+ * 六边形三角形拓扑 (dims=[54]) 使用 HexBoardView，其余使用正方形 BoardViewInner。
+ * 在 memo 之上包装一层，避免提前 return 违反 hooks 规则。
+ */
+export function BoardViewRouter(props: BoardViewProps) {
+  const isHex = props.board.dims.length === 1 && props.board.dims[0] === 54;
+  if (isHex) {
+    return <HexBoardView {...props} />;
+  }
+  return <BoardView {...props} />;
+}

@@ -16,8 +16,9 @@ import {
   rotateCellsCCW,
 } from '../src/core/board';
 import { square4x4, square6x6 } from '../src/core/topology';
-import { QuadrantUniformGoal } from '../src/core/goals';
-import { generateLevel, generateDifficultyCurve, generateRandomPuzzle, displacementRate } from '../src/core/generator';
+import { hexTriangle, createSolvedHexTriangle } from '../src/core/hex-topology';
+import { QuadrantUniformGoal, HexUniformGoal } from '../src/core/goals';
+import { generateLevel, generateDifficultyCurve, generateRandomPuzzle, generatePuzzle, displacementRate } from '../src/core/generator';
 import { SeededRNG } from '../src/core/rng';
 import { getLevels } from '../src/levels/levels';
 import type { Cell } from '../src/core/types';
@@ -158,6 +159,37 @@ describe('Goal - 目标判定', () => {
     for (let i = 0; i < 4; i++) cur = applyMove(cur, knob, 'CW');
     expect(goal.satisfied(cur, topo)).toBe(true);
   });
+
+  // v0.2.4 fix 回归：四象限各自纯色但颜色轮换，必须判负
+  it('颜色轮换的棋盘不判胜（左上黄/右上红/左下绿/右下蓝）', () => {
+    const topo = square4x4();
+    const goal = new QuadrantUniformGoal();
+    const solved = createSolvedSquare4x4();
+    // 构造一个四象限内部统一、但颜色与目标不符的棋盘：
+    // TL=yellow, TR=red, BL=green, BR=blue
+    const wrong: Cell[] = solved.cells.map((c) => ({ ...c }));
+    const tl = [0, 1, 4, 5];
+    const tr = [2, 3, 6, 7];
+    const bl = [8, 9, 12, 13];
+    const br = [10, 11, 14, 15];
+    tl.forEach((i) => (wrong[i].color = 'yellow'));
+    tr.forEach((i) => (wrong[i].color = 'red'));
+    bl.forEach((i) => (wrong[i].color = 'green'));
+    br.forEach((i) => (wrong[i].color = 'blue'));
+    const wrongBoard = { dims: [...solved.dims], cells: wrong };
+    expect(goal.satisfied(wrongBoard, topo)).toBe(false);
+  });
+
+  it('只有目标地图完全一致才判胜', () => {
+    const topo = square4x4();
+    const goal = new QuadrantUniformGoal();
+    expect(goal.satisfied(createSolvedSquare4x4(), topo)).toBe(true);
+    // 任意一格改色都不应判胜
+    const b = createSolvedSquare4x4();
+    const cells = b.cells.map((c) => ({ ...c }));
+    cells[0].color = 'yellow'; // TL 出现一格黄
+    expect(goal.satisfied({ dims: [...b.dims], cells }, topo)).toBe(false);
+  });
 });
 
 describe('Generator - 关卡生成', () => {
@@ -235,16 +267,17 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 20 个关卡', () => {
+  it('生成 21 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(20);
+    expect(levels).toHaveLength(21);
   });
 
-  it('关卡 ID 从 1 到 20', () => {
+  it('关卡 ID 从 1 到 21', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      21,
     ]);
   });
 
@@ -278,9 +311,11 @@ describe('Levels - 关卡数据', () => {
       if (level.topologyKind === 'square-4x4') {
         expect(level.initial.dims).toEqual([4, 4]);
         expect(level.initial.cells).toHaveLength(16);
-      } else {
+      } else if (level.topologyKind === 'square-6x6') {
         expect(level.initial.dims).toEqual([6, 6]);
         expect(level.initial.cells).toHaveLength(36);
+      } else if (level.topologyKind === 'hex-triangle') {
+        expect(level.initial.cells).toHaveLength(54);
       }
     }
   });
@@ -372,6 +407,22 @@ describe('Goal - 6x6 目标判定', () => {
     for (let i = 0; i < 4; i++) cur = applyMove(cur, knob, 'CW');
     expect(goal.satisfied(cur, topo)).toBe(true);
   });
+
+  // v0.2.4 fix 回归：四象限各自纯色但颜色轮换，6x6 也要判负
+  it('颜色轮换的 6x6 棋盘不判胜', () => {
+    const topo = square6x6();
+    const goal = new QuadrantUniformGoal();
+    const solved = createSolvedSquare6x6();
+    const wrong: Cell[] = solved.cells.map((c) => ({ ...c }));
+    // TL 区索引全部改成 yellow，TR 改 red，BL 改 green，BR 改 blue
+    const regions = topo.regions();
+    regions[0].cells.forEach((i) => (wrong[i].color = 'yellow'));
+    regions[1].cells.forEach((i) => (wrong[i].color = 'red'));
+    regions[2].cells.forEach((i) => (wrong[i].color = 'green'));
+    regions[3].cells.forEach((i) => (wrong[i].color = 'blue'));
+    const wrongBoard = { dims: [...solved.dims], cells: wrong };
+    expect(goal.satisfied(wrongBoard, topo)).toBe(false);
+  });
 });
 
 describe('Generator - 6x6 关卡生成', () => {
@@ -421,16 +472,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 20 个关卡（10 个 4x4 + 10 个 6x6）', () => {
+  it('生成 21 个关卡（10 个 4x4 + 10 个 6x6 + 1 个六边形）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(20);
+    expect(levels).toHaveLength(21);
   });
 
-  it('关卡 ID 从 1 到 20', () => {
+  it('关卡 ID 从 1 到 21', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      21,
     ]);
   });
 
@@ -495,5 +547,187 @@ describe('generateRandomPuzzle - 无尽模式生成', () => {
       gen.solution.map((m) => ({ ...m, direction: 'CCW' as const })).reverse(),
     );
     expect(boardsEqual(restored, solved)).toBe(true);
+  });
+});
+
+// v0.3.0：六边形三角形拓扑
+describe('HexTriangle - 六边形三角形拓扑', () => {
+  it('createSolvedHexTriangle 创建 54 三角形棋盘', () => {
+    const board = createSolvedHexTriangle();
+    expect(board.cells).toHaveLength(54);
+    // dims 标记总数
+    expect(board.dims).toEqual([54]);
+  });
+
+  it('已解决棋盘 6 扇区分别纯色', () => {
+    const board = createSolvedHexTriangle();
+    const regions = hexTriangle().regions();
+    expect(regions).toHaveLength(6);
+    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+    for (let i = 0; i < 6; i++) {
+      for (const idx of regions[i].cells) {
+        expect(board.cells[idx].color).toBe(COLORS[i]);
+      }
+    }
+  });
+
+  it('hexTriangle 有 19 个旋钮，每个 6 三角形', () => {
+    const topo = hexTriangle();
+    const knobs = topo.knobs();
+    expect(knobs).toHaveLength(19);
+    for (const knob of knobs) {
+      expect(knob.cells).toHaveLength(6);
+    }
+  });
+
+  it('有 6 个目标区域，各 9 三角形', () => {
+    const topo = hexTriangle();
+    const regions = topo.regions();
+    expect(regions).toHaveLength(6);
+    for (const r of regions) {
+      expect(r.cells).toHaveLength(9);
+    }
+  });
+
+  it('目标区域覆盖全部 54 格', () => {
+    const topo = hexTriangle();
+    const all = topo.regions().flatMap((r) => r.cells);
+    expect(all).toHaveLength(54);
+    const unique = new Set(all);
+    expect(unique.size).toBe(54);
+  });
+
+  it('已解决棋盘判定为胜利', () => {
+    const board = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    expect(goal.satisfied(board, topo)).toBe(true);
+  });
+
+  it('打乱后的棋盘不满足胜利', () => {
+    const board = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    // 中心旋钮 H9 (idx=9) 旋转 6 三角形跨扇区
+    const knob = topo.knobs()[9];
+    const moved = applyMove(board, knob, 'CW');
+    expect(goal.satisfied(moved, topo)).toBe(false);
+  });
+
+  it('旋转 6 次后恢复满足胜利', () => {
+    const board = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    const knob = topo.knobs()[0];
+    let cur = board;
+    for (let i = 0; i < 6; i++) cur = applyMove(cur, knob, 'CW');
+    expect(goal.satisfied(cur, topo)).toBe(true);
+  });
+
+  // v0.2.4 fix 同类回归：颜色轮换不判胜
+  it('颜色轮换的六边形棋盘不判胜', () => {
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    const solved = createSolvedHexTriangle();
+    const wrong: Cell[] = solved.cells.map((c) => ({ ...c }));
+    // 全部扇区颜色轮换一位：S0→yellow, S1→green, ...
+    const regions = topo.regions();
+    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+    for (let i = 0; i < 6; i++) {
+      const shiftedColor = COLORS[(i + 1) % 6] as Cell['color'];
+      for (const idx of regions[i].cells) {
+        wrong[idx].color = shiftedColor;
+      }
+    }
+    const wrongBoard = { dims: [...solved.dims], cells: wrong };
+    expect(goal.satisfied(wrongBoard, topo)).toBe(false);
+  });
+});
+
+describe('Generator - 六边形关卡生成', () => {
+  it('生成的题目与目标不同', () => {
+    const solved = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const gen = generateLevel({
+      solved,
+      topology: topo,
+      scrambleCount: 10,
+      rng: new SeededRNG(42),
+    });
+    expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+
+  it('题目可解（逆序执行 solution 可还原）', () => {
+    const solved = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    const gen = generateLevel({
+      solved,
+      topology: topo,
+      scrambleCount: 15,
+      rng: new SeededRNG(42),
+    });
+    // 逆 CW = 5 次 CW（六边形旋钮 6 块，CW*5 = CCW*1）
+    const knobs = topo.knobs();
+    let cur = gen.initial;
+    for (let i = gen.solution.length - 1; i >= 0; i--) {
+      const move = gen.solution[i];
+      const knob = knobs.find((k) => k.id === move.knobId)!;
+      // 逆 CW = 5 次 CW（因为 6 块旋钮，CW^5 = CCW）
+      for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+    }
+    expect(goal.satisfied(cur, topo)).toBe(true);
+  });
+
+  it('相同种子生成相同题目（确定性）', () => {
+    const solved = createSolvedHexTriangle();
+    const topo = hexTriangle();
+    const gen1 = generateLevel({ solved, topology: topo, scrambleCount: 10, rng: new SeededRNG(123) });
+    const gen2 = generateLevel({ solved, topology: topo, scrambleCount: 10, rng: new SeededRNG(123) });
+    expect(boardsEqual(gen1.initial, gen2.initial)).toBe(true);
+  });
+
+  it('generatePuzzle 统一接口支持 hex-triangle', () => {
+    const solved = createSolvedHexTriangle();
+    const gen = generatePuzzle('hex-triangle', 20, 301);
+    expect(gen.initial.cells).toHaveLength(54);
+    expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+});
+
+describe('Levels - 六边形关卡数据', () => {
+  it('生成 21 个关卡（含第 21 关六边形）', () => {
+    const levels = getLevels();
+    expect(levels).toHaveLength(21);
+  });
+
+  it('第 21 关为六边形三角形拓扑', () => {
+    const levels = getLevels();
+    const level21 = levels.find((l) => l.id === 21);
+    expect(level21).toBeDefined();
+    expect(level21!.topologyKind).toBe('hex-triangle');
+    expect(level21!.initial.cells).toHaveLength(54);
+    expect(level21!.goal).toBeInstanceOf(HexUniformGoal);
+  });
+
+  it('第 21 关题目非已解决状态', () => {
+    const solved = createSolvedHexTriangle();
+    const levels = getLevels();
+    expect(boardsEqual(levels[20].initial, solved)).toBe(false);
+  });
+
+  it('第 21 关可解（逆向还原）', () => {
+    const topo = hexTriangle();
+    const goal = new HexUniformGoal();
+    const levels = getLevels();
+    const level21 = levels[20];
+    const knobs = topo.knobs();
+    let cur = level21.initial;
+    for (let i = level21.solution.length - 1; i >= 0; i--) {
+      const move = level21.solution[i];
+      const knob = knobs.find((k) => k.id === move.knobId)!;
+      for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+    }
+    expect(goal.satisfied(cur, topo)).toBe(true);
   });
 });

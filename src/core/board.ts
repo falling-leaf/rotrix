@@ -71,24 +71,31 @@ export function boardsEqual(a: Board, b: Board): boolean {
 
 /**
  * 将旋钮的 cells 数组顺时针旋转一步。
- * cells 按 [左上, 右上, 右下, 左下] 顺时针顺序排列。
- * CW 旋转：左上->右上->右下->左下->左上，
- * 即 new[i] = old[(i + 3) % 4]（取上一个位置的色块放到当前位置）。
- * 等价地：old[0]->new[1], old[1]->new[2], old[2]->new[3], old[3]->new[0]。
+ * cells 按顺时针顺序排列。
+ * CW 旋转：每个位置的色块由其前一位（CW 前一个）的色块替换。
+ * 即 new[i] = old[(i + n - 1) % n]。
+ * 对于 n=4：new = [old3, old0, old1, old2]（正方形 2x2）。
+ * 对于 n=6：new = [old5, old0, old1, old2, old3, old4]（六边形 6 三角形）。
  */
 export function rotateCellsCW(cells: Cell[]): Cell[] {
   const n = cells.length;
-  if (n !== 4) return cells; // 当前仅支持 4 块旋钮
-  // new[i] = old[(i + 3) % n]
-  return [cells[3], cells[0], cells[1], cells[2]];
+  if (n !== 4 && n !== 6) return cells; // 当前仅支持 4 块 / 6 块旋钮
+  const result: Cell[] = [];
+  for (let i = 0; i < n; i++) {
+    result.push(cells[(i + n - 1) % n]);
+  }
+  return result;
 }
 
-/** 逆时针旋转（CCW = 顺时针旋转三步，等价于反向一步） */
+/** 逆时针旋转（CCW = CW 旋转 n-1 步，等价于反向一步） */
 export function rotateCellsCCW(cells: Cell[]): Cell[] {
   const n = cells.length;
-  if (n !== 4) return cells;
-  // new[i] = old[(i + 1) % n]
-  return [cells[1], cells[2], cells[3], cells[0]];
+  if (n !== 4 && n !== 6) return cells;
+  const result: Cell[] = [];
+  for (let i = 0; i < n; i++) {
+    result.push(cells[(i + 1) % n]);
+  }
+  return result;
 }
 
 /**

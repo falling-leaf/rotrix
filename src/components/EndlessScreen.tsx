@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BoardView } from './BoardView';
+import { BoardViewRouter as BoardView } from './BoardView';
 import { useGame } from '../hooks/useGame';
 import { getTopologyEntry } from '../core/goals';
 import { generateRandomPuzzle } from '../core/generator';

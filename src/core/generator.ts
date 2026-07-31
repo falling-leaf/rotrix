@@ -80,8 +80,8 @@ export function generateLevel(opts: GenerateOptions): GeneratedLevel {
       continue;
     }
 
-    // 计算有效步数：去除"同一旋钮连续 CW 满三次"等恒等
-    const effective = effectiveMoves(moves);
+    // 计算有效步数：去除"同一旋钮连续 CW 满恒等次数"等恒等
+    const effective = effectiveMoves(moves, knobs);
     const difficulty = effective.length;
 
     const candidate: GeneratedLevel = {
@@ -108,7 +108,7 @@ export function generateLevel(opts: GenerateOptions): GeneratedLevel {
       board = applyMove(board, knob, 'CW');
       moves.push({ knobId: knob.id, direction: 'CW' });
     }
-    best = { initial: board, solution: moves, difficulty: effectiveMoves(moves).length };
+    best = { initial: board, solution: moves, difficulty: effectiveMoves(moves, knobs2).length };
   }
 
   return best;
@@ -116,39 +116,30 @@ export function generateLevel(opts: GenerateOptions): GeneratedLevel {
 
 /**
  * 有效移动数：压缩连续对同一旋钮的操作。
- * 由于当前每个旋钮只支持 CW，连续 4 次 CW = 恒等。
- * 我们把连续同旋钮的次数对 4 取模作为有效步数。
+ * 正方形旋钮（4 块）：连续 4 次 CW = 恒等，对 4 取模。
+ * 六边形旋钮（6 块）：连续 6 次 CW = 恒等，对 6 取模。
+ * 通过 knob.cells.length 获取旋钮大小，自动适配。
  */
-function effectiveMoves(moves: Move[]): Move[] {
-  const result: Move[] = [];
-  for (const m of moves) {
-    const last = result[result.length - 1];
-    if (last && last.knobId === m.knobId && last.direction === m.direction) {
-      // 合并：连续同向同旋钮
-      // 用计数标记（这里简化为保留一条，计数通过 length 差异体现）
-      // 实际：CW 4 次 = 0，所以我们直接在末尾累计
-      // 为简单起见，直接 push，后续对同旋钮 group 计数
-      result.push(m);
-    } else {
-      result.push(m);
-    }
-  }
-  // 按连续同旋钮同方向分组，每组对 4 取模
+function effectiveMoves(moves: Move[], knobs: Knob[]): Move[] {
+  const knobMap = new Map(knobs.map((k) => [k.id, k]));
+  // 按连续同旋钮同方向分组，每组对 n 取模（n = 旋钮 cells 数）
   const compressed: Move[] = [];
   let i = 0;
-  while (i < result.length) {
+  while (i < moves.length) {
     let j = i;
     while (
-      j < result.length &&
-      result[j].knobId === result[i].knobId &&
-      result[j].direction === result[i].direction
+      j < moves.length &&
+      moves[j].knobId === moves[i].knobId &&
+      moves[j].direction === moves[i].direction
     ) {
       j++;
     }
     const count = j - i;
-    const mod = count % 4;
+    const knob = knobMap.get(moves[i].knobId);
+    const n = knob ? knob.cells.length : 4; // 默认 4（正方形）
+    const mod = count % n;
     for (let k = 0; k < mod; k++) {
-      compressed.push(result[i]);
+      compressed.push(moves[i]);
     }
     i = j;
   }

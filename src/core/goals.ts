@@ -10,17 +10,26 @@ import { ALL_COLORS } from './types';
 
 export const QUADRANT_GOAL_KIND = 'quadrant-uniform';
 
-/** 基础目标：每个目标区域内颜色统一（象限纯色） */
+/**
+ * 基础目标：每个目标区域内颜色统一，且必须与目标地图一致。
+ *
+ * regions() 返回顺序为 [TL, TR, BL, BR]，ALL_COLORS 同序对应
+ * [red, yellow, blue, green]。因此 region[i] 必须全部为 ALL_COLORS[i]。
+ *
+ * v0.2.4 fix: 此前仅检查每象限内部统一，未校验颜色与目标位置匹配，
+ * 导致"四象限各自纯色但颜色整体轮换"（如左上黄、右上红…）被误判为胜利。
+ * 现改为逐象限校验期望颜色，等价于"操作地图与目标地图完全一致"。
+ */
 export class QuadrantUniformGoal implements Goal {
   readonly kind = QUADRANT_GOAL_KIND;
 
   satisfied(board: Board, topology: Topology): boolean {
     const regions = topology.regions();
-    for (const region of regions) {
-      const first = board.cells[region.cells[0]]?.color;
-      if (!first) return false;
-      for (const idx of region.cells) {
-        if (board.cells[idx]?.color !== first) return false;
+    if (regions.length !== ALL_COLORS.length) return false;
+    for (let i = 0; i < regions.length; i++) {
+      const expected = ALL_COLORS[i];
+      for (const idx of regions[i].cells) {
+        if (board.cells[idx]?.color !== expected) return false;
       }
     }
     return true;
@@ -69,3 +78,45 @@ registerTopology(SQUARE_6X6_KIND, {
 
 /** 供外部使用的颜色集合 */
 export { ALL_COLORS };
+
+/**
+ * v0.3.0：六边形三角形玩法的目标判定策略。
+ *
+ * 与 QuadrantUniformGoal 同理：regions() 返回 6 个扇区（大三角形），
+ * HEX_COLORS 同序对应 6 种颜色。region[i] 必须全部为 HEX_COLORS[i]。
+ * 等价于"操作地图与目标地图完全一致"。
+ */
+export const HEX_GOAL_KIND = 'hex-uniform';
+
+export class HexUniformGoal implements Goal {
+  readonly kind = HEX_GOAL_KIND;
+
+  satisfied(board: Board, topology: Topology): boolean {
+    const regions = topology.regions();
+    if (regions.length !== HEX_COLORS.length) return false;
+    for (let i = 0; i < regions.length; i++) {
+      const expected = HEX_COLORS[i];
+      for (const idx of regions[i].cells) {
+        if (board.cells[idx]?.color !== expected) return false;
+      }
+    }
+    return true;
+  }
+
+  describe(): string {
+    return '使六个大三角形分别纯色（红、黄、绿、青、蓝、品红）';
+  }
+}
+
+/** 注册六边形三角形拓扑 */
+import {
+  hexTriangle,
+  HEX_TRIANGLE_KIND,
+  createSolvedHexTriangle,
+} from './hex-topology';
+import { HEX_COLORS } from './types';
+registerTopology(HEX_TRIANGLE_KIND, {
+  topology: hexTriangle,
+  defaultGoal: () => new HexUniformGoal(),
+  defaultSolvedBoard: createSolvedHexTriangle,
+});

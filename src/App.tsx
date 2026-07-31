@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BoardView } from './components/BoardView';
+import { BoardViewRouter as BoardView } from './components/BoardView';
 import { StartScreen } from './components/StartScreen';
 import { EndlessScreen } from './components/EndlessScreen';
 import { useGame } from './hooks/useGame';

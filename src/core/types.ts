@@ -6,10 +6,14 @@
  */
 
 /** 色块颜色。后续可扩展更多颜色。 */
-export type Color = 'red' | 'yellow' | 'blue' | 'green';
+export type Color = 'red' | 'yellow' | 'blue' | 'green' | 'cyan' | 'magenta';
 
-/** 全部可用颜色，顺序即"目标象限"的默认分配顺序（TL, TR, BL, BR）。 */
+/** 正方形玩法可用颜色，顺序即"目标象限"的默认分配顺序（TL, TR, BL, BR）。 */
 export const ALL_COLORS: Color[] = ['red', 'yellow', 'blue', 'green'];
+
+/** 六边形玩法可用颜色（6 色），顺序即 6 个大三角形（扇区）的默认配色。
+ * 扇区 0..5 按 CW 顺序，由各扇区三角形中心角度决定。 */
+export const HEX_COLORS: Color[] = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
 
 /** 单个色块。id 用于后续"相邻约束"等属性玩法，当前可不填。 */
 export interface Cell {
@@ -28,13 +32,13 @@ export type Coord = number[];
 /**
  * 旋钮：位于若干色块的中心，点击后按顺时针旋转其 cells。
  * cells 为 board.cells 中的索引数组，按顺时针顺序排列，
- * 顺序保证 rotateCW 的语义明确（见 board.ts）。
+ * 长度可为 4（正方形 2x2）或 6（六边形 6 三角形）。
  */
 export interface Knob {
   id: string;
   /** 旋钮中心坐标（渲染/命中用，逻辑层可忽略） */
   center: Coord;
-  /** 被旋转的色块索引，顺时针顺序，长度通常为 4 */
+  /** 被旋转的色块索引，顺时针顺序，长度为 4 或 6 */
   cells: number[];
   /** 可选：旋转方向支持（默认仅 CW，后续可扩展 CCW 旋钮） */
   directions?: ('CW' | 'CCW')[];
