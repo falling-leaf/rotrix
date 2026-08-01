@@ -168,9 +168,9 @@ describe('BoardView 组件渲染', () => {
     expect(document.querySelectorAll('.cell')).toHaveLength(36);
   });
 
-  // v0.3.0：六边形三角形棋盘
+  // v0.3.0/v0.3.3：六边形困难版棋盘渲染（第 26 关，N=3，54 三角形 / 19 旋钮）
   it('六边形棋盘渲染 54 三角形和 19 旋钮', () => {
-    const level = getLevel(21)!;
+    const level = getLevel(26)!;
     const Wrapper = () => {
       const game = useGame(level);
       return (
@@ -189,7 +189,7 @@ describe('BoardView 组件渲染', () => {
   });
 
   it('六边形：点击旋钮启动动画，动画结束后步数+1', () => {
-    const level = getLevel(21)!;
+    const level = getLevel(26)!;
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
@@ -214,23 +214,19 @@ describe('BoardView 组件渲染', () => {
     });
 
     rerender(<Wrapper />);
-    // 动画启动后，animating 不为空
     expect(capturedGame!.animating).not.toBeNull();
 
-    // 模拟动画结束
     act(() => {
       capturedGame!.onAnimationEnd();
     });
     rerender(<Wrapper />);
 
-    // 步数 +1
     expect(capturedGame!.moveCount).toBe(movesBefore + 1);
-    // animating 清除
     expect(capturedGame!.animating).toBeNull();
   });
 
   it('六边形：预览模式不渲染旋钮', () => {
-    const solved = getLevel(21)!.initial; // 用题目棋盘也行
+    const solved = getLevel(26)!.initial;
     render(
       <BoardViewRouter
         board={solved}
@@ -245,9 +241,9 @@ describe('BoardView 组件渲染', () => {
     expect(screen.getByText('目标地图')).toBeTruthy();
   });
 
-  // v0.3.2：六边形简单版棋盘渲染
+  // v0.3.2/v0.3.3：六边形简单版棋盘渲染（第 21 关，N=2，24 三角形 / 7 旋钮）
   it('六边形简单版棋盘渲染 24 三角形和 7 旋钮', () => {
-    const level = getLevel(26)!;
+    const level = getLevel(21)!;
     const Wrapper = () => {
       const game = useGame(level);
       return (
@@ -266,7 +262,7 @@ describe('BoardView 组件渲染', () => {
   });
 
   it('六边形简单版：点击旋钮启动动画，动画结束后步数+1', () => {
-    const level = getLevel(26)!;
+    const level = getLevel(21)!;
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
@@ -303,7 +299,7 @@ describe('BoardView 组件渲染', () => {
   });
 
   it('六边形简单版：预览模式不渲染旋钮', () => {
-    const solved = getLevel(26)!.initial;
+    const solved = getLevel(21)!.initial;
     render(
       <BoardViewRouter
         board={solved}

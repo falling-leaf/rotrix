@@ -5,6 +5,9 @@
  * v0.3.0：新增第 21 关——六边形三角形拓扑（54 三角形 / 19 旋钮）。
  * v0.3.1：扩展第 21-25 关——六边形三角形，打乱步数 40→55→70→85→100。
  * v0.3.2：新增第 26 关——六边形三角形简单版（N=2，24 三角形 / 7 旋钮）。
+ * v0.3.3：简单/困难模式交换关卡数——21-25 关为简单版（hex-small-triangle，
+ *          24 三角形 / 7 旋钮，scramble 10→15→20→25→30），26-30 关为困难版
+ *          （hex-triangle，54 三角形 / 19 旋钮，scramble 40→55→70→85→100）。
  * 使用 v0.2.1 新增的 generatePuzzle 统一接口生成题目，
  * 无需在文件内重复访问 getTopologyEntry / generateLevel / SeededRNG。
  *
@@ -46,16 +49,22 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 18, topologyKind: 'square-6x6', scramble: 36, seed: 208 },
   { id: 19, topologyKind: 'square-6x6', scramble: 42, seed: 209 },
   { id: 20, topologyKind: 'square-6x6', scramble: 50, seed: 210 },
-  // 第 21-25 关：六边形三角形（v0.3.0 新玩法）
-  // v0.3.1：扩展 21-25 关，打乱步数递增，拓扑与第 21 关相同
-  { id: 21, topologyKind: 'hex-triangle', scramble: 40,  seed: 301 },
-  { id: 22, topologyKind: 'hex-triangle', scramble: 55,  seed: 302 },
-  { id: 23, topologyKind: 'hex-triangle', scramble: 70,  seed: 303 },
-  { id: 24, topologyKind: 'hex-triangle', scramble: 85,  seed: 304 },
-  { id: 25, topologyKind: 'hex-triangle', scramble: 100, seed: 305 },
-  // 第 26 关：六边形三角形简单版（v0.3.2 新拓扑，N=2，24 三角形 / 7 旋钮）
-  // 作为六边形玩法的入门关，地图更小，打乱步数低
-  { id: 26, topologyKind: 'hex-small-triangle', scramble: 20, seed: 401 },
+  // 第 21-25 关：六边形三角形简单版（v0.3.3，N=2，24 三角形 / 7 旋钮）
+  // 简单模式——地图更小、旋钮更少、打乱步数低，作为六边形玩法入门
+  // v0.3.3：从原 26 关移至 21-25 关，scramble 10→15→20→25→30 从易到难
+  { id: 21, topologyKind: 'hex-small-triangle', scramble: 10, seed: 301 },
+  { id: 22, topologyKind: 'hex-small-triangle', scramble: 15, seed: 302 },
+  { id: 23, topologyKind: 'hex-small-triangle', scramble: 20, seed: 303 },
+  { id: 24, topologyKind: 'hex-small-triangle', scramble: 25, seed: 304 },
+  { id: 25, topologyKind: 'hex-small-triangle', scramble: 30, seed: 305 },
+  // 第 26-30 关：六边形三角形困难版（v0.3.3，N=3，54 三角形 / 19 旋钮）
+  // 困难模式——地图更大、旋钮更多、打乱步数高
+  // v0.3.3：从原 21-25 关移至 26-30 关，scramble 40→55→70→85→100
+  { id: 26, topologyKind: 'hex-triangle', scramble: 40,  seed: 401 },
+  { id: 27, topologyKind: 'hex-triangle', scramble: 55,  seed: 402 },
+  { id: 28, topologyKind: 'hex-triangle', scramble: 70,  seed: 403 },
+  { id: 29, topologyKind: 'hex-triangle', scramble: 85,  seed: 404 },
+  { id: 30, topologyKind: 'hex-triangle', scramble: 100, seed: 405 },
 ];
 
 let _cache: Level[] | null = null;

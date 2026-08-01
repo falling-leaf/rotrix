@@ -268,17 +268,17 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 26 个关卡', () => {
+  it('生成 30 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(26);
+    expect(levels).toHaveLength(30);
   });
 
-  it('关卡 ID 从 1 到 26', () => {
+  it('关卡 ID 从 1 到 30', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     ]);
   });
 
@@ -322,6 +322,8 @@ describe('Levels - 关卡数据', () => {
         expect(level.initial.cells).toHaveLength(36);
       } else if (level.topologyKind === 'hex-triangle') {
         expect(level.initial.cells).toHaveLength(54);
+      } else if (level.topologyKind === 'hex-small-triangle') {
+        expect(level.initial.cells).toHaveLength(24);
       }
     }
   });
@@ -478,17 +480,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 26 个关卡（10 个 4x4 + 10 个 6x6 + 6 个六边形）', () => {
+  it('生成 30 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(26);
+    expect(levels).toHaveLength(30);
   });
 
-  it('关卡 ID 从 1 到 26', () => {
+  it('关卡 ID 从 1 到 30', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     ]);
   });
 
@@ -702,33 +704,31 @@ describe('Generator - 六边形关卡生成', () => {
 });
 
 describe('Levels - 六边形关卡数据', () => {
-  it('生成 26 个关卡（含第 21-26 关六边形）', () => {
+  it('生成 30 个关卡（含第 21-30 关六边形）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(26);
+    expect(levels).toHaveLength(30);
   });
 
-  it('第 21-25 关均为六边形三角形拓扑（N=3，54 三角形）', () => {
+  it('第 21-25 关为六边形简单版拓扑（N=2，24 三角形 / 7 旋钮）', () => {
     const levels = getLevels();
     for (let i = 20; i < 25; i++) {
+      expect(levels[i].topologyKind).toBe('hex-small-triangle');
+      expect(levels[i].initial.cells).toHaveLength(24);
+      expect(levels[i].goal).toBeInstanceOf(HexUniformGoal);
+    }
+  });
+
+  it('第 26-30 关为六边形困难版拓扑（N=3，54 三角形 / 19 旋钮）', () => {
+    const levels = getLevels();
+    for (let i = 25; i < 30; i++) {
       expect(levels[i].topologyKind).toBe('hex-triangle');
       expect(levels[i].initial.cells).toHaveLength(54);
       expect(levels[i].goal).toBeInstanceOf(HexUniformGoal);
     }
   });
 
-  it('第 26 关为六边形三角形简单版拓扑（N=2，24 三角形）', () => {
-    const levels = getLevels();
-    const level26 = levels[25];
-    expect(level26).toBeDefined();
-    expect(level26.topologyKind).toBe('hex-small-triangle');
-    expect(level26.initial.cells).toHaveLength(24);
-    expect(level26.goal).toBeInstanceOf(HexUniformGoal);
-  });
-
-  it('第 21-25 关打乱步数递增（scramble 40→55→70→85→100）', () => {
-    // v0.3.1：六边形关卡难度曲线
-    // 直接验证 generatePuzzle 的输入参数——effective difficulty 可能因
-    // 去重略低于 scramble，但有效步数应随 scramble 递增。
+  it('第 21-25 关打乱步数递增（scramble 10→15→20→25→30）', () => {
+    // v0.3.3：简单版六边形关卡难度曲线
     const levels = getLevels();
     for (let i = 21; i <= 24; i++) {
       expect(levels[i].difficulty).toBeGreaterThanOrEqual(levels[i - 1].difficulty);
@@ -736,16 +736,33 @@ describe('Levels - 六边形关卡数据', () => {
     expect(levels[24].difficulty).toBeGreaterThan(levels[20].difficulty);
   });
 
+  it('第 26-30 关打乱步数递增（scramble 40→55→70→85→100）', () => {
+    // v0.3.3：困难版六边形关卡难度曲线
+    const levels = getLevels();
+    for (let i = 26; i <= 29; i++) {
+      expect(levels[i].difficulty).toBeGreaterThanOrEqual(levels[i - 1].difficulty);
+    }
+    expect(levels[29].difficulty).toBeGreaterThan(levels[25].difficulty);
+  });
+
   it('第 21-25 关每关题目非已解决状态', () => {
-    const solved = createSolvedHexTriangle();
+    const solved = createSolvedHexSmallTriangle();
     const levels = getLevels();
     for (let i = 20; i < 25; i++) {
       expect(boardsEqual(levels[i].initial, solved)).toBe(false);
     }
   });
 
+  it('第 26-30 关每关题目非已解决状态', () => {
+    const solved = createSolvedHexTriangle();
+    const levels = getLevels();
+    for (let i = 25; i < 30; i++) {
+      expect(boardsEqual(levels[i].initial, solved)).toBe(false);
+    }
+  });
+
   it('第 21-25 关每关可解（逆向还原）', () => {
-    const topo = hexTriangle();
+    const topo = hexSmallTriangle();
     const goal = new HexUniformGoal();
     const knobs = topo.knobs();
     const levels = getLevels();
@@ -761,24 +778,20 @@ describe('Levels - 六边形关卡数据', () => {
     }
   });
 
-  it('第 26 关题目非已解决状态', () => {
-    const solved = createSolvedHexSmallTriangle();
-    const levels = getLevels();
-    expect(boardsEqual(levels[25].initial, solved)).toBe(false);
-  });
-
-  it('第 26 关可解（逆向还原）', () => {
-    const topo = hexSmallTriangle();
+  it('第 26-30 关每关可解（逆向还原）', () => {
+    const topo = hexTriangle();
     const goal = new HexUniformGoal();
     const knobs = topo.knobs();
     const levels = getLevels();
-    let cur = levels[25].initial;
-    for (let i = levels[25].solution.length - 1; i >= 0; i--) {
-      const move = levels[25].solution[i];
-      const knob = knobs.find((k) => k.id === move.knobId)!;
-      for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+    for (let lvl = 25; lvl < 30; lvl++) {
+      let cur = levels[lvl].initial;
+      for (let i = levels[lvl].solution.length - 1; i >= 0; i--) {
+        const move = levels[lvl].solution[i];
+        const knob = knobs.find((k) => k.id === move.knobId)!;
+        for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+      }
+      expect(goal.satisfied(cur, topo)).toBe(true);
     }
-    expect(goal.satisfied(cur, topo)).toBe(true);
   });
 });
 
