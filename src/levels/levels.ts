@@ -3,6 +3,7 @@
  *
  * v0.2.1：扩展为 20 关——10 个 4x4 + 10 个 6x6，各从易到难。
  * v0.3.0：新增第 21 关——六边形三角形拓扑（54 三角形 / 19 旋钮）。
+ * v0.3.1：扩展第 21-25 关——六边形三角形，打乱步数 40→55→70→85→100。
  * 使用 v0.2.1 新增的 generatePuzzle 统一接口生成题目，
  * 无需在文件内重复访问 getTopologyEntry / generateLevel / SeededRNG。
  *
@@ -44,8 +45,13 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 18, topologyKind: 'square-6x6', scramble: 36, seed: 208 },
   { id: 19, topologyKind: 'square-6x6', scramble: 42, seed: 209 },
   { id: 20, topologyKind: 'square-6x6', scramble: 50, seed: 210 },
-  // 第 21 关：六边形三角形（v0.3.0 新玩法）
-  { id: 21, topologyKind: 'hex-triangle', scramble: 40, seed: 301 },
+  // 第 21-25 关：六边形三角形（v0.3.0 新玩法）
+  // v0.3.1：扩展 21-25 关，打乱步数递增，拓扑与第 21 关相同
+  { id: 21, topologyKind: 'hex-triangle', scramble: 40,  seed: 301 },
+  { id: 22, topologyKind: 'hex-triangle', scramble: 55,  seed: 302 },
+  { id: 23, topologyKind: 'hex-triangle', scramble: 70,  seed: 303 },
+  { id: 24, topologyKind: 'hex-triangle', scramble: 85,  seed: 304 },
+  { id: 25, topologyKind: 'hex-triangle', scramble: 100, seed: 305 },
 ];
 
 let _cache: Level[] | null = null;

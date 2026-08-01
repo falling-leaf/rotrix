@@ -379,6 +379,15 @@ button, .knob, .level-chip, .btn {
   transition: fill 0.15s ease;
 }
 
+/* v0.3.1：旋转动画提交棋盘时，禁用 polygon 的 fill 过渡。
+ * 与 v0.1.2 的 `.board.animating .cell { transition: none }` 同源——
+ * hex 版底层是 <polygon>（无 .cell class），原规则匹配不到，导致旋转
+ * 结束 overlay 卸载瞬间底层 polygon 仍用 150ms 渐变到目标色，闪现原始状态。
+ * keepAnimating 机制已在 HexBoardView 就绪，此处补齐 CSS 即可消除闪烁。 */
+.board.animating .hex-svg polygon {
+  transition: none;
+}
+
 .hex-board.celebrating .hex-svg polygon {
   animation: celebrate-pulse 0.4s ease-in-out forwards;
 }

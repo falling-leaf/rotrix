@@ -18,7 +18,7 @@ export function StartScreen({ onStart, onEndless, bestScore4x4, bestScore6x6 }: 
         <button className="mode-card campaign" onClick={() => onStart('campaign')}>
           <div className="mode-icon">★</div>
           <div className="mode-name">闯关模式</div>
-          <div className="mode-desc">20 关由易到难<br />4x4 → 6x6</div>
+          <div className="mode-desc">25 关由易到难<br />4x4 → 6x6 → 六边形</div>
         </button>
 
         <div className="mode-group">

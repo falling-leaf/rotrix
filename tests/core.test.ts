@@ -267,17 +267,17 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 21 个关卡', () => {
+  it('生成 25 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(21);
+    expect(levels).toHaveLength(25);
   });
 
-  it('关卡 ID 从 1 到 21', () => {
+  it('关卡 ID 从 1 到 25', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21,
+      21, 22, 23, 24, 25,
     ]);
   });
 
@@ -298,9 +298,12 @@ describe('Levels - 关卡数据', () => {
   it('每个关卡题目非已解决状态', () => {
     const solved4 = createSolvedSquare4x4();
     const solved6 = createSolvedSquare6x6();
+    const solvedHex = createSolvedHexTriangle();
     const levels = getLevels();
     for (const level of levels) {
-      const solved = level.topologyKind === 'square-4x4' ? solved4 : solved6;
+      const solved =
+        level.topologyKind === 'square-4x4' ? solved4 :
+        level.topologyKind === 'square-6x6' ? solved6 : solvedHex;
       expect(boardsEqual(level.initial, solved)).toBe(false);
     }
   });
@@ -472,17 +475,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 21 个关卡（10 个 4x4 + 10 个 6x6 + 1 个六边形）', () => {
+  it('生成 25 个关卡（10 个 4x4 + 10 个 6x6 + 5 个六边形）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(21);
+    expect(levels).toHaveLength(25);
   });
 
-  it('关卡 ID 从 1 到 21', () => {
+  it('关卡 ID 从 1 到 25', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21,
+      21, 22, 23, 24, 25,
     ]);
   });
 
@@ -696,38 +699,53 @@ describe('Generator - 六边形关卡生成', () => {
 });
 
 describe('Levels - 六边形关卡数据', () => {
-  it('生成 21 个关卡（含第 21 关六边形）', () => {
+  it('生成 25 个关卡（含第 21-25 关六边形）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(21);
+    expect(levels).toHaveLength(25);
   });
 
-  it('第 21 关为六边形三角形拓扑', () => {
+  it('第 21-25 关均为六边形三角形拓扑', () => {
     const levels = getLevels();
-    const level21 = levels.find((l) => l.id === 21);
-    expect(level21).toBeDefined();
-    expect(level21!.topologyKind).toBe('hex-triangle');
-    expect(level21!.initial.cells).toHaveLength(54);
-    expect(level21!.goal).toBeInstanceOf(HexUniformGoal);
+    for (let i = 20; i < 25; i++) {
+      expect(levels[i].topologyKind).toBe('hex-triangle');
+      expect(levels[i].initial.cells).toHaveLength(54);
+      expect(levels[i].goal).toBeInstanceOf(HexUniformGoal);
+    }
   });
 
-  it('第 21 关题目非已解决状态', () => {
+  it('第 21-25 关打乱步数递增（scramble 40→55→70→85→100）', () => {
+    // v0.3.1：六边形关卡难度曲线
+    // 直接验证 generatePuzzle 的输入参数——effective difficulty 可能因
+    // 去重略低于 scramble，但有效步数应随 scramble 递增。
+    const levels = getLevels();
+    for (let i = 21; i <= 24; i++) {
+      expect(levels[i].difficulty).toBeGreaterThanOrEqual(levels[i - 1].difficulty);
+    }
+    expect(levels[24].difficulty).toBeGreaterThan(levels[20].difficulty);
+  });
+
+  it('第 21-25 关每关题目非已解决状态', () => {
     const solved = createSolvedHexTriangle();
     const levels = getLevels();
-    expect(boardsEqual(levels[20].initial, solved)).toBe(false);
+    for (let i = 20; i < 25; i++) {
+      expect(boardsEqual(levels[i].initial, solved)).toBe(false);
+    }
   });
 
-  it('第 21 关可解（逆向还原）', () => {
+  it('第 21-25 关每关可解（逆向还原）', () => {
     const topo = hexTriangle();
     const goal = new HexUniformGoal();
-    const levels = getLevels();
-    const level21 = levels[20];
     const knobs = topo.knobs();
-    let cur = level21.initial;
-    for (let i = level21.solution.length - 1; i >= 0; i--) {
-      const move = level21.solution[i];
-      const knob = knobs.find((k) => k.id === move.knobId)!;
-      for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+    const levels = getLevels();
+    for (let lvl = 20; lvl < 25; lvl++) {
+      let cur = levels[lvl].initial;
+      for (let i = levels[lvl].solution.length - 1; i >= 0; i--) {
+        const move = levels[lvl].solution[i];
+        const knob = knobs.find((k) => k.id === move.knobId)!;
+        // 逆 CW = 5 次 CW（六边形旋钮 6 块，CW*5 = CCW*1）
+        for (let k = 0; k < 5; k++) cur = applyMove(cur, knob, 'CW');
+      }
+      expect(goal.satisfied(cur, topo)).toBe(true);
     }
-    expect(goal.satisfied(cur, topo)).toBe(true);
   });
 });
