@@ -14,6 +14,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState } from '../hooks/useGame';
 import { TRIANGLE_POINTS } from '../core/hex-topology';
+import { TRIANGLE_POINTS_SMALL } from '../core/hex-topology-small';
 
 const ROTATE_DURATION = 200;
 const SETTLE_FRAMES = 3;
@@ -51,6 +52,12 @@ function HexBoardViewInner({
   celebrating = false,
 }: HexBoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
+
+  // v0.3.2：根据 dims 选择三角形顶点坐标数组（N=3: 54 三角形 / N=2: 24 三角形）
+  const trianglePoints = useMemo(
+    () => (board.dims[0] === 24 ? TRIANGLE_POINTS_SMALL : TRIANGLE_POINTS),
+    [board.dims],
+  );
 
   // 计算旋转动画 overlay 数据
   const rotateOverlay = useMemo(() => {
@@ -146,10 +153,18 @@ function HexBoardViewInner({
         >
           {/* 底层三角形：旋转中的三角形隐藏（由 overlay 显示） */}
           {cells.map((cell, i) => {
-            const pts = TRIANGLE_POINTS[i];
+            const pts = trianglePoints[i];
             if (!pts) return null;
             const hidden = rotatingSet.has(i);
             const pointsStr = `${pts[0]},${pts[1]} ${pts[2]},${pts[3]} ${pts[4]},${pts[5]}`;
+            // v0.3.2：胜利庆祝——对角线波纹延迟，与正方形版一致。
+            // 每个三角形的延迟按其质心的归一化对角线位置计算（左上→右下），
+            // 而非全体同时脉冲，形成从左上角到右下角的波浪扫过效果。
+            const cx = (pts[0] + pts[2] + pts[4]) / 3;
+            const cy = (pts[1] + pts[3] + pts[5]) / 3;
+            const delay = celebrating
+              ? Math.round(((cx + cy) / 200) * 600)
+              : 0;
             return (
               <polygon
                 key={i}
@@ -159,7 +174,13 @@ function HexBoardViewInner({
                 strokeWidth={preview ? 0.3 : 0.4}
                 strokeLinejoin="round"
                 className={`hex-tri tri-${i}`}
-                style={hidden ? { opacity: 0 } : undefined}
+                style={
+                  hidden
+                    ? { opacity: 0 }
+                    : celebrating
+                      ? { animationDelay: `${delay}ms` }
+                      : undefined
+                }
               />
             );
           })}
@@ -173,7 +194,7 @@ function HexBoardViewInner({
               }}
             >
               {rotateOverlay.indices.map((triIdx, pos) => {
-                const pts = TRIANGLE_POINTS[triIdx];
+                const pts = trianglePoints[triIdx];
                 if (!pts) return null;
                 const pointsStr = `${pts[0]},${pts[1]} ${pts[2]},${pts[3]} ${pts[4]},${pts[5]}`;
                 return (

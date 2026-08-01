@@ -4,6 +4,7 @@
  * v0.2.1：扩展为 20 关——10 个 4x4 + 10 个 6x6，各从易到难。
  * v0.3.0：新增第 21 关——六边形三角形拓扑（54 三角形 / 19 旋钮）。
  * v0.3.1：扩展第 21-25 关——六边形三角形，打乱步数 40→55→70→85→100。
+ * v0.3.2：新增第 26 关——六边形三角形简单版（N=2，24 三角形 / 7 旋钮）。
  * 使用 v0.2.1 新增的 generatePuzzle 统一接口生成题目，
  * 无需在文件内重复访问 getTopologyEntry / generateLevel / SeededRNG。
  *
@@ -52,6 +53,9 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 23, topologyKind: 'hex-triangle', scramble: 70,  seed: 303 },
   { id: 24, topologyKind: 'hex-triangle', scramble: 85,  seed: 304 },
   { id: 25, topologyKind: 'hex-triangle', scramble: 100, seed: 305 },
+  // 第 26 关：六边形三角形简单版（v0.3.2 新拓扑，N=2，24 三角形 / 7 旋钮）
+  // 作为六边形玩法的入门关，地图更小，打乱步数低
+  { id: 26, topologyKind: 'hex-small-triangle', scramble: 20, seed: 401 },
 ];
 
 let _cache: Level[] | null = null;
@@ -66,9 +70,11 @@ export function getLevels(): Level[] {
       spec.scramble,
       spec.seed,
     );
-    // v0.3.0：根据拓扑类型选择对应 Goal
+    // v0.3.0/v0.3.2：根据拓扑类型选择对应 Goal
+    // 两种六边形拓扑（hex-triangle / hex-small-triangle）均使用 HexUniformGoal
     const goal =
-      spec.topologyKind === 'hex-triangle'
+      spec.topologyKind === 'hex-triangle' ||
+      spec.topologyKind === 'hex-small-triangle'
         ? new HexUniformGoal()
         : new QuadrantUniformGoal();
     return {

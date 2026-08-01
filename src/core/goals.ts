@@ -120,3 +120,19 @@ registerTopology(HEX_TRIANGLE_KIND, {
   defaultGoal: () => new HexUniformGoal(),
   defaultSolvedBoard: createSolvedHexTriangle,
 });
+
+/**
+ * v0.3.2：六边形三角形简单版拓扑（N=2，24 三角形 / 7 旋钮）。
+ * 复用 HexUniformGoal——6 扇区分别纯色且颜色匹配，与 N=3 版判定逻辑一致，
+ * 只是 regions() 返回 4 三角形/扇区而非 9。
+ */
+import {
+  hexSmallTriangle,
+  HEX_SMALL_TRIANGLE_KIND,
+  createSolvedHexSmallTriangle,
+} from './hex-topology-small';
+registerTopology(HEX_SMALL_TRIANGLE_KIND, {
+  topology: hexSmallTriangle,
+  defaultGoal: () => new HexUniformGoal(),
+  defaultSolvedBoard: createSolvedHexSmallTriangle,
+});

@@ -258,12 +258,16 @@ function BoardViewInner({
 export const BoardView = memo(BoardViewInner);
 
 /**
- * v0.3.0：BoardView 路由器——根据 board.dims 分发到正方形或六边形渲染器。
- * 六边形三角形拓扑 (dims=[54]) 使用 HexBoardView，其余使用正方形 BoardViewInner。
+ * v0.3.0/v0.3.2：BoardView 路由器——根据 board.dims 分发到正方形或六边形渲染器。
+ * 六边形三角形拓扑（dims=[54] N=3 / dims=[24] N=2）使用 HexBoardView，
+ * 其余使用正方形 BoardViewInner。
+ * HexBoardView 内部根据 dims 选择对应的 TRIANGLE_POINTS 数组。
  * 在 memo 之上包装一层，避免提前 return 违反 hooks 规则。
  */
 export function BoardViewRouter(props: BoardViewProps) {
-  const isHex = props.board.dims.length === 1 && props.board.dims[0] === 54;
+  const isHex =
+    props.board.dims.length === 1 &&
+    (props.board.dims[0] === 54 || props.board.dims[0] === 24);
   if (isHex) {
     return <HexBoardView {...props} />;
   }
