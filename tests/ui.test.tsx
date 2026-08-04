@@ -313,4 +313,170 @@ describe('BoardView 组件渲染', () => {
     expect(document.querySelectorAll('polygon')).toHaveLength(24);
     expect(screen.getByText('目标地图')).toBeTruthy();
   });
+
+  // v0.3.4：旋转方向切换组件 + CCW 旋转逻辑测试
+  describe('v0.3.4 旋转方向切换', () => {
+    it('默认旋转方向为 CW', () => {
+      const level = getLevel(1)!;
+      const Wrapper = () => {
+        const game = useGame(level);
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            direction={game.rotationDirection}
+          />
+        );
+      };
+      render(<Wrapper />);
+      // 默认方向为 CW，旋钮应带 knob-cw 类（而非 knob-ccw）
+      const knobs = document.querySelectorAll('.knob');
+      expect(knobs.length).toBeGreaterThan(0);
+      expect(knobs[0].classList.contains('knob-cw')).toBe(true);
+      expect(knobs[0].classList.contains('knob-ccw')).toBe(false);
+    });
+
+    it('切换方向后旋钮类变为 knob-ccw', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            direction={game.rotationDirection}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+      expect(capturedGame!.rotationDirection).toBe('CW');
+
+      act(() => {
+        capturedGame!.toggleRotationDirection();
+      });
+      rerender(<Wrapper />);
+
+      expect(capturedGame!.rotationDirection).toBe('CCW');
+      const knobs = document.querySelectorAll('.knob');
+      expect(knobs[0].classList.contains('knob-ccw')).toBe(true);
+      expect(knobs[0].classList.contains('knob-cw')).toBe(false);
+    });
+
+    it('CCW 方向下点击旋钮，动画结束后棋盘按逆时针旋转', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            direction={game.rotationDirection}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      // 先切换到 CCW
+      act(() => {
+        capturedGame!.toggleRotationDirection();
+      });
+      rerender(<Wrapper />);
+      expect(capturedGame!.rotationDirection).toBe('CCW');
+
+      // 记录动画状态中的方向
+      const colorsBefore = [...capturedGame!.board.cells.map((c) => c.color)];
+      const knobButton = screen.getAllByRole('button')[0];
+      act(() => {
+        fireEvent.click(knobButton);
+      });
+      rerender(<Wrapper />);
+
+      // animating.direction 应为 CCW
+      expect(capturedGame!.animating).not.toBeNull();
+      expect(capturedGame!.animating!.direction).toBe('CCW');
+
+      // 模拟动画结束
+      act(() => {
+        capturedGame!.onAnimationEnd();
+      });
+      rerender(<Wrapper />);
+
+      // 棋盘应发生改变（CCW 旋转同样改变排列）
+      const colorsAfter = capturedGame!.board.cells.map((c) => c.color);
+      const changed = colorsBefore.some((c, i) => c !== colorsAfter[i]);
+      expect(changed).toBe(true);
+    });
+
+    it('CW 旋转后再 CCW 旋转可还原棋盘（CW³=CCW 等价）', () => {
+      // 验证切换逻辑正确：3次CW = 1次CCW，因此 1次CW + 1次CCW = 恢复原状
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            direction={game.rotationDirection}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      const colorsBefore = [...capturedGame!.board.cells.map((c) => c.color)];
+      const knobButton = screen.getAllByRole('button')[0];
+
+      // 1 次 CW 旋转
+      expect(capturedGame!.rotationDirection).toBe('CW');
+      act(() => {
+        fireEvent.click(knobButton);
+      });
+      rerender(<Wrapper />);
+      act(() => {
+        capturedGame!.onAnimationEnd();
+      });
+      rerender(<Wrapper />);
+
+      // 此时棋盘应已改变
+      const colorsAfterCW = capturedGame!.board.cells.map((c) => c.color);
+      expect(colorsBefore.some((c, i) => c !== colorsAfterCW[i])).toBe(true);
+
+      // 切换到 CCW
+      act(() => {
+        capturedGame!.toggleRotationDirection();
+      });
+      rerender(<Wrapper />);
+      expect(capturedGame!.rotationDirection).toBe('CCW');
+
+      // 1 次 CCW 旋转（应恢复原状）
+      act(() => {
+        fireEvent.click(knobButton);
+      });
+      rerender(<Wrapper />);
+      act(() => {
+        capturedGame!.onAnimationEnd();
+      });
+      rerender(<Wrapper />);
+
+      const colorsAfterCCW = capturedGame!.board.cells.map((c) => c.color);
+      expect(colorsAfterCCW).toEqual(colorsBefore);
+    });
+  });
 });

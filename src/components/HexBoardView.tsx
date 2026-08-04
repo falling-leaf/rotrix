@@ -29,6 +29,8 @@ interface HexBoardViewProps {
   preview?: boolean;
   label?: string;
   celebrating?: boolean;
+  /** v0.3.4：当前旋转方向，用于设置旋钮图标（CW=↻ / CCW=↺） */
+  direction?: 'CW' | 'CCW';
 }
 
 const COLOR_HEX: Record<Color, string> = {
@@ -50,6 +52,7 @@ function HexBoardViewInner({
   preview = false,
   label,
   celebrating = false,
+  direction = 'CW',
 }: HexBoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -220,7 +223,7 @@ function HexBoardViewInner({
               return (
                 <button
                   key={knob.id}
-                  className="knob"
+                  className={`knob knob-${direction.toLowerCase()}`}
                   style={{
                     top: `${top}%`,
                     left: `${left}%`,

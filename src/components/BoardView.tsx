@@ -52,6 +52,9 @@ interface BoardViewProps {
   label?: string;
   /** v0.2.1：是否正在播放胜利庆祝动画 */
   celebrating?: boolean;
+  /** v0.3.4：当前旋转方向，用于设置旋钮图标（CW=↻ / CCW=↺）。
+   * 默认 'CW'，保持与历史版本兼容。 */
+  direction?: 'CW' | 'CCW';
 }
 
 function BoardViewInner({
@@ -64,6 +67,7 @@ function BoardViewInner({
   preview = false,
   label,
   celebrating = false,
+  direction = 'CW',
 }: BoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -240,7 +244,7 @@ function BoardViewInner({
               return (
                 <button
                   key={knob.id}
-                  className="knob"
+                  className={`knob knob-${direction.toLowerCase()}`}
                   style={{ top: `${top}%`, left: `${left}%` }}
                   onClick={() => onKnobClick(knob)}
                   disabled={disabled || !!animating}

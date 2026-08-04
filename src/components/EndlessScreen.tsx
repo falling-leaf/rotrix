@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BoardViewRouter as BoardView } from './BoardView';
+import { RotationDirectionSwitch } from './RotationDirectionSwitch';
 import { useGame } from '../hooks/useGame';
 import { getTopologyEntry } from '../core/goals';
 import { generateRandomPuzzle } from '../core/generator';
@@ -125,14 +126,22 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
             disabled={game.won}
             celebrating={game.celebrating}
             label="操作地图"
+            direction={game.rotationDirection}
           />
-          <BoardView
-            board={solvedBoard}
-            knobs={[]}
-            onKnobClick={() => {}}
-            preview
-            label="目标地图"
-          />
+          <div className="right-panel">
+            <BoardView
+              board={solvedBoard}
+              knobs={[]}
+              onKnobClick={() => {}}
+              preview
+              label="目标地图"
+            />
+            <RotationDirectionSwitch
+              direction={game.rotationDirection}
+              onToggle={game.toggleRotationDirection}
+              disabled={game.won}
+            />
+          </div>
         </div>
 
         <div className="controls">

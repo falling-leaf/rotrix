@@ -9,6 +9,9 @@ export interface AnimationState {
   direction: 'CW' | 'CCW';
 }
 
+/** v0.3.4：旋钮旋转方向（全局开关，用户通过硬币组件切换） */
+export type RotationDirection = 'CW' | 'CCW';
+
 /**
  * v0.2.1：庆祝动画状态。
  * won 为 true 后，BoardView 根据此状态启动对角线波纹动画。
@@ -47,6 +50,10 @@ export function useGame(level: Level) {
   const [moveCount, setMoveCount] = useState(0);
   // v0.2.1：庆祝动画状态——won 置 true 后启动，CELEBRATE_DURATION 后清除
   const [celebrating, setCelebrating] = useState(false);
+  // v0.3.4：全局旋转方向开关（CW / CCW），用户通过硬币组件切换。
+  // 初始为 CW（顺时针），与历史版本默认行为一致。
+  const [rotationDirection, setRotationDirection] =
+    useState<RotationDirection>('CW');
 
   // 用 ref 存动画状态，避免在 updater body 内嵌套 setState
   const animatingRef = useRef<AnimationState | null>(null);
@@ -58,16 +65,26 @@ export function useGame(level: Level) {
 
   /**
    * 点击旋钮：启动旋转动画，不立即修改棋盘。
+   * v0.3.4：旋转方向由全局 rotationDirection 决定，
+   * 用户可通过硬币组件在 CW / CCW 之间切换。
    */
   const handleKnobClick = useCallback(
     (knob: Knob) => {
       if (animatingRef.current || won) return;
-      const state: AnimationState = { knob, direction: 'CW' };
+      const state: AnimationState = { knob, direction: rotationDirection };
       animatingRef.current = state;
       setAnimating(state);
     },
-    [won],
+    [won, rotationDirection],
   );
+
+  /**
+   * v0.3.4：切换全局旋转方向（CW ↔ CCW）。
+   * 切换后，后续点击旋钮将使用新方向旋转，旋钮图标也相应更新。
+   */
+  const toggleRotationDirection = useCallback(() => {
+    setRotationDirection((d) => (d === 'CW' ? 'CCW' : 'CW'));
+  }, []);
 
   /**
    * 旋转动画结束后调用：更新棋盘、记录步数、判定胜利。
@@ -135,6 +152,9 @@ export function useGame(level: Level) {
     won,
     animating,
     celebrating,
+    // v0.3.4：全局旋转方向 + 切换函数
+    rotationDirection,
+    toggleRotationDirection,
     handleKnobClick,
     onAnimationEnd,
     reset,
