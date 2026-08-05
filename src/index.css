@@ -210,7 +210,18 @@ button, .knob, .level-chip, .btn {
   gap: var(--cell-gap);
 }
 
+/* v0.3.5：cell-slot 是 .cell-grid 的 grid 子项，撑满格子区域。
+ * 它是 flex 容器，让其中的 .cell 撑满宽高——否则 .cell 作为普通
+ * 块级 div 在非直接 grid 子项位置时高度塌陷为 0（白色空格根因）。 */
+.cell-slot {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
 .cell {
+  width: 100%;
+  height: 100%;
   border-radius: 6px;
   transition: background-color 0.15s ease;
 }
@@ -231,6 +242,8 @@ button, .knob, .level-chip, .btn {
 .cell.green { background: var(--color-green); }
 .cell.cyan { background: var(--color-cyan); }
 .cell.magenta { background: var(--color-magenta); }
+/* v0.3.5：对换动画中原位置的白色底色 */
+.cell.__panel { background: var(--panel); }
 
 /* v0.3.0：六边形新色变量 */
 :root {
@@ -811,4 +824,155 @@ button, .knob, .level-chip, .btn {
  * 切换方向后旋钮图标立即更新，与硬币朝上面一致 */
 .knob.knob-ccw::after {
   content: '↺';
+}
+
+/* v0.3.5：对换道具 UI */
+
+/* 对换按钮——继承 .btn 基础样式，额外控制图标+文字+次数的布局 */
+.swap-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+}
+
+.swap-btn:hover:not(.disabled) {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+/* 激活态——对换模式开启时高亮 */
+.swap-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.3);
+}
+
+.swap-btn.active .swap-icon {
+  color: var(--accent);
+}
+
+.swap-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.swap-icon {
+  color: var(--text-dim);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.swap-label {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.swap-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dim);
+  line-height: 1;
+  margin-left: 2px;
+}
+
+/* 对换模式下的棋盘——格子可点击高亮 */
+.board.swap-mode .cell-slot {
+  position: relative;
+  cursor: pointer;
+}
+
+.board.swap-mode .swap-clickable:hover .cell {
+  transform: scale(1.1);
+  border-radius: 8px;
+}
+
+/* v0.3.5：已选中的格子——放大 + 提亮，类似胜利结算的突出效果。
+ * 与 celebrate-pulse 同模式：scale 1.18 + brightness 1.25，
+ * 让用户清晰看到选中的两个格子。 */
+.board.swap-mode .swap-selected .cell {
+  transform: scale(1.18);
+  filter: brightness(1.25);
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 16px rgba(233, 69, 96, 0.5);
+  z-index: 5;
+}
+
+/* v0.3.5：对换动画中，原位置的白色底格不留阴影/高亮 */
+.cell-slot.swapping .cell {
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+/* 六边形棋盘的对换模式高亮（SVG polygon） */
+.board.swap-mode .hex-tri.swap-clickable {
+  cursor: pointer;
+}
+
+.board.swap-mode .hex-tri.swap-clickable:hover {
+  filter: brightness(1.15);
+}
+
+/* v0.3.5：已选中的三角形——放大 + 提亮，与正方形版同模式。
+ * SVG polygon 的 transform: scale 需配合 transform-origin（质心）。
+ * transform-origin 由内联 style 设置（hex-tri 的质心百分比坐标）。 */
+.board.swap-mode .hex-tri.swap-selected {
+  transform: scale(1.18);
+  filter: brightness(1.25);
+  z-index: 5;
+}
+
+/* v0.3.5：对换动画中，原位置的白色三角形不高亮 */
+.hex-tri.swapping {
+  filter: none;
+  transform: none;
+}
+
+/* 对换动画 overlay——两个色块飞移 */
+.swap-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.swap-piece {
+  position: absolute;
+  /* transform 由内联设置（translate(-50%, -50%) 居中到坐标点） */
+}
+
+.swap-piece .cell {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  /* 飞行时略微放大+提亮，增强"拿起"感 */
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 预览模式下隐藏对换 overlay */
+.board-wrapper.preview .swap-overlay {
+  display: none;
+}
+
+/* 移动端对换按钮适配 */
+@media (max-width: 768px) {
+  .swap-btn {
+    padding: 8px 16px;
+    gap: 4px;
+  }
+  .swap-label {
+    font-size: 18px;
+  }
+  .swap-count {
+    font-size: 14px;
+  }
+  .swap-icon svg {
+    width: 22px;
+    height: 22px;
+  }
 }

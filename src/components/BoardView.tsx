@@ -1,13 +1,15 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Board, Knob, Color } from '../core/types';
-import type { AnimationState } from '../hooks/useGame';
+import type { AnimationState, SwapAnimationState } from '../hooks/useGame';
 import { HexBoardView } from './HexBoardView';
 
 /** 旋转动画时长（ms）——v0.1.3：350ms → 200ms，缩减单次旋转开销 */
 const ROTATE_DURATION = 200;
 /** 旋转到达目标角度后停留的额外帧数，确保 board commit 后再卸载 overlay */
 const SETTLE_FRAMES = 3;
+/** v0.3.5：对换动画时长（ms）——飞出 + 飞入合计 */
+const SWAP_DURATION = 350;
 
 interface CellProps {
   color: Color;
@@ -55,6 +57,16 @@ interface BoardViewProps {
   /** v0.3.4：当前旋转方向，用于设置旋钮图标（CW=↻ / CCW=↺）。
    * 默认 'CW'，保持与历史版本兼容。 */
   direction?: 'CW' | 'CCW';
+  /** v0.3.5：是否处于对换选择模式（格子可点击高亮） */
+  swapMode?: boolean;
+  /** v0.3.5：对换模式下已选中的第一个格子索引（高亮标记） */
+  swapSelection?: number | null;
+  /** v0.3.5：对换动画状态（两个格子正在飞移） */
+  swapAnimating?: SwapAnimationState | null;
+  /** v0.3.5：对换模式下的格子点击回调 */
+  onCellClick?: (index: number) => void;
+  /** v0.3.5：对换动画结束回调 */
+  onSwapAnimationEnd?: () => void;
 }
 
 function BoardViewInner({
@@ -68,6 +80,11 @@ function BoardViewInner({
   label,
   celebrating = false,
   direction = 'CW',
+  swapMode = false,
+  swapSelection = null,
+  swapAnimating = null,
+  onCellClick,
+  onSwapAnimationEnd,
 }: BoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -91,6 +108,27 @@ function BoardViewInner({
     const overlayPct = (2 / board.dims[0]) * 100;
     return { colors, top, left, width: overlayPct, height: overlayPct, targetAngle };
   }, [animating, board, preview]);
+
+  // v0.3.5：计算对换动画 overlay 数据——两个格子的位置和颜色
+  const swapOverlay = useMemo(() => {
+    if (!swapAnimating || preview) return null;
+    const { indexA, indexB } = swapAnimating;
+    const colorA = board.cells[indexA].color;
+    const colorB = board.cells[indexB].color;
+    // 格子在网格中的位置（行优先）
+    const rowA = Math.floor(indexA / board.dims[1]);
+    const colA = indexA % board.dims[1];
+    const rowB = Math.floor(indexB / board.dims[1]);
+    const colB = indexB % board.dims[1];
+    // 转百分比坐标（格子中心）
+    const cellW = 100 / board.dims[1];
+    const cellH = 100 / board.dims[0];
+    const ax = (colA + 0.5) * cellW;
+    const ay = (rowA + 0.5) * cellH;
+    const bx = (colB + 0.5) * cellW;
+    const by = (rowB + 0.5) * cellH;
+    return { colorA, colorB, ax, ay, bx, by, cellW, cellH };
+  }, [swapAnimating, board, preview]);
 
   // rAF 驱动：angle 从 0 度动画到 targetAngle。
   // 完成后调用 onAnimationEnd，由上层提交棋盘状态。
@@ -167,6 +205,68 @@ function BoardViewInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotateOverlay]);
 
+  // v0.3.5：对换动画 progress（0→1），驱动两个色块互相飞移。
+  const [swapProgress, setSwapProgress] = useState(0);
+  const [keepSwapAnimating, setKeepSwapAnimating] = useState(false);
+  const swapRafRef = useRef<number | null>(null);
+  const swapStartRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!swapOverlay) {
+      setSwapProgress(0);
+      swapStartRef.current = null;
+      if (swapRafRef.current != null) {
+        cancelAnimationFrame(swapRafRef.current);
+        swapRafRef.current = null;
+      }
+      return;
+    }
+    swapStartRef.current = null;
+    let settled = 0;
+    const tick = (now: number) => {
+      if (swapStartRef.current == null) swapStartRef.current = now;
+      const elapsed = now - swapStartRef.current;
+      const progress = Math.min(1, elapsed / SWAP_DURATION);
+      // ease-in-out cubic：先加速后减速，模拟抛出+落下的物理感
+      const eased =
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      setSwapProgress(eased);
+      if (progress < 1) {
+        swapRafRef.current = requestAnimationFrame(tick);
+      } else {
+        settled++;
+        if (settled < SETTLE_FRAMES) {
+          swapRafRef.current = requestAnimationFrame(tick);
+        } else {
+          swapRafRef.current = null;
+          onSwapAnimationEnd?.();
+        }
+      }
+    };
+    swapRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (swapRafRef.current != null) {
+        cancelAnimationFrame(swapRafRef.current);
+        swapRafRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swapOverlay]);
+
+  // 对换动画结束后保持 .board.animating 几帧（与旋转同模式）
+  useEffect(() => {
+    if (!swapOverlay && keepSwapAnimating) {
+      const id = setTimeout(() => setKeepSwapAnimating(false), 30);
+      return () => clearTimeout(id);
+    }
+    if (swapOverlay && !keepSwapAnimating) {
+      setKeepSwapAnimating(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swapOverlay]);
+
   // 计算旋转中保持不出格的缩放因子
   // 旋转 θ 的正方形，外接矩形边长 = side*(cosθ + sinθ)
   // 令外接矩形 = 原边界框，则 scale = 1 / (cosθ + sinθ)
@@ -176,7 +276,7 @@ function BoardViewInner({
   return (
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>
       {label && <div className="board-label">{label}</div>}
-      <div className={`board ${(animating || keepAnimating) ? 'animating' : ''} ${celebrating ? 'celebrating' : ''}`}>
+      <div className={`board ${(animating || keepAnimating || swapOverlay || keepSwapAnimating) ? 'animating' : ''} ${celebrating ? 'celebrating' : ''} ${swapMode ? 'swap-mode' : ''}`}>
         <div
           className="cell-grid"
           style={{
@@ -190,12 +290,25 @@ function BoardViewInner({
             const row = Math.floor(i / board.dims[1]);
             const col = i % board.dims[1];
             const delay = celebrating ? (row + col) * 60 : 0;
+            // v0.3.5：对换模式下，格子可点击；已选中的格子高亮
+            const swapSelected = swapMode && swapSelection === i;
+            const swapClickable = swapMode && !preview && !animating && !swapAnimating;
+            // v0.3.5：对换动画中，参与对换的两个格子底层显示为面板色（白色），
+            // 而非原始色——飞行的色块由 swap overlay 承载，
+            // 原位置露出白色底，避免用户看到色块"原地不动+飞行"的叠影。
+            const isSwapping = !!swapAnimating && (swapAnimating.indexA === i || swapAnimating.indexB === i);
+            const displayColor = isSwapping ? '__panel' : cell.color;
             return (
-              <CellBlock
+              <div
                 key={i}
-                color={cell.color}
-                style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
-              />
+                className={`cell-slot ${swapSelected ? 'swap-selected' : ''} ${swapClickable ? 'swap-clickable' : ''} ${isSwapping ? 'swapping' : ''}`}
+                onClick={swapClickable ? () => onCellClick?.(i) : undefined}
+              >
+                <CellBlock
+                  color={displayColor as Color}
+                  style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
+                />
+              </div>
             );
           })}
         </div>
@@ -236,6 +349,38 @@ function BoardViewInner({
           </div>
         )}
 
+        {/* v0.3.5：对换动画 overlay——两个色块互相飞移 */}
+        {swapOverlay && (
+          <div className="swap-overlay">
+            {/* 格子 A 的色块飞向 B 的位置 */}
+            <div
+              className="swap-piece"
+              style={{
+                width: `${swapOverlay.cellW}%`,
+                height: `${swapOverlay.cellH}%`,
+                left: `${swapOverlay.ax + (swapOverlay.bx - swapOverlay.ax) * swapProgress}%`,
+                top: `${swapOverlay.ay + (swapOverlay.by - swapOverlay.ay) * swapProgress}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <div className={`cell ${swapOverlay.colorA}`} />
+            </div>
+            {/* 格子 B 的色块飞向 A 的位置 */}
+            <div
+              className="swap-piece"
+              style={{
+                width: `${swapOverlay.cellW}%`,
+                height: `${swapOverlay.cellH}%`,
+                left: `${swapOverlay.bx + (swapOverlay.ax - swapOverlay.bx) * swapProgress}%`,
+                top: `${swapOverlay.by + (swapOverlay.ay - swapOverlay.by) * swapProgress}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <div className={`cell ${swapOverlay.colorB}`} />
+            </div>
+          </div>
+        )}
+
         {!preview && (
           <div className="knob-layer">
             {knobs.map((knob) => {
@@ -247,7 +392,7 @@ function BoardViewInner({
                   className={`knob knob-${direction.toLowerCase()}`}
                   style={{ top: `${top}%`, left: `${left}%` }}
                   onClick={() => onKnobClick(knob)}
-                  disabled={disabled || !!animating}
+                  disabled={disabled || !!animating || swapMode || !!swapAnimating}
                   aria-label={`旋钮 ${knob.id}`}
                 />
               );

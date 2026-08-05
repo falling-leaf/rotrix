@@ -14,6 +14,7 @@ import {
   boardsEqual,
   rotateCellsCW,
   rotateCellsCCW,
+  swapCells,
 } from '../src/core/board';
 import { square4x4, square6x6 } from '../src/core/topology';
 import { hexTriangle, createSolvedHexTriangle } from '../src/core/hex-topology';
@@ -936,5 +937,63 @@ describe('Generator - 六边形简单版关卡生成', () => {
     const gen = generatePuzzle('hex-small-triangle', 20, 401);
     expect(gen.initial.cells).toHaveLength(24);
     expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+});
+
+// v0.3.5：对换道具 swapCells 纯函数测试
+describe('swapCells - 对换格子颜色', () => {
+  it('交换两个不同格子，颜色互换', () => {
+    const board = createSolvedSquare4x4();
+    // 索引 0 = red（左上），索引 15 = green（右下）
+    expect(board.cells[0].color).toBe('red');
+    expect(board.cells[15].color).toBe('green');
+    const swapped = swapCells(board, 0, 15);
+    expect(swapped.cells[0].color).toBe('green');
+    expect(swapped.cells[15].color).toBe('red');
+  });
+
+  it('交换后其余格子不受影响', () => {
+    const board = createSolvedSquare4x4();
+    const swapped = swapCells(board, 0, 15);
+    // 索引 1 仍为 red
+    expect(swapped.cells[1].color).toBe('red');
+    // 索引 14 仍为 green
+    expect(swapped.cells[14].color).toBe('green');
+    // 其余全部一致
+    for (let i = 0; i < 16; i++) {
+      if (i === 0 || i === 15) continue;
+      expect(swapped.cells[i].color).toBe(board.cells[i].color);
+    }
+  });
+
+  it('不修改原棋盘（纯函数）', () => {
+    const board = createSolvedSquare4x4();
+    const snapshot = cloneBoard(board);
+    swapCells(board, 0, 15);
+    expect(boardsEqual(board, snapshot)).toBe(true);
+  });
+
+  it('同一索引对换返回等价棋盘', () => {
+    const board = createSolvedSquare4x4();
+    const swapped = swapCells(board, 5, 5);
+    expect(boardsEqual(swapped, board)).toBe(true);
+  });
+
+  it('二次对换恢复原状（swap ∘ swap = identity）', () => {
+    const board = createSolvedSquare4x4();
+    const once = swapCells(board, 0, 15);
+    const twice = swapCells(once, 0, 15);
+    expect(boardsEqual(twice, board)).toBe(true);
+  });
+
+  it('六边形棋盘同样支持对换', () => {
+    const solved = createSolvedHexTriangle();
+    const swapped = swapCells(solved, 0, 53);
+    expect(swapped.cells[0].color).toBe(solved.cells[53].color);
+    expect(swapped.cells[53].color).toBe(solved.cells[0].color);
+    // 其余不变
+    for (let i = 1; i < 52; i++) {
+      expect(swapped.cells[i].color).toBe(solved.cells[i].color);
+    }
   });
 });

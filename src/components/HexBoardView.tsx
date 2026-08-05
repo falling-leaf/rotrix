@@ -12,12 +12,14 @@
  */
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { Board, Knob, Color } from '../core/types';
-import type { AnimationState } from '../hooks/useGame';
+import type { AnimationState, SwapAnimationState } from '../hooks/useGame';
 import { TRIANGLE_POINTS } from '../core/hex-topology';
 import { TRIANGLE_POINTS_SMALL } from '../core/hex-topology-small';
 
 const ROTATE_DURATION = 200;
 const SETTLE_FRAMES = 3;
+/** v0.3.5：对换动画时长（ms） */
+const SWAP_DURATION = 350;
 
 interface HexBoardViewProps {
   board: Board;
@@ -31,6 +33,16 @@ interface HexBoardViewProps {
   celebrating?: boolean;
   /** v0.3.4：当前旋转方向，用于设置旋钮图标（CW=↻ / CCW=↺） */
   direction?: 'CW' | 'CCW';
+  /** v0.3.5：是否处于对换选择模式 */
+  swapMode?: boolean;
+  /** v0.3.5：对换模式下已选中的第一个格子索引 */
+  swapSelection?: number | null;
+  /** v0.3.5：对换动画状态 */
+  swapAnimating?: SwapAnimationState | null;
+  /** v0.3.5：对换模式下的格子点击回调 */
+  onCellClick?: (index: number) => void;
+  /** v0.3.5：对换动画结束回调 */
+  onSwapAnimationEnd?: () => void;
 }
 
 const COLOR_HEX: Record<Color, string> = {
@@ -53,6 +65,11 @@ function HexBoardViewInner({
   label,
   celebrating = false,
   direction = 'CW',
+  swapMode = false,
+  swapSelection = null,
+  swapAnimating = null,
+  onCellClick,
+  onSwapAnimationEnd,
 }: HexBoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -140,13 +157,95 @@ function HexBoardViewInner({
     return new Set(rotateOverlay.indices);
   }, [rotateOverlay]);
 
+  // v0.3.5：对换动画 overlay 数据——两个三角形格子的质心坐标和颜色
+  const swapOverlay = useMemo(() => {
+    if (!swapAnimating || preview) return null;
+    const { indexA, indexB } = swapAnimating;
+    const ptsA = trianglePoints[indexA];
+    const ptsB = trianglePoints[indexB];
+    if (!ptsA || !ptsB) return null;
+    // 质心 = 三顶点坐标平均
+    const cxA = (ptsA[0] + ptsA[2] + ptsA[4]) / 3;
+    const cyA = (ptsA[1] + ptsA[3] + ptsA[5]) / 3;
+    const cxB = (ptsB[0] + ptsB[2] + ptsB[4]) / 3;
+    const cyB = (ptsB[1] + ptsB[3] + ptsB[5]) / 3;
+    const colorA = board.cells[indexA].color;
+    const colorB = board.cells[indexB].color;
+    // 保存两三角形的顶点（用于在动画 overlay 中绘制飞行的三角形）
+    const polyA = `${ptsA[0]},${ptsA[1]} ${ptsA[2]},${ptsA[3]} ${ptsA[4]},${ptsA[5]}`;
+    const polyB = `${ptsB[0]},${ptsB[1]} ${ptsB[2]},${ptsB[3]} ${ptsB[4]},${ptsB[5]}`;
+    return { cxA, cyA, cxB, cyB, colorA, colorB, polyA, polyB };
+  }, [swapAnimating, board, preview, trianglePoints]);
+
+  // v0.3.5：对换动画 progress（0→1）
+  const [swapProgress, setSwapProgress] = useState(0);
+  const [keepSwapAnimating, setKeepSwapAnimating] = useState(false);
+  const swapRafRef = useRef<number | null>(null);
+  const swapStartRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!swapOverlay) {
+      setSwapProgress(0);
+      swapStartRef.current = null;
+      if (swapRafRef.current != null) {
+        cancelAnimationFrame(swapRafRef.current);
+        swapRafRef.current = null;
+      }
+      return;
+    }
+    swapStartRef.current = null;
+    let settled = 0;
+    const tick = (now: number) => {
+      if (swapStartRef.current == null) swapStartRef.current = now;
+      const elapsed = now - swapStartRef.current;
+      const progress = Math.min(1, elapsed / SWAP_DURATION);
+      const eased =
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      setSwapProgress(eased);
+      if (progress < 1) {
+        swapRafRef.current = requestAnimationFrame(tick);
+      } else {
+        settled++;
+        if (settled < SETTLE_FRAMES) {
+          swapRafRef.current = requestAnimationFrame(tick);
+        } else {
+          swapRafRef.current = null;
+          onSwapAnimationEnd?.();
+        }
+      }
+    };
+    swapRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (swapRafRef.current != null) {
+        cancelAnimationFrame(swapRafRef.current);
+        swapRafRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swapOverlay]);
+
+  useEffect(() => {
+    if (!swapOverlay && keepSwapAnimating) {
+      const id = setTimeout(() => setKeepSwapAnimating(false), 30);
+      return () => clearTimeout(id);
+    }
+    if (swapOverlay && !keepSwapAnimating) {
+      setKeepSwapAnimating(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swapOverlay]);
+
+  // v0.3.5：swapHiddenSet 不再需要——对换中的三角形改为填充面板色，不隐藏
+
   return (
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>
       {label && <div className="board-label">{label}</div>}
       <div
         className={`board hex-board ${
-          animating || keepAnimating ? 'animating' : ''
-        } ${celebrating ? 'celebrating' : ''}`}
+          animating || keepAnimating || swapOverlay || keepSwapAnimating ? 'animating' : ''
+        } ${celebrating ? 'celebrating' : ''} ${swapMode ? 'swap-mode' : ''}`}
       >
         <svg
           className="hex-svg"
@@ -154,11 +253,16 @@ function HexBoardViewInner({
           preserveAspectRatio="xMidYMid meet"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         >
-          {/* 底层三角形：旋转中的三角形隐藏（由 overlay 显示） */}
+          {/* 底层三角形：旋转中的三角形隐藏（由 overlay 显示）。
+           * v0.3.5：对换中的三角形也隐藏（由 swap overlay 显示飞行版） */}
           {cells.map((cell, i) => {
             const pts = trianglePoints[i];
             if (!pts) return null;
-            const hidden = rotatingSet.has(i);
+            const isRotatingHidden = rotatingSet.has(i);
+            // v0.3.5：对换动画中，参与对换的两个三角形底层填充为面板色（白色），
+            // 而非隐藏为透明——这样原位置显示白色底，与棋盘背景一致，
+            // 避免飞行色块与底层同色叠影。
+            const isSwapping = !!swapAnimating && (swapAnimating.indexA === i || swapAnimating.indexB === i);
             const pointsStr = `${pts[0]},${pts[1]} ${pts[2]},${pts[3]} ${pts[4]},${pts[5]}`;
             // v0.3.2：胜利庆祝——对角线波纹延迟，与正方形版一致。
             // 每个三角形的延迟按其质心的归一化对角线位置计算（左上→右下），
@@ -168,22 +272,33 @@ function HexBoardViewInner({
             const delay = celebrating
               ? Math.round(((cx + cy) / 200) * 600)
               : 0;
+            // v0.3.5：对换模式下，三角形可点击交互
+            const swapSelected = swapMode && swapSelection === i;
+            const swapClickable = swapMode && !preview && !animating && !swapAnimating;
+            // v0.3.5：对换动画中，原位置填充面板色；旋转中仍隐藏
+            const fill = isSwapping ? 'var(--panel)' : COLOR_HEX[cell.color];
             return (
               <polygon
                 key={i}
                 points={pointsStr}
-                fill={COLOR_HEX[cell.color]}
-                stroke="#ffffff"
+                fill={fill}
+                stroke={isSwapping ? 'none' : '#ffffff'}
                 strokeWidth={preview ? 0.3 : 0.4}
                 strokeLinejoin="round"
-                className={`hex-tri tri-${i}`}
-                style={
-                  hidden
+                className={`hex-tri tri-${i} ${swapSelected ? 'swap-selected' : ''} ${swapClickable ? 'swap-clickable' : ''} ${isSwapping ? 'swapping' : ''}`}
+                style={{
+                  // v0.3.5：swap-selected 的 transform: scale 需以三角形质心为原点，
+                  // 否则 SVG transform-origin 默认为 0,0（viewBox 左上角），
+                  // 缩放后三角形会向右下角偏移。
+                  // celebrate-pulse 动画同样需要质心为原点，否则缩放向右下偏移。
+                  transformOrigin: `${cx}% ${cy}%`,
+                  ...(isRotatingHidden
                     ? { opacity: 0 }
                     : celebrating
                       ? { animationDelay: `${delay}ms` }
-                      : undefined
-                }
+                      : {}),
+                }}
+                onClick={swapClickable ? () => onCellClick?.(i) : undefined}
               />
             );
           })}
@@ -213,6 +328,41 @@ function HexBoardViewInner({
               })}
             </g>
           )}
+
+          {/* v0.3.5：对换动画 overlay——两个三角形互相飞移。
+           * 用 SVG <g> 包装每个飞行三角形，通过 translate 移动质心。 */}
+          {swapOverlay && (
+            <>
+              {/* 三角形 A 飞向 B 的位置 */}
+              <g
+                style={{
+                  transform: `translate(${(swapOverlay.cxB - swapOverlay.cxA) * swapProgress}px, ${(swapOverlay.cyB - swapOverlay.cyA) * swapProgress}px)`,
+                }}
+              >
+                <polygon
+                  points={swapOverlay.polyA}
+                  fill={COLOR_HEX[swapOverlay.colorA]}
+                  stroke="#ffffff"
+                  strokeWidth={0.4}
+                  strokeLinejoin="round"
+                />
+              </g>
+              {/* 三角形 B 飞向 A 的位置 */}
+              <g
+                style={{
+                  transform: `translate(${(swapOverlay.cxA - swapOverlay.cxB) * swapProgress}px, ${(swapOverlay.cyA - swapOverlay.cyB) * swapProgress}px)`,
+                }}
+              >
+                <polygon
+                  points={swapOverlay.polyB}
+                  fill={COLOR_HEX[swapOverlay.colorB]}
+                  stroke="#ffffff"
+                  strokeWidth={0.4}
+                  strokeLinejoin="round"
+                />
+              </g>
+            </>
+          )}
         </svg>
 
         {!preview && (
@@ -229,7 +379,7 @@ function HexBoardViewInner({
                     left: `${left}%`,
                   }}
                   onClick={() => onKnobClick(knob)}
-                  disabled={disabled || !!animating}
+                  disabled={disabled || !!animating || swapMode || !!swapAnimating}
                   aria-label={`旋钮 ${knob.id}`}
                 />
               );

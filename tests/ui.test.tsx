@@ -479,4 +479,282 @@ describe('BoardView 组件渲染', () => {
       expect(colorsAfterCCW).toEqual(colorsBefore);
     });
   });
+
+  // v0.3.5：对换道具测试
+  describe('v0.3.5 对换道具', () => {
+    it('初始状态：对换模式关闭，剩余次数为 3', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      render(<Wrapper />);
+      expect(capturedGame!.swapMode).toBe(false);
+      expect(capturedGame!.swapsLeft).toBe(3);
+      expect(capturedGame!.swapSelection).toBeNull();
+      expect(capturedGame!.swapAnimating).toBeNull();
+    });
+
+    it('激活对换模式后，棋盘加 swap-mode 类，格子可点击', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      act(() => {
+        capturedGame!.toggleSwapMode();
+      });
+      rerender(<Wrapper />);
+
+      expect(capturedGame!.swapMode).toBe(true);
+      const board = document.querySelector('.board');
+      expect(board!.classList.contains('swap-mode')).toBe(true);
+      // 格子应有 swap-clickable 类
+      const clickable = document.querySelectorAll('.swap-clickable');
+      expect(clickable.length).toBe(16);
+    });
+
+    it('对换模式下旋钮被禁用', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      act(() => {
+        capturedGame!.toggleSwapMode();
+      });
+      rerender(<Wrapper />);
+
+      // 所有旋钮都应 disabled
+      const knobs = document.querySelectorAll('.knob');
+      knobs.forEach((k) => {
+        expect((k as HTMLButtonElement).disabled).toBe(true);
+      });
+    });
+
+    it('选两个格子后触发对换动画，动画结束后棋盘交换且次数-1', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      // 记录交换前的颜色
+      const colorsBefore = [...capturedGame!.board.cells.map((c) => c.color)];
+      const swapsBefore = capturedGame!.swapsLeft;
+
+      // 激活对换模式
+      act(() => {
+        capturedGame!.toggleSwapMode();
+      });
+      rerender(<Wrapper />);
+
+      // 点击第一个格子（索引 0）
+      act(() => {
+        capturedGame!.handleCellClick(0);
+      });
+      rerender(<Wrapper />);
+      expect(capturedGame!.swapSelection).toBe(0);
+
+      // 点击第二个格子（索引 15）——触发对换动画
+      act(() => {
+        capturedGame!.handleCellClick(15);
+      });
+      rerender(<Wrapper />);
+
+      // swapAnimating 应有值
+      expect(capturedGame!.swapAnimating).not.toBeNull();
+      expect(capturedGame!.swapAnimating!.indexA).toBe(0);
+      expect(capturedGame!.swapAnimating!.indexB).toBe(15);
+
+      // 模拟对换动画结束
+      act(() => {
+        capturedGame!.onSwapAnimationEnd();
+      });
+      rerender(<Wrapper />);
+
+      // 棋盘 0 和 15 的颜色应互换
+      const colorsAfter = capturedGame!.board.cells.map((c) => c.color);
+      expect(colorsAfter[0]).toBe(colorsBefore[15]);
+      expect(colorsAfter[15]).toBe(colorsBefore[0]);
+
+      // 次数 -1
+      expect(capturedGame!.swapsLeft).toBe(swapsBefore - 1);
+
+      // swapAnimating 已清除
+      expect(capturedGame!.swapAnimating).toBeNull();
+    });
+
+    it('reset 后对换状态全部重置', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      // 先消耗一次对换
+      act(() => {
+        capturedGame!.toggleSwapMode();
+      });
+      rerender(<Wrapper />);
+      act(() => {
+        capturedGame!.handleCellClick(0);
+      });
+      rerender(<Wrapper />);
+      act(() => {
+        capturedGame!.handleCellClick(15);
+      });
+      rerender(<Wrapper />);
+      act(() => {
+        capturedGame!.onSwapAnimationEnd();
+      });
+      rerender(<Wrapper />);
+
+      expect(capturedGame!.swapsLeft).toBe(2);
+
+      // 重置
+      act(() => {
+        capturedGame!.reset();
+      });
+      rerender(<Wrapper />);
+
+      expect(capturedGame!.swapMode).toBe(false);
+      expect(capturedGame!.swapSelection).toBeNull();
+      expect(capturedGame!.swapAnimating).toBeNull();
+      expect(capturedGame!.swapsLeft).toBe(3);
+    });
+
+    it('次数耗尽后无法激活对换模式', () => {
+      const level = getLevel(1)!;
+      let capturedGame: ReturnType<typeof useGame> | null = null;
+      const Wrapper = () => {
+        const game = useGame(level);
+        capturedGame = game;
+        return (
+          <BoardView
+            board={game.board}
+            knobs={game.knobs}
+            onKnobClick={game.handleKnobClick}
+            onAnimationEnd={game.onAnimationEnd}
+            animating={game.animating}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
+          />
+        );
+      };
+      const { rerender } = render(<Wrapper />);
+
+      // 消耗 3 次对换
+      for (let i = 0; i < 3; i++) {
+        act(() => {
+          capturedGame!.toggleSwapMode();
+        });
+        rerender(<Wrapper />);
+        act(() => {
+          capturedGame!.handleCellClick(0);
+        });
+        rerender(<Wrapper />);
+        act(() => {
+          capturedGame!.handleCellClick(15);
+        });
+        rerender(<Wrapper />);
+        act(() => {
+          capturedGame!.onSwapAnimationEnd();
+        });
+        rerender(<Wrapper />);
+      }
+      expect(capturedGame!.swapsLeft).toBe(0);
+
+      // 再次尝试激活——应失败
+      act(() => {
+        capturedGame!.toggleSwapMode();
+      });
+      rerender(<Wrapper />);
+      expect(capturedGame!.swapMode).toBe(false);
+    });
+  });
 });

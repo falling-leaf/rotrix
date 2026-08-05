@@ -3,6 +3,7 @@ import { BoardViewRouter as BoardView } from './components/BoardView';
 import { StartScreen } from './components/StartScreen';
 import { EndlessScreen } from './components/EndlessScreen';
 import { RotationDirectionSwitch } from './components/RotationDirectionSwitch';
+import { SwapButton } from './components/SwapButton';
 import { useGame } from './hooks/useGame';
 import { getLevels } from './levels/levels';
 import { getTopologyEntry } from './core/goals';
@@ -135,6 +136,11 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
             celebrating={game.celebrating}
             label="操作地图"
             direction={game.rotationDirection}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
           />
           <div className="right-panel">
             <BoardView
@@ -153,6 +159,12 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="controls">
+          <SwapButton
+            active={game.swapMode}
+            swapsLeft={game.swapsLeft}
+            disabled={game.won}
+            onClick={game.toggleSwapMode}
+          />
           <button className="btn" onClick={game.reset}>
             重置
           </button>

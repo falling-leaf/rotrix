@@ -115,6 +115,19 @@ export function applyMove(board: Board, knob: Knob, direction: 'CW' | 'CCW' = 'C
   return next;
 }
 
+/**
+ * v0.3.5：交换棋盘上两个格子的颜色（对换道具）。
+ * 不修改原棋盘，返回新棋盘。indexA == indexB 时返回克隆（无变化）。
+ */
+export function swapCells(board: Board, indexA: number, indexB: number): Board {
+  const next = cloneBoard(board);
+  if (indexA === indexB) return next;
+  const tmp = next.cells[indexA];
+  next.cells[indexA] = next.cells[indexB];
+  next.cells[indexB] = tmp;
+  return next;
+}
+
 /** 批量应用移动序列 */
 export function applyMoves(board: Board, knobs: Knob[], moves: Move[]): Board {
   const map = new Map(knobs.map((k) => [k.id, k]));

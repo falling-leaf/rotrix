@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BoardViewRouter as BoardView } from './BoardView';
 import { RotationDirectionSwitch } from './RotationDirectionSwitch';
+import { SwapButton } from './SwapButton';
 import { useGame } from '../hooks/useGame';
 import { getTopologyEntry } from '../core/goals';
 import { generateRandomPuzzle } from '../core/generator';
@@ -127,6 +128,11 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
             celebrating={game.celebrating}
             label="操作地图"
             direction={game.rotationDirection}
+            swapMode={game.swapMode}
+            swapSelection={game.swapSelection}
+            swapAnimating={game.swapAnimating}
+            onCellClick={game.handleCellClick}
+            onSwapAnimationEnd={game.onSwapAnimationEnd}
           />
           <div className="right-panel">
             <BoardView
@@ -145,6 +151,12 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
         </div>
 
         <div className="controls">
+          <SwapButton
+            active={game.swapMode}
+            swapsLeft={game.swapsLeft}
+            disabled={game.won}
+            onClick={game.toggleSwapMode}
+          />
           <button className="btn" onClick={game.reset}>
             重置
           </button>
