@@ -7,6 +7,7 @@
 
 import type { Board, Goal, Topology } from './types';
 import { ALL_COLORS } from './types';
+import { createSolvedDice4x4 } from './board';
 
 export const QUADRANT_GOAL_KIND = 'quadrant-uniform';
 
@@ -135,4 +136,55 @@ registerTopology(HEX_SMALL_TRIANGLE_KIND, {
   topology: hexSmallTriangle,
   defaultGoal: () => new HexUniformGoal(),
   defaultSolvedBoard: createSolvedHexSmallTriangle,
+});
+
+/**
+ * v0.4.0：骰子 4x4 玩法的目标判定策略。
+ *
+ * 在颜色四象限纯色的基础上，额外要求每格的 number 与目标
+ * 数字模式（2x2 周期 1 2 / 3 4）完全一致。
+ *
+ * 与 QuadrantUniformGoal 的关键区别：不仅要颜色匹配，还要数字匹配，
+ * 因此玩家旋转旋钮时必须同时恢复颜色和数字的双重排列。
+ */
+export const DICE_QUADRANT_GOAL_KIND = 'dice-quadrant-uniform';
+
+export class DiceQuadrantGoal implements Goal {
+  readonly kind = DICE_QUADRANT_GOAL_KIND;
+  private readonly solvedBoard: Board;
+
+  constructor() {
+    this.solvedBoard = createSolvedDice4x4();
+  }
+
+  satisfied(board: Board, topology: Topology): boolean {
+    const regions = topology.regions();
+    if (regions.length !== ALL_COLORS.length) return false;
+    // 1. 颜色：每象限为指定色（与 QuadrantUniformGoal 一致）
+    for (let i = 0; i < regions.length; i++) {
+      const expected = ALL_COLORS[i];
+      for (const idx of regions[i].cells) {
+        if (board.cells[idx]?.color !== expected) return false;
+      }
+    }
+    // 2. 数字：每格 number 与目标数字一致
+    for (let i = 0; i < board.cells.length; i++) {
+      if (board.cells[i]?.number !== this.solvedBoard.cells[i].number) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  describe(): string {
+    return '使四个象限分别纯色且每格骰子点数与目标一致';
+  }
+}
+
+/** 注册骰子 4x4 拓扑——复用 square4x4 拓扑，仅替换 Goal 与 solvedBoard */
+export const DICE_4X4_KIND = 'square-4x4-dice';
+registerTopology(DICE_4X4_KIND, {
+  topology: square4x4,
+  defaultGoal: () => new DiceQuadrantGoal(),
+  defaultSolvedBoard: createSolvedDice4x4,
 });

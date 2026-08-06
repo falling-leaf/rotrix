@@ -48,6 +48,45 @@ export function createSolvedSquare6x6(): Board {
   return { dims: [6, 6], cells };
 }
 
+/**
+ * v0.4.0：构建一个已求解的骰子 4x4 目标棋盘。
+ *
+ * 颜色与 createSolvedSquare4x4 一致（四象限纯色），
+ * 叠加 2x2 周期重复的数字模式 1 2 / 3 4，
+ * 使得每个 2x2 旋钮覆盖的 4 格恰好包含 {1,2,3,4} 全集。
+ *
+ * 数字排列（行优先）：
+ *   1 2 | 1 2
+ *   3 4 | 3 4
+ *   ───┼───
+ *   1 2 | 1 2
+ *   3 4 | 3 4
+ */
+export function createSolvedDice4x4(): Board {
+  const colorOf = (r: number, c: number): Color => {
+    if (r < 2 && c < 2) return 'red';
+    if (r < 2 && c >= 2) return 'yellow';
+    if (r >= 2 && c < 2) return 'blue';
+    return 'green';
+  };
+  // 2x2 周期：(0,0)=1 (0,1)=2 (1,0)=3 (1,1)=4
+  const numberOf = (r: number, c: number): number => {
+    const rr = r % 2;
+    const cc = c % 2;
+    if (rr === 0 && cc === 0) return 1;
+    if (rr === 0 && cc === 1) return 2;
+    if (rr === 1 && cc === 0) return 3;
+    return 4;
+  };
+  const cells: Cell[] = [];
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      cells.push({ color: colorOf(r, c), number: numberOf(r, c) });
+    }
+  }
+  return { dims: [4, 4], cells };
+}
+
 /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
   return {
@@ -56,7 +95,7 @@ export function cloneBoard(board: Board): Board {
   };
 }
 
-/** 判断两个棋盘内容是否相等（忽略 id/attrs，只看颜色排列） */
+/** 判断两个棋盘内容是否相等（忽略 id/attrs，比较颜色+数字） */
 export function boardsEqual(a: Board, b: Board): boolean {
   if (a.dims.length !== b.dims.length) return false;
   for (let i = 0; i < a.dims.length; i++) {
@@ -65,6 +104,11 @@ export function boardsEqual(a: Board, b: Board): boolean {
   if (a.cells.length !== b.cells.length) return false;
   for (let i = 0; i < a.cells.length; i++) {
     if (a.cells[i].color !== b.cells[i].color) return false;
+    // v0.4.0：骰子玩法需比较数字。若一方有 number 另一方没有则不等，
+    // 都有则需相等。都不影响无 number 的旧棋盘。
+    const an = a.cells[i].number;
+    const bn = b.cells[i].number;
+    if (an !== bn) return false;
   }
   return true;
 }

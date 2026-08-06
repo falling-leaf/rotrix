@@ -15,10 +15,44 @@ interface CellProps {
   color: Color;
   className?: string;
   style?: CSSProperties;
+  /** v0.4.0：骰子点数 1-4（可选，有则渲染骰子点） */
+  number?: number;
 }
 
-function CellBlock({ color, className, style }: CellProps) {
-  return <div className={`cell ${color} ${className ?? ''}`} style={style} />;
+/**
+ * v0.4.0：骰子点数布局定义。
+ * 每种点数对应一组 [x%, y%] 坐标，用 CSS 百分比定位白色圆点。
+ * 1: 中心；2: 左上+右下；3: 左上+中心+右下；4: 四角。
+ */
+const PIP_POSITIONS: Record<number, [number, number][]> = {
+  1: [[50, 50]],
+  2: [[28, 28], [72, 72]],
+  3: [[28, 28], [50, 50], [72, 72]],
+  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
+};
+
+function DicePips({ number }: { number: number }) {
+  const pips = PIP_POSITIONS[number];
+  if (!pips) return null;
+  return (
+    <div className="dice-pips" aria-label={`点数 ${number}`}>
+      {pips.map(([x, y], i) => (
+        <span
+          key={i}
+          className="dice-pip"
+          style={{ left: `${x}%`, top: `${y}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CellBlock({ color, className, style, number }: CellProps) {
+  return (
+    <div className={`cell ${color} ${className ?? ''}`} style={style}>
+      {number !== undefined && <DicePips number={number} />}
+    </div>
+  );
 }
 
 /**
@@ -95,6 +129,8 @@ function BoardViewInner({
     // 旋钮覆盖的 4 个 cell（顺时针：tl, tr, br, bl）
     const indices = knob.cells;
     const colors = indices.map((i) => board.cells[i].color);
+    // v0.4.0：携带骰子点数，旋转 overlay 中同步渲染骰子点
+    const numbers = indices.map((i) => board.cells[i].number);
     // 旋钮中心坐标 [r+0.5, c+0.5]，2x2 区域的左上角 = [r, c]
     const r = Math.floor(knob.center[0]);
     const c = Math.floor(knob.center[1]);
@@ -106,7 +142,7 @@ function BoardViewInner({
     // v0.2.0：overlay 尺寸按网格维度动态计算（2x2 区域占整盘比例）
     // 4x4: 2/4=50%，6x6: 2/6≈33.3%
     const overlayPct = (2 / board.dims[0]) * 100;
-    return { colors, top, left, width: overlayPct, height: overlayPct, targetAngle };
+    return { colors, numbers, top, left, width: overlayPct, height: overlayPct, targetAngle };
   }, [animating, board, preview]);
 
   // v0.3.5：计算对换动画 overlay 数据——两个格子的位置和颜色
@@ -115,6 +151,9 @@ function BoardViewInner({
     const { indexA, indexB } = swapAnimating;
     const colorA = board.cells[indexA].color;
     const colorB = board.cells[indexB].color;
+    // v0.4.0：携带骰子点数，对换 overlay 中同步渲染
+    const numberA = board.cells[indexA].number;
+    const numberB = board.cells[indexB].number;
     // 格子在网格中的位置（行优先）
     const rowA = Math.floor(indexA / board.dims[1]);
     const colA = indexA % board.dims[1];
@@ -127,7 +166,7 @@ function BoardViewInner({
     const ay = (rowA + 0.5) * cellH;
     const bx = (colB + 0.5) * cellW;
     const by = (rowB + 0.5) * cellH;
-    return { colorA, colorB, ax, ay, bx, by, cellW, cellH };
+    return { colorA, colorB, numberA, numberB, ax, ay, bx, by, cellW, cellH };
   }, [swapAnimating, board, preview]);
 
   // rAF 驱动：angle 从 0 度动画到 targetAngle。
@@ -306,6 +345,7 @@ function BoardViewInner({
               >
                 <CellBlock
                   color={displayColor as Color}
+                  number={isSwapping ? undefined : cell.number}
                   style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
                 />
               </div>
@@ -333,17 +373,34 @@ function BoardViewInner({
             >
               {/* 2x2 grid 按 DOM 行优先顺序排列：TL, TR, BL, BR */}
               {/* knob.cells 顺序为 [TL, TR, BR, BL]，因此 3/4 需交换 */}
+              {/* v0.4.0：骰子点数也需按行优先交换索引 3/2 */}
               <div className="rot-cell tl">
-                <div className={`cell ${rotateOverlay.colors[0]}`} />
+                <div className={`cell ${rotateOverlay.colors[0]}`}>
+                  {rotateOverlay.numbers[0] !== undefined && (
+                    <DicePips number={rotateOverlay.numbers[0]} />
+                  )}
+                </div>
               </div>
               <div className="rot-cell tr">
-                <div className={`cell ${rotateOverlay.colors[1]}`} />
+                <div className={`cell ${rotateOverlay.colors[1]}`}>
+                  {rotateOverlay.numbers[1] !== undefined && (
+                    <DicePips number={rotateOverlay.numbers[1]} />
+                  )}
+                </div>
               </div>
               <div className="rot-cell bl">
-                <div className={`cell ${rotateOverlay.colors[3]}`} />
+                <div className={`cell ${rotateOverlay.colors[3]}`}>
+                  {rotateOverlay.numbers[3] !== undefined && (
+                    <DicePips number={rotateOverlay.numbers[3]} />
+                  )}
+                </div>
               </div>
               <div className="rot-cell br">
-                <div className={`cell ${rotateOverlay.colors[2]}`} />
+                <div className={`cell ${rotateOverlay.colors[2]}`}>
+                  {rotateOverlay.numbers[2] !== undefined && (
+                    <DicePips number={rotateOverlay.numbers[2]} />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -363,7 +420,7 @@ function BoardViewInner({
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <div className={`cell ${swapOverlay.colorA}`} />
+              <CellBlock color={swapOverlay.colorA} number={swapOverlay.numberA} />
             </div>
             {/* 格子 B 的色块飞向 A 的位置 */}
             <div
@@ -376,7 +433,7 @@ function BoardViewInner({
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <div className={`cell ${swapOverlay.colorB}`} />
+              <CellBlock color={swapOverlay.colorB} number={swapOverlay.numberB} />
             </div>
           </div>
         )}

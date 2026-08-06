@@ -18,6 +18,8 @@ export const HEX_COLORS: Color[] = ['red', 'yellow', 'green', 'cyan', 'blue', 'm
 /** 单个色块。id 用于后续"相邻约束"等属性玩法，当前可不填。 */
 export interface Cell {
   color: Color;
+  /** v0.4.0：骰子点数 1-4（可选，仅骰子玩法棋盘携带） */
+  number?: number;
   id?: string;
   /** 预留：后续属性玩法（相邻、固定、不可旋转等） */
   attrs?: Record<string, unknown>;

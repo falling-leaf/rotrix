@@ -16,7 +16,7 @@
 
 import type { GeneratedLevel, Level } from '../core/types';
 import { generatePuzzle } from '../core/generator';
-import { QuadrantUniformGoal, HexUniformGoal } from '../core/goals';
+import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal } from '../core/goals';
 
 interface LevelSpec {
   id: number;
@@ -65,6 +65,10 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 28, topologyKind: 'hex-triangle', scramble: 70,  seed: 403 },
   { id: 29, topologyKind: 'hex-triangle', scramble: 85,  seed: 404 },
   { id: 30, topologyKind: 'hex-triangle', scramble: 100, seed: 405 },
+  // 第 31 关：骰子 4x4 玩法（v0.4.0）
+  // 回到 4x4 正方形网格，每色块携带骰子点数 1-4，
+  // 胜利需颜色+数字同时匹配目标。scramble=8 中等难度作为骰子玩法入门。
+  { id: 31, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
 ];
 
 let _cache: Level[] | null = null;
@@ -79,13 +83,15 @@ export function getLevels(): Level[] {
       spec.scramble,
       spec.seed,
     );
-    // v0.3.0/v0.3.2：根据拓扑类型选择对应 Goal
-    // 两种六边形拓扑（hex-triangle / hex-small-triangle）均使用 HexUniformGoal
+    // v0.3.0/v0.3.2/v0.4.0：根据拓扑类型选择对应 Goal
+    // 两种六边形拓扑用 HexUniformGoal，骰子拓扑用 DiceQuadrantGoal
     const goal =
       spec.topologyKind === 'hex-triangle' ||
       spec.topologyKind === 'hex-small-triangle'
         ? new HexUniformGoal()
-        : new QuadrantUniformGoal();
+        : spec.topologyKind === 'square-4x4-dice'
+          ? new DiceQuadrantGoal()
+          : new QuadrantUniformGoal();
     return {
       id: spec.id,
       name: `第 ${spec.id} 关`, // v0.2.1：不再单独取名

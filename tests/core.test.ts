@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createSolvedSquare4x4,
   createSolvedSquare6x6,
+  createSolvedDice4x4,
   applyMove,
   applyMoves,
   cloneBoard,
@@ -19,7 +20,7 @@ import {
 import { square4x4, square6x6 } from '../src/core/topology';
 import { hexTriangle, createSolvedHexTriangle } from '../src/core/hex-topology';
 import { hexSmallTriangle, createSolvedHexSmallTriangle } from '../src/core/hex-topology-small';
-import { QuadrantUniformGoal, HexUniformGoal } from '../src/core/goals';
+import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal } from '../src/core/goals';
 import { generateLevel, generateDifficultyCurve, generateRandomPuzzle, generatePuzzle, displacementRate } from '../src/core/generator';
 import { SeededRNG } from '../src/core/rng';
 import { getLevels } from '../src/levels/levels';
@@ -269,17 +270,17 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 30 个关卡', () => {
+  it('生成 31 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(30);
+    expect(levels).toHaveLength(31);
   });
 
-  it('关卡 ID 从 1 到 30', () => {
+  it('关卡 ID 从 1 到 31', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
     ]);
   });
 
@@ -481,17 +482,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 30 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形）', () => {
+  it('生成 31 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 1 个骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(30);
+    expect(levels).toHaveLength(31);
   });
 
-  it('关卡 ID 从 1 到 30', () => {
+  it('关卡 ID 从 1 到 31', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
     ]);
   });
 
@@ -705,9 +706,9 @@ describe('Generator - 六边形关卡生成', () => {
 });
 
 describe('Levels - 六边形关卡数据', () => {
-  it('生成 30 个关卡（含第 21-30 关六边形）', () => {
+  it('生成 31 个关卡（含第 21-30 关六边形 + 第 31 关骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(30);
+    expect(levels).toHaveLength(31);
   });
 
   it('第 21-25 关为六边形简单版拓扑（N=2，24 三角形 / 7 旋钮）', () => {
@@ -995,5 +996,179 @@ describe('swapCells - 对换格子颜色', () => {
     for (let i = 1; i < 52; i++) {
       expect(swapped.cells[i].color).toBe(solved.cells[i].color);
     }
+  });
+});
+
+// v0.4.0：骰子 4x4 玩法测试
+describe('Dice4x4 - 骰子 4x4 玩法', () => {
+  it('createSolvedDice4x4 创建 4x4 棋盘，颜色四象限纯色', () => {
+    const board = createSolvedDice4x4();
+    expect(board.dims).toEqual([4, 4]);
+    expect(board.cells).toHaveLength(16);
+    // 颜色与基础 4x4 一致
+    const basic = createSolvedSquare4x4();
+    for (let i = 0; i < 16; i++) {
+      expect(board.cells[i].color).toBe(basic.cells[i].color);
+    }
+  });
+
+  it('每格携带 number 1-4，2x2 周期模式 1 2 / 3 4', () => {
+    const board = createSolvedDice4x4();
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const idx = r * 4 + c;
+        const expected = [1, 2, 3, 4][(r % 2) * 2 + (c % 2)];
+        expect(board.cells[idx].number).toBe(expected);
+      }
+    }
+  });
+
+  it('每个旋钮覆盖的 4 格恰好包含 {1,2,3,4} 全集', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    for (const knob of topo.knobs()) {
+      const nums = knob.cells.map((i) => board.cells[i].number);
+      const sorted = [...nums].sort();
+      expect(sorted).toEqual([1, 2, 3, 4]);
+    }
+  });
+
+  it('已解决棋盘判定为胜利', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    expect(goal.satisfied(board, topo)).toBe(true);
+  });
+
+  it('旋转后棋盘不满足胜利（颜色或数字被打乱）', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    // 中心旋钮 K11 跨四象限
+    const knob = topo.knobs().find((k) => k.id === 'K11')!;
+    const moved = applyMove(board, knob, 'CW');
+    expect(goal.satisfied(moved, topo)).toBe(false);
+  });
+
+  it('颜色正确但数字错位不判胜', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    // 交换两个相同颜色但不同数字的格子
+    // (0,0)=red/1, (0,1)=red/2 —— 同在 TL 红色象限，交换后颜色不变但数字错位
+    const wrong = cloneBoard(board);
+    const tmp = wrong.cells[0];
+    wrong.cells[0] = { ...wrong.cells[1] };
+    wrong.cells[1] = { ...tmp };
+    // 颜色仍满足象限纯色
+    const colorGoal = new QuadrantUniformGoal();
+    expect(colorGoal.satisfied(wrong, topo)).toBe(true);
+    // 但骰子 goal 不满足
+    expect(goal.satisfied(wrong, topo)).toBe(false);
+  });
+
+  it('数字正确但颜色错位不判胜', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    // 交换 (0,0)=red/1 与 (2,0)=blue/1 —— 数字同为 1 但颜色不同
+    const wrong = cloneBoard(board);
+    const tmp = wrong.cells[0];
+    wrong.cells[0] = { ...wrong.cells[8] };
+    wrong.cells[8] = { ...tmp };
+    expect(goal.satisfied(wrong, topo)).toBe(false);
+  });
+
+  it('旋转 4 次后恢复满足胜利', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    const knob = topo.knobs()[0];
+    let cur = board;
+    for (let i = 0; i < 4; i++) cur = applyMove(cur, knob, 'CW');
+    expect(goal.satisfied(cur, topo)).toBe(true);
+  });
+
+  it('旋转后数字随 Cell 对象一起流转', () => {
+    const board = createSolvedDice4x4();
+    const topo = square4x4();
+    // K00 覆盖 [0,1,5,4]，顺时针
+    // 原始：0→{red,1}, 1→{red,2}, 5→{red,4}, 4→{red,3}
+    const knob = topo.knobs()[0];
+    const moved = applyMove(board, knob, 'CW');
+    // CW 旋转：new[0]=old[3], new[1]=old[0], new[2]=old[1], new[3]=old[2]
+    // 即 new[0]=old[4]={red,3}, new[1]=old[0]={red,1}, new[2]=old[1]={red,2}, new[3]=old[5]={red,4}
+    // 对应格子索引 [0,1,5,4]:
+    //   cell 0 → {red,3}（原 cell 4 的 number）
+    //   cell 1 → {red,1}（原 cell 0 的 number）
+    //   cell 5 → {red,2}（原 cell 1 的 number）
+    //   cell 4 → {red,4}（原 cell 5 的 number）
+    expect(moved.cells[0].number).toBe(3);
+    expect(moved.cells[1].number).toBe(1);
+    expect(moved.cells[5].number).toBe(2);
+    expect(moved.cells[4].number).toBe(4);
+  });
+
+  it('对换两个格子时数字也一起交换', () => {
+    const board = createSolvedDice4x4();
+    // 索引 0 = {red,1}, 索引 15 = {green,4}
+    expect(board.cells[0].number).toBe(1);
+    expect(board.cells[15].number).toBe(4);
+    const swapped = swapCells(board, 0, 15);
+    expect(swapped.cells[0].number).toBe(4);
+    expect(swapped.cells[15].number).toBe(1);
+    expect(swapped.cells[0].color).toBe('green');
+    expect(swapped.cells[15].color).toBe('red');
+  });
+
+  it('boardsEqual 比较骰子棋盘需数字一致', () => {
+    const a = createSolvedDice4x4();
+    const b = createSolvedDice4x4();
+    expect(boardsEqual(a, b)).toBe(true);
+    // 修改数字 → 不等
+    const c = cloneBoard(a);
+    c.cells[0].number = 4;
+    expect(boardsEqual(a, c)).toBe(false);
+  });
+
+  it('generatePuzzle 支持 square-4x4-dice 拓扑', () => {
+    const solved = createSolvedDice4x4();
+    const gen = generatePuzzle('square-4x4-dice', 8, 501);
+    expect(gen.initial.dims).toEqual([4, 4]);
+    expect(gen.initial.cells).toHaveLength(16);
+    // 每格应携带 number
+    expect(gen.initial.cells[0].number).toBeDefined();
+    expect(boardsEqual(gen.initial, solved)).toBe(false);
+  });
+
+  it('第 31 关为骰子 4x4 玩法', () => {
+    const levels = getLevels();
+    const level31 = levels.find((l) => l.id === 31)!;
+    expect(level31).toBeDefined();
+    expect(level31.topologyKind).toBe('square-4x4-dice');
+    expect(level31.goal).toBeInstanceOf(DiceQuadrantGoal);
+    expect(level31.initial.dims).toEqual([4, 4]);
+    expect(level31.initial.cells).toHaveLength(16);
+  });
+
+  it('第 31 关题目非已解决状态', () => {
+    const solved = createSolvedDice4x4();
+    const levels = getLevels();
+    expect(boardsEqual(levels[30].initial, solved)).toBe(false);
+  });
+
+  it('第 31 关题目可解（逆向还原）', () => {
+    const topo = square4x4();
+    const goal = new DiceQuadrantGoal();
+    const knobs = topo.knobs();
+    const levels = getLevels();
+    let cur = levels[30].initial;
+    for (let i = levels[30].solution.length - 1; i >= 0; i--) {
+      const move = levels[30].solution[i];
+      const knob = knobs.find((k) => k.id === move.knobId)!;
+      // 逆 CW = 3 次 CW
+      for (let k = 0; k < 3; k++) cur = applyMove(cur, knob, 'CW');
+    }
+    expect(goal.satisfied(cur, topo)).toBe(true);
   });
 });
