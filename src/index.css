@@ -264,9 +264,11 @@ button, .knob, .level-chip, .btn {
   transform: translate(-50%, -50%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
-/* 旋转 overlay 内的骰子点需随父容器一起旋转，
- * 因 .dice-pips 在 .cell 内部，.cell 又在 .rotate-inner 内，
- * 父级 transform: rotate() 会自动带动子元素同步旋转。 */
+/* v0.4.1：旋转 overlay 内的骰子点数保持正立（不随色块旋转）。
+ * DicePips 组件内联设置 transform: rotate(-angle) 抵消父级 .rotate-inner
+ * 的 rotate(angle)，使点数仅随色块平移、朝向不变。
+ * scale 不抵消——色块缩放时点数按比例缩放，视觉自然。
+ * 此处仅设圆点样式，反向旋转 transform 由组件内联设置。 */
 .rotate-overlay .dice-pip {
   background: rgba(255, 255, 255, 0.92);
 }

@@ -65,10 +65,12 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 28, topologyKind: 'hex-triangle', scramble: 70,  seed: 403 },
   { id: 29, topologyKind: 'hex-triangle', scramble: 85,  seed: 404 },
   { id: 30, topologyKind: 'hex-triangle', scramble: 100, seed: 405 },
-  // 第 31 关：骰子 4x4 玩法（v0.4.0）
+  // 第 31-49 关：预留，后续版本填充
+  // 第 50 关：骰子 4x4 玩法（v0.4.0 起设为第 31 关，v0.4.1 移至第 50 关）
   // 回到 4x4 正方形网格，每色块携带骰子点数 1-4，
   // 胜利需颜色+数字同时匹配目标。scramble=8 中等难度作为骰子玩法入门。
-  { id: 31, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
+  // v0.4.1：第 50 关为独立挑战关，不参与前 30 关的"下一关/最后一关"线性流程。
+  { id: 50, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
 ];
 
 let _cache: Level[] | null = null;

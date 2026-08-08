@@ -31,11 +31,21 @@ const PIP_POSITIONS: Record<number, [number, number][]> = {
   4: [[28, 28], [72, 28], [28, 72], [72, 72]],
 };
 
-function DicePips({ number }: { number: number }) {
+function DicePips({ number, counterRotate }: { number: number; counterRotate?: number }) {
   const pips = PIP_POSITIONS[number];
   if (!pips) return null;
+  // v0.4.1：旋转 overlay 内的骰子点数需保持正立（不随色块旋转），
+  // 仅随色块平移。父级 .rotate-inner 应用了 rotate(angle) scale(scale)，
+  // 此处对 .dice-pips 容器施加反向旋转 rotate(-angle) 抵消朝向变化。
+  // transform-origin 默认 center = .cell 中心，绕自身中心反向旋转
+  // 不改变圆点位置（位置随父级旋转平移），仅归零朝向。
+  // scale 不抵消——色块缩放时点数按比例缩放，视觉自然。
+  const style: CSSProperties | undefined =
+    counterRotate !== undefined
+      ? { transform: `rotate(${-counterRotate}deg)` }
+      : undefined;
   return (
-    <div className="dice-pips" aria-label={`点数 ${number}`}>
+    <div className="dice-pips" aria-label={`点数 ${number}`} style={style}>
       {pips.map(([x, y], i) => (
         <span
           key={i}
@@ -374,31 +384,33 @@ function BoardViewInner({
               {/* 2x2 grid 按 DOM 行优先顺序排列：TL, TR, BL, BR */}
               {/* knob.cells 顺序为 [TL, TR, BR, BL]，因此 3/4 需交换 */}
               {/* v0.4.0：骰子点数也需按行优先交换索引 3/2 */}
+              {/* v0.4.1：骰子点数保持正立，仅随色块平移不旋转——
+                  传入当前旋转角度，DicePips 内施加反向 rotate(-angle) */}
               <div className="rot-cell tl">
                 <div className={`cell ${rotateOverlay.colors[0]}`}>
                   {rotateOverlay.numbers[0] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[0]} />
+                    <DicePips number={rotateOverlay.numbers[0]} counterRotate={angle} />
                   )}
                 </div>
               </div>
               <div className="rot-cell tr">
                 <div className={`cell ${rotateOverlay.colors[1]}`}>
                   {rotateOverlay.numbers[1] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[1]} />
+                    <DicePips number={rotateOverlay.numbers[1]} counterRotate={angle} />
                   )}
                 </div>
               </div>
               <div className="rot-cell bl">
                 <div className={`cell ${rotateOverlay.colors[3]}`}>
                   {rotateOverlay.numbers[3] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[3]} />
+                    <DicePips number={rotateOverlay.numbers[3]} counterRotate={angle} />
                   )}
                 </div>
               </div>
               <div className="rot-cell br">
                 <div className={`cell ${rotateOverlay.colors[2]}`}>
                   {rotateOverlay.numbers[2] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[2]} />
+                    <DicePips number={rotateOverlay.numbers[2]} counterRotate={angle} />
                   )}
                 </div>
               </div>

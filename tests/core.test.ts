@@ -275,12 +275,12 @@ describe('Levels - 关卡数据', () => {
     expect(levels).toHaveLength(31);
   });
 
-  it('关卡 ID 从 1 到 31', () => {
+  it('关卡 ID：1-30 + 50（v0.4.1：骰子关从第31移至第50关，31-49预留）', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 50,
     ]);
   });
 
@@ -304,10 +304,12 @@ describe('Levels - 关卡数据', () => {
     const solvedHex = createSolvedHexTriangle();
     const solvedHexSmall = createSolvedHexSmallTriangle();
     const levels = getLevels();
+    const solvedDice = createSolvedDice4x4();
     for (const level of levels) {
       const solved =
         level.topologyKind === 'square-4x4' ? solved4 :
         level.topologyKind === 'square-6x6' ? solved6 :
+        level.topologyKind === 'square-4x4-dice' ? solvedDice :
         level.topologyKind === 'hex-small-triangle' ? solvedHexSmall : solvedHex;
       expect(boardsEqual(level.initial, solved)).toBe(false);
     }
@@ -326,6 +328,9 @@ describe('Levels - 关卡数据', () => {
         expect(level.initial.cells).toHaveLength(54);
       } else if (level.topologyKind === 'hex-small-triangle') {
         expect(level.initial.cells).toHaveLength(24);
+      } else if (level.topologyKind === 'square-4x4-dice') {
+        expect(level.initial.dims).toEqual([4, 4]);
+        expect(level.initial.cells).toHaveLength(16);
       }
     }
   });
@@ -482,17 +487,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 31 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 1 个骰子）', () => {
+  it('生成 31 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 1 个骰子，v0.4.1 骰子移至第 50 关）', () => {
     const levels = getLevels();
     expect(levels).toHaveLength(31);
   });
 
-  it('关卡 ID 从 1 到 31', () => {
+  it('关卡 ID：1-30 + 50', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 50,
     ]);
   });
 
@@ -706,7 +711,7 @@ describe('Generator - 六边形关卡生成', () => {
 });
 
 describe('Levels - 六边形关卡数据', () => {
-  it('生成 31 个关卡（含第 21-30 关六边形 + 第 31 关骰子）', () => {
+  it('生成 31 个关卡（含第 21-30 关六边形 + 第 50 关骰子，v0.4.1 骰子从第31移至第50关）', () => {
     const levels = getLevels();
     expect(levels).toHaveLength(31);
   });
@@ -1141,23 +1146,23 @@ describe('Dice4x4 - 骰子 4x4 玩法', () => {
     expect(boardsEqual(gen.initial, solved)).toBe(false);
   });
 
-  it('第 31 关为骰子 4x4 玩法', () => {
+  it('第 50 关为骰子 4x4 玩法（v0.4.1：从第31移至第50关）', () => {
     const levels = getLevels();
-    const level31 = levels.find((l) => l.id === 31)!;
-    expect(level31).toBeDefined();
-    expect(level31.topologyKind).toBe('square-4x4-dice');
-    expect(level31.goal).toBeInstanceOf(DiceQuadrantGoal);
-    expect(level31.initial.dims).toEqual([4, 4]);
-    expect(level31.initial.cells).toHaveLength(16);
+    const level50 = levels.find((l) => l.id === 50)!;
+    expect(level50).toBeDefined();
+    expect(level50.topologyKind).toBe('square-4x4-dice');
+    expect(level50.goal).toBeInstanceOf(DiceQuadrantGoal);
+    expect(level50.initial.dims).toEqual([4, 4]);
+    expect(level50.initial.cells).toHaveLength(16);
   });
 
-  it('第 31 关题目非已解决状态', () => {
+  it('第 50 关题目非已解决状态', () => {
     const solved = createSolvedDice4x4();
     const levels = getLevels();
     expect(boardsEqual(levels[30].initial, solved)).toBe(false);
   });
 
-  it('第 31 关题目可解（逆向还原）', () => {
+  it('第 50 关题目可解（逆向还原）', () => {
     const topo = square4x4();
     const goal = new DiceQuadrantGoal();
     const knobs = topo.knobs();

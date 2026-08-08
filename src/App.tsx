@@ -78,8 +78,13 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLevelId]);
 
+  // v0.4.1：线性"下一关"流程限于前 30 关。第 50 关为独立挑战关，
+  // 通关后不自动进入"下一关"，仅显示通过提示。
+  const isLastInCampaign = currentLevelId >= 30;
+  const isFinalChallenge = currentLevelId === 50;
+
   const handleNextLevel = () => {
-    if (currentLevelId < levels.length) {
+    if (!isLastInCampaign) {
       setCompleted((prev) => new Set([...prev, currentLevelId]));
       setCurrentLevelId((id) => id + 1);
     }
@@ -179,21 +184,33 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
               第 {level.id} 关 · 用了 {game.moveCount} 步
             </p>
             <div className="win-actions">
-              {currentLevelId < levels.length ? (
-                <button className="btn primary" onClick={handleNextLevel}>
-                  下一关 →
-                </button>
-              ) : (
+              {isFinalChallenge ? (
+                // v0.4.1：第 50 关为独立挑战关，通关后仅提示通过，
+                // 不提供"下一关"（线性流程已在前 30 关结束），
+                // 也不提供"重新开始"循环；只能"再玩一次"或返回关卡选择。
+                <>
+                  <p className="win-final-hint">恭喜挑战通过！</p>
+                  <button className="btn" onClick={() => game.reset()}>
+                    再玩一次
+                  </button>
+                </>
+              ) : isLastInCampaign ? (
                 <button
                   className="btn primary"
                   onClick={() => setCurrentLevelId(1)}
                 >
                   重新开始
                 </button>
+              ) : (
+                <button className="btn primary" onClick={handleNextLevel}>
+                  下一关 →
+                </button>
               )}
-              <button className="btn" onClick={() => game.reset()}>
-                再玩一次
-              </button>
+              {!isFinalChallenge && (
+                <button className="btn" onClick={() => game.reset()}>
+                  再玩一次
+                </button>
+              )}
             </div>
           </div>
         </div>
