@@ -9,6 +9,16 @@ import {
   createSolvedSquare4x4,
   createSolvedSquare6x6,
   createSolvedDice4x4,
+  createSolvedPicture31,
+  createSolvedPicture32,
+  createSolvedPicture33,
+  createSolvedPicture34,
+  createSolvedPicture35,
+  createSolvedPicture36,
+  createSolvedPicture37,
+  createSolvedPicture38,
+  createSolvedPicture39,
+  createSolvedPicture40,
   applyMove,
   applyMoves,
   cloneBoard,
@@ -20,11 +30,11 @@ import {
 import { square4x4, square6x6 } from '../src/core/topology';
 import { hexTriangle, createSolvedHexTriangle } from '../src/core/hex-topology';
 import { hexSmallTriangle, createSolvedHexSmallTriangle } from '../src/core/hex-topology-small';
-import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal } from '../src/core/goals';
+import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal, PictureGoal } from '../src/core/goals';
 import { generateLevel, generateDifficultyCurve, generateRandomPuzzle, generatePuzzle, displacementRate } from '../src/core/generator';
 import { SeededRNG } from '../src/core/rng';
 import { getLevels } from '../src/levels/levels';
-import type { Cell } from '../src/core/types';
+import type { Cell, Board } from '../src/core/types';
 
 describe('Board - 基础棋盘操作', () => {
   it('createSolvedSquare4x4 创建 4x4 棋盘，4 象限纯色', () => {
@@ -270,24 +280,29 @@ describe('Generator - 关卡生成', () => {
 });
 
 describe('Levels - 关卡数据', () => {
-  it('生成 31 个关卡', () => {
+  it('生成 41 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(31);
+    expect(levels).toHaveLength(41);
   });
 
-  it('关卡 ID：1-30 + 50（v0.4.1：骰子关从第31移至第50关，31-49预留）', () => {
+  it('关卡 ID：1-40 + 50（v0.4.2：第31-40关为图案玩法，41-49预留）', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 50,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50,
     ]);
   });
 
   it('关卡难度在同拓扑内递增', () => {
     // v0.2.0：跨拓扑（4x4→6x6）难度会重置，仅在同类拓扑内断言递增
+    // v0.4.2：图案关卡（square-6x6-picture）scramble 非严格递增（图案复杂度
+    // 不完全取决于 scramble 步数），跳过图案关的递增断言
     const levels = getLevels();
     for (let i = 1; i < levels.length; i++) {
+      const isPicture = levels[i].topologyKind === 'square-6x6-picture' ||
+        levels[i - 1].topologyKind === 'square-6x6-picture';
+      if (isPicture) continue;
       if (levels[i].topologyKind === levels[i - 1].topologyKind) {
         expect(levels[i].difficulty).toBeGreaterThanOrEqual(levels[i - 1].difficulty);
       }
@@ -305,11 +320,24 @@ describe('Levels - 关卡数据', () => {
     const solvedHexSmall = createSolvedHexSmallTriangle();
     const levels = getLevels();
     const solvedDice = createSolvedDice4x4();
+    const pictureSolved: Record<number, Board> = {
+      31: createSolvedPicture31(),
+      32: createSolvedPicture32(),
+      33: createSolvedPicture33(),
+      34: createSolvedPicture34(),
+      35: createSolvedPicture35(),
+      36: createSolvedPicture36(),
+      37: createSolvedPicture37(),
+      38: createSolvedPicture38(),
+      39: createSolvedPicture39(),
+      40: createSolvedPicture40(),
+    };
     for (const level of levels) {
       const solved =
         level.topologyKind === 'square-4x4' ? solved4 :
         level.topologyKind === 'square-6x6' ? solved6 :
         level.topologyKind === 'square-4x4-dice' ? solvedDice :
+        level.topologyKind === 'square-6x6-picture' ? pictureSolved[level.id]! :
         level.topologyKind === 'hex-small-triangle' ? solvedHexSmall : solvedHex;
       expect(boardsEqual(level.initial, solved)).toBe(false);
     }
@@ -331,6 +359,9 @@ describe('Levels - 关卡数据', () => {
       } else if (level.topologyKind === 'square-4x4-dice') {
         expect(level.initial.dims).toEqual([4, 4]);
         expect(level.initial.cells).toHaveLength(16);
+      } else if (level.topologyKind === 'square-6x6-picture') {
+        expect(level.initial.dims).toEqual([6, 6]);
+        expect(level.initial.cells).toHaveLength(36);
       }
     }
   });
@@ -487,17 +518,17 @@ describe('Generator - 6x6 关卡生成', () => {
 });
 
 describe('Levels - 6x6 关卡数据', () => {
-  it('生成 31 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 1 个骰子，v0.4.1 骰子移至第 50 关）', () => {
+  it('生成 41 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 10 个图案 + 1 个骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(31);
+    expect(levels).toHaveLength(41);
   });
 
-  it('关卡 ID：1-30 + 50', () => {
+  it('关卡 ID：1-40 + 50', () => {
     const levels = getLevels();
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 50,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50,
     ]);
   });
 
@@ -711,9 +742,9 @@ describe('Generator - 六边形关卡生成', () => {
 });
 
 describe('Levels - 六边形关卡数据', () => {
-  it('生成 31 个关卡（含第 21-30 关六边形 + 第 50 关骰子，v0.4.1 骰子从第31移至第50关）', () => {
+  it('生成 41 个关卡（含第 21-30 关六边形 + 第 31-40 关图案 + 第 50 关骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(31);
+    expect(levels).toHaveLength(41);
   });
 
   it('第 21-25 关为六边形简单版拓扑（N=2，24 三角形 / 7 旋钮）', () => {
@@ -1159,12 +1190,109 @@ describe('Dice4x4 - 骰子 4x4 玩法', () => {
   it('第 50 关题目非已解决状态', () => {
     const solved = createSolvedDice4x4();
     const levels = getLevels();
-    expect(boardsEqual(levels[30].initial, solved)).toBe(false);
+    expect(boardsEqual(levels[40].initial, solved)).toBe(false);
   });
 
   it('第 50 关题目可解（逆向还原）', () => {
     const topo = square4x4();
     const goal = new DiceQuadrantGoal();
+    const knobs = topo.knobs();
+    const levels = getLevels();
+    let cur = levels[40].initial;
+    for (let i = levels[40].solution.length - 1; i >= 0; i--) {
+      const move = levels[40].solution[i];
+      const knob = knobs.find((k) => k.id === move.knobId)!;
+      // 逆 CW = 3 次 CW
+      for (let k = 0; k < 3; k++) cur = applyMove(cur, knob, 'CW');
+    }
+    expect(goal.satisfied(cur, topo)).toBe(true);
+  });
+});
+
+// v0.4.2：图案玩法测试
+describe('Picture - 图案玩法', () => {
+  it('createSolvedPicture31 创建 6x6 同心方框图案', () => {
+    const board = createSolvedPicture31();
+    expect(board.dims).toEqual([6, 6]);
+    expect(board.cells).toHaveLength(36);
+    // 外圈为 magenta
+    expect(board.cells[0].color).toBe('magenta');
+    expect(board.cells[35].color).toBe('magenta');
+    // 中心为 green/yellow
+    expect(board.cells[14].color).toBe('green');  // (2,2)
+    expect(board.cells[15].color).toBe('yellow');  // (2,3)
+  });
+
+  it('createSolvedPicture32 创建 6x6 螺旋回字图案', () => {
+    const board = createSolvedPicture32();
+    expect(board.dims).toEqual([6, 6]);
+    expect(board.cells).toHaveLength(36);
+    // 外圈为 red
+    expect(board.cells[0].color).toBe('red');
+    expect(board.cells[35].color).toBe('red');
+    // 内 2x2 为 yellow/blue
+    expect(board.cells[14].color).toBe('yellow'); // (2,2)
+    expect(board.cells[15].color).toBe('blue');   // (2,3)
+  });
+
+  it('createSolvedPicture33 创建 6x6 太阳图案', () => {
+    const board = createSolvedPicture33();
+    expect(board.dims).toEqual([6, 6]);
+    expect(board.cells).toHaveLength(36);
+    expect(board.cells[0].color).toBe('blue');
+    expect(board.cells[35].color).toBe('blue');
+    expect(board.cells[8].color).toBe('red');    // (1,2) corona
+    expect(board.cells[20].color).toBe('yellow'); // (3,2) disk
+  });
+
+  it('createSolvedPicture34 创建 6x6 房子图案', () => {
+    const board = createSolvedPicture34();
+    expect(board.dims).toEqual([6, 6]);
+    expect(board.cells).toHaveLength(36);
+    expect(board.cells[8].color).toBe('red');    // (1,2) roof
+    expect(board.cells[18].color).toBe('yellow'); // (3,0) wall
+    expect(board.cells[20].color).toBe('blue');  // (3,2) door
+    expect(board.cells[21].color).toBe('cyan');  // (3,3) window
+  });
+
+  it('第 31 关为图案玩法（PictureGoal + 6x6）', () => {
+    const levels = getLevels();
+    const level31 = levels.find((l) => l.id === 31)!;
+    expect(level31).toBeDefined();
+    expect(level31.topologyKind).toBe('square-6x6-picture');
+    expect(level31.goal).toBeInstanceOf(PictureGoal);
+    expect(level31.initial.dims).toEqual([6, 6]);
+    expect(level31.initial.cells).toHaveLength(36);
+    expect(level31.solvedBoard).toBeDefined();
+  });
+
+  it('第 32 关为图案玩法（PictureGoal + 6x6）', () => {
+    const levels = getLevels();
+    const level32 = levels.find((l) => l.id === 32)!;
+    expect(level32).toBeDefined();
+    expect(level32.topologyKind).toBe('square-6x6-picture');
+    expect(level32.goal).toBeInstanceOf(PictureGoal);
+    expect(level32.initial.dims).toEqual([6, 6]);
+    expect(level32.initial.cells).toHaveLength(36);
+    expect(level32.solvedBoard).toBeDefined();
+  });
+
+  it('第 31 关题目非已解决状态', () => {
+    const solved = createSolvedPicture31();
+    const levels = getLevels();
+    expect(boardsEqual(levels[30].initial, solved)).toBe(false);
+  });
+
+  it('第 32 关题目非已解决状态', () => {
+    const solved = createSolvedPicture32();
+    const levels = getLevels();
+    expect(boardsEqual(levels[31].initial, solved)).toBe(false);
+  });
+
+  it('第 31 关题目可解（逆向还原）', () => {
+    const solved = createSolvedPicture31();
+    const goal = new PictureGoal(solved);
+    const topo = square6x6();
     const knobs = topo.knobs();
     const levels = getLevels();
     let cur = levels[30].initial;
@@ -1176,4 +1304,78 @@ describe('Dice4x4 - 骰子 4x4 玩法', () => {
     }
     expect(goal.satisfied(cur, topo)).toBe(true);
   });
+
+  it('第 32 关题目可解（逆向还原）', () => {
+    const solved = createSolvedPicture32();
+    const goal = new PictureGoal(solved);
+    const topo = square6x6();
+    const knobs = topo.knobs();
+    const levels = getLevels();
+    let cur = levels[31].initial;
+    for (let i = levels[31].solution.length - 1; i >= 0; i--) {
+      const move = levels[31].solution[i];
+      const knob = knobs.find((k) => k.id === move.knobId)!;
+      for (let k = 0; k < 3; k++) cur = applyMove(cur, knob, 'CW');
+    }
+    expect(goal.satisfied(cur, topo)).toBe(true);
+  });
+
+  it('PictureGoal 逐格校验颜色一致', () => {
+    const solved = createSolvedPicture31();
+    const goal = new PictureGoal(solved);
+    const topo = square6x6();
+    // 目标棋盘本身满足
+    expect(goal.satisfied(solved, topo)).toBe(true);
+    // 修改一格颜色不满足
+    const modified = { ...solved, cells: solved.cells.map((c) => ({ ...c })) };
+    modified.cells[0] = { color: 'red' };
+    expect(goal.satisfied(modified, topo)).toBe(false);
+  });
+
+  // v0.4.2：第 33-40 关图案测试——逐关验证拓扑、目标、维度、可解性
+  const PICTURES_33_40 = [
+    { id: 33, factory: createSolvedPicture33, name: '太阳' },
+    { id: 34, factory: createSolvedPicture34, name: '房子' },
+    { id: 35, factory: createSolvedPicture35, name: '心形' },
+    { id: 36, factory: createSolvedPicture36, name: '三色棋盘' },
+    { id: 37, factory: createSolvedPicture37, name: '钻石' },
+    { id: 38, factory: createSolvedPicture38, name: '箭头' },
+    { id: 39, factory: createSolvedPicture39, name: '树' },
+    { id: 40, factory: createSolvedPicture40, name: '笑脸' },
+  ];
+
+  for (const { id, factory } of PICTURES_33_40) {
+    it(`第 ${id} 关为图案玩法（PictureGoal + 6x6）`, () => {
+      const levels = getLevels();
+      const level = levels.find((l) => l.id === id)!;
+      expect(level).toBeDefined();
+      expect(level.topologyKind).toBe('square-6x6-picture');
+      expect(level.goal).toBeInstanceOf(PictureGoal);
+      expect(level.initial.dims).toEqual([6, 6]);
+      expect(level.initial.cells).toHaveLength(36);
+      expect(level.solvedBoard).toBeDefined();
+    });
+
+    it(`第 ${id} 关题目非已解决状态`, () => {
+      const solved = factory();
+      const levels = getLevels();
+      expect(boardsEqual(levels.find((l) => l.id === id)!.initial, solved)).toBe(false);
+    });
+
+    it(`第 ${id} 关题目可解（逆向还原）`, () => {
+      const solved = factory();
+      const goal = new PictureGoal(solved);
+      const topo = square6x6();
+      const knobs = topo.knobs();
+      const levels = getLevels();
+      const level = levels.find((l) => l.id === id)!;
+      let cur = level.initial;
+      for (let i = level.solution.length - 1; i >= 0; i--) {
+        const move = level.solution[i];
+        const knob = knobs.find((k) => k.id === move.knobId)!;
+        for (let k = 0; k < 3; k++) cur = applyMove(cur, knob, 'CW');
+      }
+      expect(goal.satisfied(cur, topo)).toBe(true);
+    });
+  }
 });

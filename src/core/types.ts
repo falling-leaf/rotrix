@@ -101,6 +101,9 @@ export interface Level {
   goal: Goal;
   /** 生成时使用的旋转序列（便于回放/调试/保证可解） */
   solution: Move[];
+  /** v0.4.2：图案关卡的目标棋盘（可选，用于预览渲染。
+   * 非图案关卡为 undefined，App 从注册表 defaultSolvedBoard 获取。 */
+  solvedBoard?: Board;
 }
 
 /** 生成结果 */

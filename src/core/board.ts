@@ -87,6 +87,260 @@ export function createSolvedDice4x4(): Board {
   return { dims: [4, 4], cells };
 }
 
+/**
+ * v0.4.2：构建第 31 关目标图案——6x6 同心方框。
+ *
+ * 3 色同心方框，由外向内：
+ *   外圈品红 → 红圈 → 中心绿/黄对角分色
+ *
+ *   MMMMMM
+ *   MRRRRM
+ *   MRGYRM
+ *   MRGYRM
+ *   MRRRRM
+ *   MMMMMM
+ */
+export function createSolvedPicture31(): Board {
+  return pictureFromString([
+    'MMMMMM',
+    'MRRRRM',
+    'MRGYRM',
+    'MRGYRM',
+    'MRRRRM',
+    'MMMMMM',
+  ]);
+}
+
+/**
+ * v0.4.2：构建第 32 关目标图案——6x6 螺旋回字。
+ *
+ * 4 色螺旋，从外圈向内圈颜色递变：
+ *   外圈红 → 次外圈绿 → 内 2x2 黄/蓝对角
+ *
+ *   RRRRRR
+ *   RGGGGR
+ *   RGYBGR
+ *   RGYBGR
+ *   RGGGGR
+ *   RRRRRR
+ */
+export function createSolvedPicture32(): Board {
+  return pictureFromString([
+    'RRRRRR',
+    'RGGGGR',
+    'RGYBGR',
+    'RGYBGR',
+    'RGGGGR',
+    'RRRRRR',
+  ]);
+}
+
+/**
+ * v0.4.2：从字符串数组构建 6x6 图案棋盘的辅助函数。
+ *
+ * 每个字符代表一个色块颜色：R=red, Y=yellow, B=blue, G=green, C=cyan, M=magenta。
+ * 用于手工设计像素图案——将可视化的图案文本转为 Board 数据结构。
+ */
+const CHAR_TO_COLOR: Record<string, Color> = {
+  R: 'red', Y: 'yellow', B: 'blue', G: 'green', C: 'cyan', M: 'magenta',
+};
+
+function pictureFromString(rows: string[]): Board {
+  const cells: Cell[] = [];
+  for (const row of rows) {
+    for (const ch of row) {
+      const color = CHAR_TO_COLOR[ch];
+      if (!color) throw new Error(`Unknown color char: ${ch}`);
+      cells.push({ color });
+    }
+  }
+  return { dims: [6, 6], cells };
+}
+
+/**
+ * v0.4.2 第 33 关：太阳图案。
+ *
+ * 蓝色天空 + 红色日冕 + 黄色日面。
+ *
+ *   BBBBBB
+ *   BBRRBB
+ *   BRRRRB
+ *   BRYRYB
+ *   BBRRBB
+ *   BBBBBB
+ */
+export function createSolvedPicture33(): Board {
+  return pictureFromString([
+    'BBBBBB',
+    'BBRRBB',
+    'BRRRRB',
+    'BRYRYB',
+    'BBRRBB',
+    'BBBBBB',
+  ]);
+}
+
+/**
+ * v0.4.2 第 34 关：房子图案。
+ *
+ * 红色屋顶 + 黄色墙体 + 蓝色门 + 青色窗。
+ *
+ *   BBRRBB
+ *   BRRRRB
+ *   RRYYRR
+ *   YYBCYY
+ *   YYBCYY
+ *   YYBBYY
+ */
+export function createSolvedPicture34(): Board {
+  return pictureFromString([
+    'BBRRBB',
+    'BRRRRB',
+    'RRYYRR',
+    'YYBCYY',
+    'YYBCYY',
+    'YYBBYY',
+  ]);
+}
+
+/**
+ * v0.4.3 第 35 关：心形图案。
+ *
+ * 红色爱心位于蓝色背景上（饱满心形）。
+ *
+ *   BRBBRB
+ *   RRRRRR
+ *   RRRRRR
+ *   BRRRRB
+ *   BBRRBB
+ *   BBBRBB
+ */
+export function createSolvedPicture35(): Board {
+  return pictureFromString([
+    'BRBBRB',
+    'RRRRRR',
+    'RRRRRR',
+    'BRRRRB',
+    'BBRRBB',
+    'BBBRBB',
+  ]);
+}
+
+/**
+ * v0.4.2 第 36 关：三色棋盘图案。
+ *
+ * R/Y/G 三色偏移棋盘，每格与其上下左右邻居均不同色。
+ *
+ *   RYGRYG
+ *   GRYGRY
+ *   RYGRYG
+ *   GRYGRY
+ *   RYGRYG
+ *   GRYGRY
+ */
+export function createSolvedPicture36(): Board {
+  return pictureFromString([
+    'RYGRYG',
+    'GRYGRY',
+    'RYGRYG',
+    'GRYGRY',
+    'RYGRYG',
+    'GRYGRY',
+  ]);
+}
+
+/**
+ * v0.4.2 第 37 关：钻石图案。
+ *
+ * 蓝色背景 + 红色菱形 + 黄色中心。
+ *
+ *   BBBBBB
+ *   BBRRBB
+ *   BRRYRB
+ *   BRRYRB
+ *   BBRRBB
+ *   BBBBBB
+ */
+export function createSolvedPicture37(): Board {
+  return pictureFromString([
+    'BBBBBB',
+    'BBRRBB',
+    'BRRYRB',
+    'BRRYRB',
+    'BBRRBB',
+    'BBBBBB',
+  ]);
+}
+
+/**
+ * v0.4.2 第 38 关：箭头图案。
+ *
+ * 右指箭头：绿色尾翼 + 红色箭杆 + 黄色箭头 + 蓝色天空。
+ *
+ *   BBBBBB
+ *   BBBYBB
+ *   GRRYYB
+ *   GRRYYB
+ *   BBBYBB
+ *   BBBBBB
+ */
+export function createSolvedPicture38(): Board {
+  return pictureFromString([
+    'BBBBBB',
+    'BBBYBB',
+    'GRRYYB',
+    'GRRYYB',
+    'BBBYBB',
+    'BBBBBB',
+  ]);
+}
+
+/**
+ * v0.4.2 第 39 关：树图案。
+ *
+ * 绿色树冠（两层三角，第四行全绿） + 红色树干 + 蓝色天空。
+ *
+ *   BBBBBB
+ *   BBGGBB
+ *   BGGGGB
+ *   GGGGGG
+ *   BBRRBB
+ *   BBRRBB
+ */
+export function createSolvedPicture39(): Board {
+  return pictureFromString([
+    'BBBBBB',
+    'BBGGBB',
+    'BGGGGB',
+    'GGGGGG',
+    'BBRRBB',
+    'BBRRBB',
+  ]);
+}
+
+/**
+ * v0.4.2 第 40 关：笑脸图案。
+ *
+ * 黄色面孔 + 蓝色眼睛 + 红色嘴巴 + 蓝色背景。
+ *
+ *   BBBBBB
+ *   BYBBYB
+ *   YYYYYY
+ *   YRRRRY
+ *   BYYYYB
+ *   BBBBBB
+ */
+export function createSolvedPicture40(): Board {
+  return pictureFromString([
+    'BBBBBB',
+    'BYBBYB',
+    'YYYYYY',
+    'YRRRRY',
+    'BYYYYB',
+    'BBBBBB',
+  ]);
+}
+
 /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
   return {

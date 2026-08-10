@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import type { Board, Knob, Color } from '../core/types';
 import type { AnimationState, SwapAnimationState } from '../hooks/useGame';
 import { HexBoardView } from './HexBoardView';
+import { getPictureOutline } from '../core/picture-outlines';
 
 /** 旋转动画时长（ms）——v0.1.3：350ms → 200ms，缩减单次旋转开销 */
 const ROTATE_DURATION = 200;
@@ -111,6 +112,8 @@ interface BoardViewProps {
   onCellClick?: (index: number) => void;
   /** v0.3.5：对换动画结束回调 */
   onSwapAnimationEnd?: () => void;
+  /** v0.4.2：图案关卡 id（用于胜利动画辅助线），非图案关不传 */
+  pictureId?: number;
 }
 
 function BoardViewInner({
@@ -129,6 +132,7 @@ function BoardViewInner({
   swapAnimating = null,
   onCellClick,
   onSwapAnimationEnd,
+  pictureId,
 }: BoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -448,6 +452,27 @@ function BoardViewInner({
               <CellBlock color={swapOverlay.colorB} number={swapOverlay.numberB} />
             </div>
           </div>
+        )}
+
+        {/* v0.4.2：图案关胜利动画辅助线——仅在非预览 + 庆祝中时显示。
+            辅助线用 SVG path 叠加在色块上，stroke-dashoffset 动画渐入，
+            延迟与 celebrate-pulse 同步（对角线波纹），最终呈现图案轮廓。 */}
+        {celebrating && !preview && pictureId && getPictureOutline(pictureId) && (
+          <svg
+            className="picture-outline-overlay"
+            viewBox="0 0 1 1"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            {getPictureOutline(pictureId)!.map((d, i) => (
+              <path
+                key={i}
+                d={d}
+                className="picture-outline-path"
+                style={{ animationDelay: `${i * 120}ms` }}
+              />
+            ))}
+          </svg>
         )}
 
         {!preview && (

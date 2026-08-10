@@ -209,6 +209,32 @@ export function generatePuzzle(
 }
 
 /**
+ * v0.4.2：图案关卡题目生成接口。
+ *
+ * 与 generatePuzzle 不同，此接口接受自定义 solvedBoard（像素图案），
+ * 而非从注册表获取默认 solvedBoard。拓扑仍从注册表按 topologyKind 获取。
+ *
+ * 用于第 31-40 关：目标地图为手工设计的像素图案（4-8 色构成的可辨识图形），
+ * 胜利判定改为"拼成目标地图即可"（PictureGoal 逐格校验颜色一致）。
+ *
+ * @param topologyKind 拓扑类型（如 'square-6x6'）
+ * @param solved 目标图案棋盘
+ * @param scramble 打乱步数
+ * @param seed 种子（保证确定性）
+ */
+export function generatePicturePuzzle(
+  topologyKind: string,
+  solved: Board,
+  scramble: number,
+  seed: number,
+): GeneratedLevel {
+  const entry = getTopologyEntry(topologyKind);
+  const topology = entry.topology();
+  const rng = new SeededRNG(seed);
+  return generateLevel({ solved, topology, scrambleCount: scramble, rng });
+}
+
+/**
  * v0.2.3：无尽模式题目生成。
  *
  * 与 generatePuzzle 不同，使用 defaultRNG()（Math.random）而非确定性种子，

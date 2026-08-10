@@ -188,3 +188,52 @@ registerTopology(DICE_4X4_KIND, {
   defaultGoal: () => new DiceQuadrantGoal(),
   defaultSolvedBoard: createSolvedDice4x4,
 });
+
+/**
+ * v0.4.2：图案玩法的目标判定策略。
+ *
+ * 胜利条件简化为"操作地图与目标地图完全一致"——逐格校验颜色匹配。
+ * 不要求象限纯色，也不校验 number——纯粹拼图还原。
+ *
+ * solvedBoard 由调用方（如 levels.ts）在构造时传入，支持任意像素图案。
+ */
+export const PICTURE_GOAL_KIND = 'picture';
+
+export class PictureGoal implements Goal {
+  readonly kind = PICTURE_GOAL_KIND;
+  private readonly solvedBoard: Board;
+
+  constructor(solvedBoard: Board) {
+    this.solvedBoard = solvedBoard;
+  }
+
+  satisfied(board: Board, _topology: Topology): boolean {
+    if (board.cells.length !== this.solvedBoard.cells.length) return false;
+    for (let i = 0; i < board.cells.length; i++) {
+      if (board.cells[i]?.color !== this.solvedBoard.cells[i].color) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  describe(): string {
+    return '拼成目标地图即可';
+  }
+}
+
+/**
+ * v0.4.2：注册图案玩法拓扑。
+ *
+ * 复用 square6x6 拓扑（25 个 2x2 旋钮），但 defaultSolvedBoard 与 defaultGoal
+ * 由 levels.ts 在运行时通过 generatePicturePuzzle + PictureGoal 自行构造，
+ * 注册表仅提供 topology。此注册项的 defaultSolvedBoard/defaultGoal 不会被
+ * 图案关卡使用（levels.ts 直接传 solvedBoard 给 generatePicturePuzzle），
+ * 但为保持注册表完整性，提供基础 6x6 的默认实现。
+ */
+export const PICTURE_6X6_KIND = 'square-6x6-picture';
+registerTopology(PICTURE_6X6_KIND, {
+  topology: square6x6,
+  defaultGoal: () => new PictureGoal(createSolvedSquare6x6()),
+  defaultSolvedBoard: createSolvedSquare6x6,
+});

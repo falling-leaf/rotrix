@@ -69,8 +69,9 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
   const level = levels.find((l) => l.id === currentLevelId)!;
   const game = useGame(level);
   const solvedBoard = useMemo(
-    () => getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
-    [level.topologyKind],
+    () =>
+      level.solvedBoard ?? getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
+    [level.topologyKind, level.solvedBoard],
   );
 
   useEffect(() => {
@@ -146,6 +147,7 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
             swapAnimating={game.swapAnimating}
             onCellClick={game.handleCellClick}
             onSwapAnimationEnd={game.onSwapAnimationEnd}
+            pictureId={level.topologyKind === 'square-6x6-picture' ? level.id : undefined}
           />
           <div className="right-panel">
             <BoardView
