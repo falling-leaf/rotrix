@@ -54,6 +54,47 @@ const COLOR_HEX: Record<Color, string> = {
   magenta: '#e056fd',
 };
 
+/** 立体感：三角形色块 3-stop 线性渐变颜色变体。
+ * 亮色(混白12%)→本色→暗色(混黑8%)，模拟光源从左上照射。
+ * 与正方形 .cell 的 CSS linear-gradient 同思路——仅色阶变化，无投影。 */
+function lighten(hex: string, amount: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const lr = Math.round(r + (255 - r) * amount);
+  const lg = Math.round(g + (255 - g) * amount);
+  const lb = Math.round(b + (255 - b) * amount);
+  return `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
+}
+function darken(hex: string, amount: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const dr = Math.round(r * (1 - amount));
+  const dg = Math.round(g * (1 - amount));
+  const db = Math.round(b * (1 - amount));
+  return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
+}
+const COLOR_LIGHT: Record<Color, string> = {
+  red: lighten('#e94560', 0.12),
+  yellow: lighten('#f5d547', 0.12),
+  blue: lighten('#4d8df6', 0.12),
+  green: lighten('#4ecdc4', 0.12),
+  cyan: lighten('#22d3ee', 0.12),
+  magenta: lighten('#e056fd', 0.12),
+};
+const COLOR_DARK: Record<Color, string> = {
+  red: darken('#e94560', 0.08),
+  yellow: darken('#f5d547', 0.08),
+  blue: darken('#4d8df6', 0.08),
+  green: darken('#4ecdc4', 0.08),
+  cyan: darken('#22d3ee', 0.08),
+  magenta: darken('#e056fd', 0.08),
+};
+function hexGradId(color: Color): string {
+  return `hex-grad-${color}`;
+}
+
 function HexBoardViewInner({
   board,
   knobs,
@@ -253,6 +294,18 @@ function HexBoardViewInner({
           preserveAspectRatio="xMidYMid meet"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         >
+          {/* 渐变定义——每种颜色一个 linearGradient，
+           * 亮色(左上0%)→本色(50%)→暗色(右下100%)，模拟光源从左上照射。
+           * 无 feDropShadow 投影——仅靠色阶变化产生立体感。 */}
+          <defs>
+            {(['red', 'yellow', 'blue', 'green', 'cyan', 'magenta'] as Color[]).map((c) => (
+              <linearGradient key={c} id={hexGradId(c)} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
+                <stop offset="50%" stopColor={COLOR_HEX[c]} />
+                <stop offset="100%" stopColor={COLOR_DARK[c]} />
+              </linearGradient>
+            ))}
+          </defs>
           {/* 底层三角形：旋转中的三角形隐藏（由 overlay 显示）。
            * v0.3.5：对换中的三角形也隐藏（由 swap overlay 显示飞行版） */}
           {cells.map((cell, i) => {
@@ -276,7 +329,7 @@ function HexBoardViewInner({
             const swapSelected = swapMode && swapSelection === i;
             const swapClickable = swapMode && !preview && !animating && !swapAnimating;
             // v0.3.5：对换动画中，原位置填充面板色；旋转中仍隐藏
-            const fill = isSwapping ? 'var(--panel)' : COLOR_HEX[cell.color];
+            const fill = isSwapping ? 'var(--panel)' : `url(#${hexGradId(cell.color)})`;
             return (
               <polygon
                 key={i}
@@ -319,7 +372,7 @@ function HexBoardViewInner({
                   <polygon
                     key={triIdx}
                     points={pointsStr}
-                    fill={COLOR_HEX[rotateOverlay.colors[pos]]}
+                    fill={`url(#${hexGradId(rotateOverlay.colors[pos])})`}
                     stroke="#ffffff"
                     strokeWidth={0.4}
                     strokeLinejoin="round"
@@ -341,7 +394,7 @@ function HexBoardViewInner({
               >
                 <polygon
                   points={swapOverlay.polyA}
-                  fill={COLOR_HEX[swapOverlay.colorA]}
+                  fill={`url(#${hexGradId(swapOverlay.colorA)})`}
                   stroke="#ffffff"
                   strokeWidth={0.4}
                   strokeLinejoin="round"
@@ -355,7 +408,7 @@ function HexBoardViewInner({
               >
                 <polygon
                   points={swapOverlay.polyB}
-                  fill={COLOR_HEX[swapOverlay.colorB]}
+                  fill={`url(#${hexGradId(swapOverlay.colorB)})`}
                   stroke="#ffffff"
                   strokeWidth={0.4}
                   strokeLinejoin="round"

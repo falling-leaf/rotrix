@@ -195,6 +195,8 @@ button, .knob, .level-chip, .btn {
   --board-size: min(82vw, 340px);
   width: var(--board-size);
   height: var(--board-size);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .board-wrapper.preview .board {
@@ -223,8 +225,17 @@ button, .knob, .level-chip, .btn {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 6px;
+  border-radius: 10px;
   transition: background-color 0.15s ease;
+  /* 立体感：135° 斜向渐变——左上亮(混白15%)→本色(50%)→右下暗(混黑10%)。
+   * 仅靠色阶变化模拟光照，无 box-shadow，避免叠影发脏。
+   * --cc 由各颜色类(.cell.red 等)设置；__panel 不设 --cc 而用纯色覆盖。 */
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--cc, var(--panel)) 85%, #fff) 0%,
+    var(--cc, var(--panel)) 50%,
+    color-mix(in srgb, var(--cc, var(--panel)) 90%, #000) 100%
+  );
 }
 
 /* v0.1.2：旋转动画提交棋盘时，禁用 cell 的 background-color 过渡。
@@ -237,13 +248,13 @@ button, .knob, .level-chip, .btn {
   transition: none;
 }
 
-.cell.red { background: var(--color-red); }
-.cell.yellow { background: var(--color-yellow); }
-.cell.blue { background: var(--color-blue); }
-.cell.green { background: var(--color-green); }
-.cell.cyan { background: var(--color-cyan); }
-.cell.magenta { background: var(--color-magenta); }
-/* v0.3.5：对换动画中原位置的白色底色 */
+.cell.red { --cc: var(--color-red); }
+.cell.yellow { --cc: var(--color-yellow); }
+.cell.blue { --cc: var(--color-blue); }
+.cell.green { --cc: var(--color-green); }
+.cell.cyan { --cc: var(--color-cyan); }
+.cell.magenta { --cc: var(--color-magenta); }
+/* 对换动画中原位置的白色底色——纯色覆盖渐变 */
 .cell.__panel { background: var(--panel); }
 
 /* v0.4.0：骰子点数——白色圆点叠加在色块上。
@@ -291,17 +302,17 @@ button, .knob, .level-chip, .btn {
   0% {
     transform: scale(1);
     filter: brightness(1);
-    border-radius: 6px;
+    border-radius: 10px;
   }
   40% {
     transform: scale(1.18);
     filter: brightness(1.25);
-    border-radius: 12px;
+    border-radius: 16px;
   }
   100% {
     transform: scale(1);
     filter: brightness(1);
-    border-radius: 6px;
+    border-radius: 10px;
   }
 }
 
@@ -388,7 +399,8 @@ button, .knob, .level-chip, .btn {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: var(--cell-gap);
-  border-radius: 6px;
+  /* v0.4.4：圆角 6px → 10px，与 .cell 一致 */
+  border-radius: 10px;
   overflow: hidden;
   /* transform 由 BoardView 内联设置，此处不再用 CSS keyframe */
 }
@@ -403,7 +415,8 @@ button, .knob, .level-chip, .btn {
 .rotate-overlay .cell {
   width: 100%;
   height: 100%;
-  border-radius: 6px;
+  /* v0.4.4：圆角 6px → 10px */
+  border-radius: 10px;
 }
 
 /* 预览模式下隐藏旋转 overlay */
@@ -437,7 +450,6 @@ button, .knob, .level-chip, .btn {
   stroke-dasharray: 4;
   stroke-dashoffset: 4;
   animation: picture-outline-draw 0.6s ease-out forwards;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 @keyframes picture-outline-draw {
@@ -954,7 +966,7 @@ button, .knob, .level-chip, .btn {
 
 .board.swap-mode .swap-clickable:hover .cell {
   transform: scale(1.1);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 /* v0.3.5：已选中的格子——放大 + 提亮，类似胜利结算的突出效果。
@@ -963,7 +975,7 @@ button, .knob, .level-chip, .btn {
 .board.swap-mode .swap-selected .cell {
   transform: scale(1.18);
   filter: brightness(1.25);
-  border-radius: 10px;
+  border-radius: 14px;
   box-shadow: 0 0 0 3px var(--accent), 0 0 16px rgba(233, 69, 96, 0.5);
   z-index: 5;
 }
@@ -1015,7 +1027,8 @@ button, .knob, .level-chip, .btn {
 .swap-piece .cell {
   width: 100%;
   height: 100%;
-  border-radius: 6px;
+  /* v0.4.4：圆角 6px → 10px */
+  border-radius: 10px;
   /* 飞行时略微放大+提亮，增强"拿起"感 */
   filter: brightness(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
