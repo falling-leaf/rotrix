@@ -32,6 +32,8 @@ export function App() {
   const { completed, markCompleted } = useProgress();
   // v0.5.0：新手教程询问弹窗
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
+  // v0.5.1：开发者模式——调试用，最终版本删除
+  const [developerMode, setDeveloperMode] = useState(false);
 
   // 进入初始界面时读取无尽模式历史最佳
   useEffect(() => {
@@ -46,11 +48,12 @@ export function App() {
   }, [view]);
 
   // v0.5.0：选关回调——首次选第 1 关时弹窗询问是否需要教程
+  // v0.5.1：开发者模式下始终弹窗询问教程
   const handleSelectLevel = useCallback((levelId: number) => {
     if (levelId === 1) {
       try {
         const asked = localStorage.getItem(LS_TUTORIAL_ASKED);
-        if (!asked) {
+        if (!asked || developerMode) {
           setShowTutorialPrompt(true);
           return;
         }
@@ -59,7 +62,7 @@ export function App() {
       }
     }
     setView({ mode: 'playing', levelId });
-  }, []);
+  }, [developerMode]);
 
   // v0.5.0：教程询问弹窗——是
   const handleTutorialYes = useCallback(() => {
@@ -90,6 +93,8 @@ export function App() {
         bestScore6x6={best6x6}
         onStart={() => setView({ mode: 'levelSelect' })}
         onEndless={(kind) => setView({ mode: 'endless', kind })}
+        developerMode={developerMode}
+        onToggleDeveloperMode={() => setDeveloperMode((d) => !d)}
       />
     );
   }
@@ -101,6 +106,7 @@ export function App() {
           completed={completed}
           onSelect={handleSelectLevel}
           onBack={() => setView({ mode: 'start' })}
+          developerMode={developerMode}
         />
         {showTutorialPrompt && (
           <div className="win-overlay" onClick={() => {}}>

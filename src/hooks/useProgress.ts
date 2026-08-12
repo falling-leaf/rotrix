@@ -29,7 +29,9 @@ function saveCompleted(set: Set<number>): void {
 }
 
 /** 第 n 关是否解锁（可玩） */
-export function isLevelUnlocked(levelId: number, completed: Set<number>): boolean {
+export function isLevelUnlocked(levelId: number, completed: Set<number>, developerMode = false): boolean {
+  // v0.5.1：开发者模式——所有关卡均解锁
+  if (developerMode) return true;
   // 第 1 关始终解锁
   if (levelId === 1) return true;
   // 第 0 关（新手教程）：通关第 1 关后解锁，可供回顾

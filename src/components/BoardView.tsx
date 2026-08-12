@@ -321,10 +321,12 @@ function BoardViewInner({
   }, [swapOverlay]);
 
   // 计算旋转中保持不出格的缩放因子
-  // 旋转 θ 的正方形，外接矩形边长 = side*(cosθ + sinθ)
-  // 令外接矩形 = 原边界框，则 scale = 1 / (cosθ + sinθ)
+  // 旋转 θ 的正方形，外接矩形边长 = side*(|cosθ| + |sinθ|)
+  // 令外接矩形 = 原边界框，则 scale = 1 / (|cosθ| + |sinθ|)
+  // v0.5.1：加 Math.abs 支持 CCW 负角度——sin(-θ) 为负时 cosθ+sinθ 在 -45° 处为零（除以零），
+  // 导致 CCW 动画 scale 先膨胀到无穷再变负，视觉上表现为"实际是顺时针旋转"。
   const rad = (angle * Math.PI) / 180;
-  const scale = 1 / (Math.cos(rad) + Math.sin(rad));
+  const scale = 1 / (Math.abs(Math.cos(rad)) + Math.abs(Math.sin(rad)));
 
   return (
     <div className={`board-wrapper ${preview ? 'preview' : ''}`}>

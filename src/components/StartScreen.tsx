@@ -6,9 +6,12 @@ interface StartScreenProps {
   /** 无尽模式历史最高通关数 */
   bestScore4x4: number;
   bestScore6x6: number;
+  /** v0.5.1：开发者模式——所有关卡解锁，始终提示新手教程 */
+  developerMode: boolean;
+  onToggleDeveloperMode: () => void;
 }
 
-export function StartScreen({ onStart, onEndless, bestScore4x4, bestScore6x6 }: StartScreenProps) {
+export function StartScreen({ onStart, onEndless, bestScore4x4, bestScore6x6, developerMode, onToggleDeveloperMode }: StartScreenProps) {
   return (
     <div className="start-screen">
       <div className="start-logo">ROTRIX</div>
@@ -34,6 +37,14 @@ export function StartScreen({ onStart, onEndless, bestScore4x4, bestScore6x6 }: 
             <div className="mode-desc">随机 60 步打乱<br />最佳：{bestScore6x6} 关</div>
           </button>
         </div>
+      </div>
+
+      {/* v0.5.1：开发者模式开关——调试用，最终版本删除 */}
+      <div className="dev-mode-toggle" onClick={onToggleDeveloperMode}>
+        <div className={`dev-mode-checkbox ${developerMode ? 'checked' : ''}`}>
+          {developerMode && <span className="dev-mode-checkmark">✓</span>}
+        </div>
+        <span className="dev-mode-label">开发者模式（解锁所有关卡，始终提示教程）</span>
       </div>
     </div>
   );

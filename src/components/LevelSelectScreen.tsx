@@ -7,6 +7,8 @@ interface LevelSelectScreenProps {
   onSelect: (levelId: number) => void;
   /** 返回主菜单 */
   onBack: () => void;
+  /** v0.5.1：开发者模式——所有关卡均解锁 */
+  developerMode: boolean;
 }
 
 /** 关卡显示顺序：1-40, 50（第 0 关教程不在此列表，由弹窗触发） */
@@ -20,7 +22,7 @@ const DISPLAY_IDS = [
  * 50 个关卡格子（含第 0 关新手教程），逐关解锁。
  * 已通关显示绿色对勾，未解锁显示锁图标。
  */
-export function LevelSelectScreen({ completed, onSelect, onBack }: LevelSelectScreenProps) {
+export function LevelSelectScreen({ completed, onSelect, onBack, developerMode }: LevelSelectScreenProps) {
   return (
     <div className="app level-select-app">
       <div className="level-select-header">
@@ -33,7 +35,7 @@ export function LevelSelectScreen({ completed, onSelect, onBack }: LevelSelectSc
 
       <div className="level-grid">
         {DISPLAY_IDS.map((id) => {
-          const unlocked = isLevelUnlocked(id, completed);
+          const unlocked = isLevelUnlocked(id, completed, developerMode);
           const cleared = completed.has(id);
           return (
             <button

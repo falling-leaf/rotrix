@@ -1306,9 +1306,9 @@ button, .knob, .level-chip, .btn {
 /* 关卡网格——自适应列数 */
 .level-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
-  max-width: 720px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 8px;
 }
@@ -1353,16 +1353,16 @@ button, .knob, .level-chip, .btn {
 }
 
 .level-cell-num {
-  font-size: 28px;
+  font-size: 40px;
   font-weight: 700;
   color: var(--text);
 }
 
 .level-cell-check {
   position: absolute;
-  top: 4px;
-  right: 6px;
-  font-size: 16px;
+  top: 6px;
+  right: 8px;
+  font-size: 22px;
   color: var(--color-green);
   font-weight: bold;
 }
@@ -1376,7 +1376,7 @@ button, .knob, .level-chip, .btn {
 }
 
 .level-cell-lock {
-  font-size: 24px;
+  font-size: 32px;
   opacity: 0.6;
 }
 
@@ -1417,17 +1417,17 @@ button, .knob, .level-chip, .btn {
     font-size: 16px;
   }
   .level-grid {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
   }
   .level-cell-num {
-    font-size: 22px;
+    font-size: 28px;
   }
   .level-cell-check {
-    font-size: 13px;
+    font-size: 16px;
   }
   .level-cell-lock {
-    font-size: 20px;
+    font-size: 24px;
   }
   .game-level-label {
     font-size: 18px;
@@ -1436,10 +1436,55 @@ button, .knob, .level-chip, .btn {
 
 @media (max-width: 420px) {
   .level-grid {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
   }
   .level-cell-num {
-    font-size: 20px;
+    font-size: 24px;
   }
+}
+
+/* v0.5.1：开发者模式开关 */
+.dev-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-top: 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--grid-line);
+  transition: all 0.2s;
+  user-select: none;
+  touch-action: manipulation;
+}
+.dev-mode-toggle:hover {
+  border-color: var(--accent);
+}
+.dev-mode-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 2px solid var(--grid-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.dev-mode-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.dev-mode-checkmark {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.dev-mode-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.3;
 }
