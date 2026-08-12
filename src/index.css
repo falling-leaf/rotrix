@@ -1,6 +1,6 @@
 :root {
   /* v0.1.3：深色主题 → 浅色主题 */
-  --bg: #eef2f7;
+  --bg: #ffffff;
   --panel: #ffffff;
   --panel-light: #f0f3f8;
   --text: #2d3748;
@@ -490,6 +490,12 @@ button, .knob, .level-chip, .btn {
   gap: 12px;
 }
 
+/* v0.5.2：教程激活时禁用按钮交互 */
+.controls.tutorial-active {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .btn {
   /* v0.1.3：14px → 18px → 22px，padding 放大 */
   padding: 12px 28px;
@@ -618,13 +624,16 @@ button, .knob, .level-chip, .btn {
     --knob-size: 24px;
   }
   .board {
-    --board-size: min(88vw, 300px);
+    --board-size: min(60vw, 240px);
   }
   .board-wrapper.preview .board {
-    --board-size: min(42vw, 150px);
+    --board-size: min(30vw, 110px);
   }
   .boards-layout {
-    gap: 12px;
+    gap: 8px;
+  }
+  .right-panel {
+    gap: 8px;
   }
   /* v0.2.2：旋钮点击区域——视觉 24px 不变，但伪元素撑大触摸 hit-area 到 44px。
    * .knob 是 transform: translate(-50%,-50%) 居中的绝对定位元素，
@@ -658,28 +667,35 @@ button, .knob, .level-chip, .btn {
     align-items: center;
   }
   .board-wrapper.preview .board {
-    --board-size: min(60vw, 200px);
+    --board-size: min(30vw, 110px);
   }
   .app-title {
     font-size: 30px;
   }
-  /* v0.3.4：窄屏列布局下，右侧面板水平居中、间距收紧 */
   .right-panel {
-    gap: 12px;
+    gap: 8px;
   }
   .coin {
-    width: 72px;
-    height: 72px;
+    width: 64px;
+    height: 64px;
   }
   .coin-symbol {
-    font-size: 30px;
-  }
-  .coin-label {
-    font-size: 10px;
+    font-size: 26px;
   }
   .coin-toggle-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+  .info-bar {
     font-size: 14px;
+    gap: 12px;
+  }
+  .controls {
+    gap: 6px;
+  }
+  .controls .btn {
     padding: 6px 14px;
+    font-size: 14px;
   }
 }
 
@@ -1073,7 +1089,7 @@ button, .knob, .level-chip, .btn {
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  z-index: 1000;
+  z-index: 1001;
   pointer-events: none; /* 不阻挡棋盘操作 */
   animation: tutorial-guide-in 0.4s ease-out;
 }
@@ -1100,7 +1116,8 @@ button, .knob, .level-chip, .btn {
   border: 2px solid var(--grid-line);
   border-radius: 16px;
   padding: 14px 18px;
-  max-width: 320px;
+  max-width: 420px;
+  min-width: 200px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   position: relative;
   pointer-events: auto; /* 气泡可交互 */
@@ -1156,37 +1173,28 @@ button, .knob, .level-chip, .btn {
   }
 }
 
-/* 高亮框：闪烁的圆角边框 */
-.tutorial-highlight {
+/* 暗色遮罩挖洞：覆盖全屏（box-shadow），仅高亮区域透明露出组件本色 */
+.tutorial-overlay-hole {
+  animation: tutorial-overlay-in 0.3s ease-out;
+}
+
+/* 全屏暗化遮罩：无高亮目标时，整个界面暗化 */
+.tutorial-overlay-full {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
   pointer-events: none;
+  animation: tutorial-overlay-in 0.3s ease-out;
 }
 
-.tutorial-highlight-ring {
-  width: 100%;
-  height: 100%;
-  border: 3px solid var(--accent);
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(233, 69, 96, 0.5);
-  animation: tutorial-pulse 1.2s ease-in-out infinite;
+@keyframes tutorial-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes tutorial-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.03);
-  }
-}
-
-/* 手指图标：指向被高亮的旋钮 */
+/* 手指图标：指向被高亮的组件（v0.5.2：独立定位，位于组件下方） */
 .tutorial-finger {
-  position: absolute;
-  left: 50%;
-  top: -32px;
-  transform: translateX(-50%);
   font-size: 28px;
   animation: tutorial-bounce 0.8s ease-in-out infinite;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
@@ -1201,36 +1209,41 @@ button, .knob, .level-chip, .btn {
   }
 }
 
-/* 旋转图标：虚浮在旋钮上方，表示旋转动作 */
-.tutorial-rotate-icon {
-  position: absolute;
-  left: 50%;
-  top: -64px;
-  transform: translateX(-50%);
-  font-size: 32px;
-  color: var(--knob);
-  animation: tutorial-spin 2s linear infinite;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+/* v0.5.2：旋转图标——两个弯曲箭头覆盖在旋钮的 2x2 区域上，
+ * 左侧箭头↓ + 右侧箭头↑，合并表示逆时针旋转方向。
+ * 使用 SVG 绘制，金色描边，带轻微呼吸动画吸引注意。 */
+.tutorial-rotate-area {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  animation: tutorial-rotate-area-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes tutorial-spin {
-  from {
-    transform: translateX(-50%) rotate(0deg);
-  }
-  to {
-    transform: translateX(-50%) rotate(360deg);
-  }
+@keyframes tutorial-rotate-area-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
-/* 移动端适配：教程引导改为底部居中，角色缩小 */
+.tutorial-rotate-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 移动端适配：教程引导改为底部绝对定位，仅遮盖 controls */
 @media (max-width: 768px) {
+  .game-screen-app {
+    position: relative;
+  }
   .tutorial-guide {
-    right: 50%;
-    transform: translateX(50%);
-    bottom: 12px;
-    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    padding: 8px 12px;
   }
 
   .tutorial-character {
@@ -1238,7 +1251,7 @@ button, .knob, .level-chip, .btn {
   }
 
   .tutorial-bubble {
-    max-width: 280px;
+    max-width: 85vw;
     padding: 12px 14px;
   }
 
@@ -1253,12 +1266,6 @@ button, .knob, .level-chip, .btn {
 
   .tutorial-finger {
     font-size: 24px;
-    top: -28px;
-  }
-
-  .tutorial-rotate-icon {
-    font-size: 26px;
-    top: -56px;
   }
 }
 
@@ -1391,14 +1398,51 @@ button, .knob, .level-chip, .btn {
   padding-bottom: max(24px, env(safe-area-inset-bottom));
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
+  /* v0.5.2：移动端单屏显示，不滚动 */
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .game-screen-app {
+    position: relative;
+  }
+  .start-screen {
+    min-height: 100dvh;
+  }
+  /* v0.5.2：移动端——目标地图和正逆时针调整放在同一行，缩小尺寸使其并列 */
+  .right-panel {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .right-panel .board-wrapper.preview {
+    padding: 6px;
+  }
+  .right-panel .board-wrapper.preview .board {
+    --board-size: min(24vw, 80px);
+  }
+  .right-panel .coin {
+    width: 60px;
+    height: 60px;
+  }
+  .right-panel .coin-symbol {
+    font-size: 22px;
+  }
+  .right-panel .coin-label {
+    font-size: 9px;
+  }
+  .right-panel .coin-toggle-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
 }
 
 .game-header {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 720px;
+  justify-content: space-between;
+  padding: 0 8px;
   margin-bottom: 8px;
 }
 
@@ -1430,7 +1474,21 @@ button, .knob, .level-chip, .btn {
     font-size: 24px;
   }
   .game-level-label {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  .game-header {
+    margin-bottom: 4px;
+  }
+  .game-area {
+    gap: 8px;
+  }
+  .info-bar {
+    font-size: 14px;
+    gap: 12px;
+  }
+  .controls .btn {
+    padding: 6px 14px;
+    font-size: 14px;
   }
 }
 

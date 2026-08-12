@@ -114,6 +114,8 @@ interface BoardViewProps {
   onSwapAnimationEnd?: () => void;
   /** v0.4.2：图案关卡 id（用于胜利动画辅助线），非图案关不传 */
   pictureId?: number;
+  /** v0.5.2：教程中仅允许操作的旋钮 id，其他旋钮禁用 */
+  allowedKnobId?: string | null;
 }
 
 function BoardViewInner({
@@ -133,6 +135,7 @@ function BoardViewInner({
   onCellClick,
   onSwapAnimationEnd,
   pictureId,
+  allowedKnobId,
 }: BoardViewProps) {
   const cells = useMemo(() => board.cells, [board.cells]);
 
@@ -488,7 +491,7 @@ function BoardViewInner({
                   className={`knob knob-${direction.toLowerCase()}`}
                   style={{ top: `${top}%`, left: `${left}%` }}
                   onClick={() => onKnobClick(knob)}
-                  disabled={disabled || !!animating || swapMode || !!swapAnimating}
+                  disabled={disabled || !!animating || swapMode || !!swapAnimating || (!!allowedKnobId && knob.id !== allowedKnobId)}
                   aria-label={`旋钮 ${knob.id}`}
                 />
               );

@@ -93,6 +93,12 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
   const isTutorial = levelId === 0;
   const isLastLevel = levelId === 50;
 
+  // v0.5.2：教程步骤对应的禁用状态
+  // step 0: 全禁用；step 1: 仅方向开关可用；step 2-3: 仅旋钮可用；step 4: 全禁用
+  const tutorialDisableKnobs = isTutorial && (tutorialStep === 0 || tutorialStep === 1 || tutorialStep === 4);
+  const tutorialDisableSwitch = isTutorial && (tutorialStep === 0 || tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 4);
+  const tutorialDisableControls = isTutorial;
+
   const tutorialConfig = useMemo(() => {
     if (levelId !== 0) return null;
     const steps: Array<{
@@ -155,7 +161,7 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
               onKnobClick={game.handleKnobClick}
               onAnimationEnd={game.onAnimationEnd}
               animating={game.animating}
-              disabled={game.won}
+              disabled={game.won || tutorialDisableKnobs}
               celebrating={game.celebrating}
               label="操作地图"
               direction={game.rotationDirection}
@@ -165,6 +171,7 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
               onCellClick={game.handleCellClick}
               onSwapAnimationEnd={game.onSwapAnimationEnd}
               pictureId={level.topologyKind === 'square-6x6-picture' ? level.id : undefined}
+              allowedKnobId={tutorialDisableKnobs ? null : (tutorialConfig?.highlightKnobId ?? null)}
             />
           </div>
           <div className="right-panel">
@@ -175,11 +182,11 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
               preview
               label="目标地图"
             />
-            <div ref={directionSwitchRef}>
+            <div ref={directionSwitchRef} style={{ position: 'relative' }}>
               <RotationDirectionSwitch
                 direction={game.rotationDirection}
                 onToggle={game.toggleRotationDirection}
-                disabled={game.won}
+                disabled={game.won || tutorialDisableSwitch}
               />
             </div>
           </div>
@@ -199,14 +206,14 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
           />
         )}
 
-        <div className="controls">
+        <div className={`controls ${isTutorial ? 'tutorial-active' : ''}`}>
           <SwapButton
             active={game.swapMode}
             swapsLeft={game.swapsLeft}
-            disabled={game.won}
+            disabled={game.won || tutorialDisableControls}
             onClick={game.toggleSwapMode}
           />
-          <button className="btn" onClick={game.reset}>
+          <button className="btn" onClick={game.reset} disabled={tutorialDisableControls}>
             重置
           </button>
         </div>
