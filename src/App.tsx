@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BoardViewRouter as BoardView } from './components/BoardView';
 import { StartScreen } from './components/StartScreen';
 import { EndlessScreen } from './components/EndlessScreen';
 import { RotationDirectionSwitch } from './components/RotationDirectionSwitch';
 import { SwapButton } from './components/SwapButton';
+import { TutorialGuide, type TutorialPose } from './components/TutorialGuide';
 import { useGame } from './hooks/useGame';
 import { getLevels } from './levels/levels';
 import { getTopologyEntry } from './core/goals';
@@ -63,8 +64,12 @@ export function App() {
  */
 function CampaignScreen({ onBack }: { onBack: () => void }) {
   const levels = getLevels();
-  const [currentLevelId, setCurrentLevelId] = useState(1);
+  // v0.4.5：默认从第 0 关（新手教程）开始
+  const [currentLevelId, setCurrentLevelId] = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
+  // v0.4.5：教程步骤（仅第 0 关有效）
+  // 0=欢迎介绍 1=教切换方向 2=教转K02 3=激励+教转K11 4=完成
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   const level = levels.find((l) => l.id === currentLevelId)!;
   const game = useGame(level);
@@ -74,15 +79,51 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
     [level.topologyKind, level.solvedBoard],
   );
 
+  // v0.4.5：用于教程高亮定位的 DOM 引用
+  const boardRef = useRef<HTMLDivElement>(null);
+  const directionSwitchRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     game.reset();
+    // v0.4.5：进入第 0 关时重置教程步骤
+    if (currentLevelId === 0) {
+      setTutorialStep(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLevelId]);
 
+  // v0.4.5：教程步骤自动推进——根据游戏状态变化
+  useEffect(() => {
+    if (currentLevelId !== 0) return;
+    if (tutorialStep === 1 && game.rotationDirection === 'CCW') {
+      setTutorialStep(2);
+    }
+    if (tutorialStep === 2 && game.moveCount >= 1) {
+      setTutorialStep(3);
+    }
+    if (tutorialStep === 3 && game.won) {
+      setTutorialStep(4);
+    }
+  }, [currentLevelId, tutorialStep, game.rotationDirection, game.moveCount, game.won]);
+
+  // v0.4.5：点击教程气泡推进步骤（仅步骤 0/4 需要手动推进）
+  const handleTutorialBubbleClick = useCallback(() => {
+    if (currentLevelId !== 0) return;
+    if (tutorialStep === 0) {
+      setTutorialStep(1);
+    } else if (tutorialStep === 4) {
+      // 教程完成，进入第 1 关
+      setCompleted((prev) => new Set([...prev, 0]));
+      setCurrentLevelId(1);
+    }
+  }, [currentLevelId, tutorialStep]);
+
   // v0.4.1：线性"下一关"流程限于前 30 关。第 50 关为独立挑战关，
   // 通关后不自动进入"下一关"，仅显示通过提示。
+  // v0.4.5：第 0 关为新手教程，通关后进入第 1 关，不受 30 关限制。
   const isLastInCampaign = currentLevelId >= 30;
   const isFinalChallenge = currentLevelId === 50;
+  const isTutorial = currentLevelId === 0;
 
   const handleNextLevel = () => {
     if (!isLastInCampaign) {
@@ -94,6 +135,45 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
   const handleSelectLevel = (id: number) => {
     setCurrentLevelId(id);
   };
+
+  // v0.4.5：教程内容配置
+  const tutorialConfig = useMemo(() => {
+    if (currentLevelId !== 0) return null;
+    const steps: Array<{
+      pose: TutorialPose;
+      text: string;
+      highlightKnobId?: string | null;
+      highlightDirectionSwitch?: boolean;
+      showRotateIcon?: boolean;
+    }> = [
+      {
+        pose: 'talk',
+        text: '你好呀！我是菲比。欢迎来到 Rotrix！\n目标很简单：把左边的大地图，转成右边目标地图的样子。\n每个象限都要变成同一种颜色哦！',
+      },
+      {
+        pose: 'talk',
+        text: '首先，看到这个金色的硬币开关了吗？\n点击它，把旋转方向切换成「逆时针 ↺」。',
+        highlightDirectionSwitch: true,
+      },
+      {
+        pose: 'talk',
+        text: '很好！现在点击右上角这个闪亮的旋钮，\n让它逆时针转一次。',
+        highlightKnobId: 'K02',
+        showRotateIcon: true,
+      },
+      {
+        pose: 'happy',
+        text: '太棒了！左上角已经变红了！\n接下来点击中间这个旋钮，再逆时针转一次。',
+        highlightKnobId: 'K11',
+        showRotateIcon: true,
+      },
+      {
+        pose: 'happy',
+        text: '完美！你成功了！🎉\n这就是 Rotrix 的基本玩法。接下来进入第 1 关，\n继续挑战吧！',
+      },
+    ];
+    return steps[tutorialStep] ?? steps[0];
+  }, [currentLevelId, tutorialStep]);
 
   return (
     <div className="app">
@@ -132,23 +212,26 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="boards-layout">
-          <BoardView
-            board={game.board}
-            knobs={game.knobs}
-            onKnobClick={game.handleKnobClick}
-            onAnimationEnd={game.onAnimationEnd}
-            animating={game.animating}
-            disabled={game.won}
-            celebrating={game.celebrating}
-            label="操作地图"
-            direction={game.rotationDirection}
-            swapMode={game.swapMode}
-            swapSelection={game.swapSelection}
-            swapAnimating={game.swapAnimating}
-            onCellClick={game.handleCellClick}
-            onSwapAnimationEnd={game.onSwapAnimationEnd}
-            pictureId={level.topologyKind === 'square-6x6-picture' ? level.id : undefined}
-          />
+          {/* v0.4.5：棋盘区域包一层 div 供教程高亮定位 */}
+          <div ref={boardRef} className="board-with-guide">
+            <BoardView
+              board={game.board}
+              knobs={game.knobs}
+              onKnobClick={game.handleKnobClick}
+              onAnimationEnd={game.onAnimationEnd}
+              animating={game.animating}
+              disabled={game.won}
+              celebrating={game.celebrating}
+              label="操作地图"
+              direction={game.rotationDirection}
+              swapMode={game.swapMode}
+              swapSelection={game.swapSelection}
+              swapAnimating={game.swapAnimating}
+              onCellClick={game.handleCellClick}
+              onSwapAnimationEnd={game.onSwapAnimationEnd}
+              pictureId={level.topologyKind === 'square-6x6-picture' ? level.id : undefined}
+            />
+          </div>
           <div className="right-panel">
             <BoardView
               board={solvedBoard}
@@ -157,13 +240,31 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
               preview
               label="目标地图"
             />
-            <RotationDirectionSwitch
-              direction={game.rotationDirection}
-              onToggle={game.toggleRotationDirection}
-              disabled={game.won}
-            />
+            {/* v0.4.5：方向切换按钮包一层 div 供教程高亮定位 */}
+            <div ref={directionSwitchRef}>
+              <RotationDirectionSwitch
+                direction={game.rotationDirection}
+                onToggle={game.toggleRotationDirection}
+                disabled={game.won}
+              />
+            </div>
           </div>
         </div>
+
+        {/* v0.4.5：新手教程引导——仅在第 0 关显示 */}
+        {tutorialConfig && (
+          <TutorialGuide
+            step={tutorialStep}
+            pose={tutorialConfig.pose}
+            text={tutorialConfig.text}
+            highlightKnobId={tutorialConfig.highlightKnobId}
+            highlightDirectionSwitch={tutorialConfig.highlightDirectionSwitch}
+            showRotateIcon={tutorialConfig.showRotateIcon}
+            boardRef={boardRef}
+            directionSwitchRef={directionSwitchRef}
+            onBubbleClick={handleTutorialBubbleClick}
+          />
+        )}
 
         <div className="controls">
           <SwapButton
@@ -186,7 +287,15 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
               第 {level.id} 关 · 用了 {game.moveCount} 步
             </p>
             <div className="win-actions">
-              {isFinalChallenge ? (
+              {isTutorial ? (
+                // v0.4.5：新手教程通关后，引导进入第 1 关
+                <button
+                  className="btn primary"
+                  onClick={() => setCurrentLevelId(1)}
+                >
+                  进入第 1 关 →
+                </button>
+              ) : isFinalChallenge ? (
                 // v0.4.1：第 50 关为独立挑战关，通关后仅提示通过，
                 // 不提供"下一关"（线性流程已在前 30 关结束），
                 // 也不提供"重新开始"循环；只能"再玩一次"或返回关卡选择。
@@ -208,7 +317,7 @@ function CampaignScreen({ onBack }: { onBack: () => void }) {
                   下一关 →
                 </button>
               )}
-              {!isFinalChallenge && (
+              {!isFinalChallenge && !isTutorial && (
                 <button className="btn" onClick={() => game.reset()}>
                   再玩一次
                 </button>

@@ -95,6 +95,10 @@ const LEVEL_SPECS: LevelSpec[] = [
   // 胜利需颜色+数字同时匹配目标。scramble=8 中等难度作为骰子玩法入门。
   // v0.4.1：第 50 关为独立挑战关，不参与前 30 关的"下一关/最后一关"线性流程。
   { id: 50, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
+  // 第 0 关：新手教程（v0.4.5）——4x4 仅两次旋转即可通关，
+  // 配合 TutorialGuide 组件逐步引导玩家学习旋转操作。
+  // 作为独立关卡置于数组末尾，不影响既有 1-40 + 50 关的索引与测试。
+  { id: 0,  topologyKind: 'square-4x4', scramble: 2, seed: 1 },
 ];
 
 let _cache: Level[] | null = null;

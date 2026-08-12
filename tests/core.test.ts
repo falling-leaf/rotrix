@@ -282,7 +282,7 @@ describe('Generator - 关卡生成', () => {
 describe('Levels - 关卡数据', () => {
   it('生成 41 个关卡', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(41);
+    expect(levels).toHaveLength(42);
   });
 
   it('关卡 ID：1-40 + 50（v0.4.2：第31-40关为图案玩法，41-49预留）', () => {
@@ -290,7 +290,7 @@ describe('Levels - 关卡数据', () => {
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50, 0,
     ]);
   });
 
@@ -520,7 +520,7 @@ describe('Generator - 6x6 关卡生成', () => {
 describe('Levels - 6x6 关卡数据', () => {
   it('生成 41 个关卡（10 个 4x4 + 10 个 6x6 + 10 个六边形 + 10 个图案 + 1 个骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(41);
+    expect(levels).toHaveLength(42);
   });
 
   it('关卡 ID：1-40 + 50', () => {
@@ -528,7 +528,7 @@ describe('Levels - 6x6 关卡数据', () => {
     expect(levels.map((l) => l.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50, 0,
     ]);
   });
 
@@ -744,7 +744,7 @@ describe('Generator - 六边形关卡生成', () => {
 describe('Levels - 六边形关卡数据', () => {
   it('生成 41 个关卡（含第 21-30 关六边形 + 第 31-40 关图案 + 第 50 关骰子）', () => {
     const levels = getLevels();
-    expect(levels).toHaveLength(41);
+    expect(levels).toHaveLength(42);
   });
 
   it('第 21-25 关为六边形简单版拓扑（N=2，24 三角形 / 7 旋钮）', () => {
