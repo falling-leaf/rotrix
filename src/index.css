@@ -11,10 +11,10 @@
   --knob: #d4a017;
   --knob-hover: #f0c040;
 
-  --color-red: #e94560;
-  --color-yellow: #f5d547;
-  --color-blue: #4d8df6;
-  --color-green: #4ecdc4;
+  --color-red: #d93747;
+  --color-yellow: #e8b830;
+  --color-blue: #3a7bd5;
+  --color-green: #1b8a3b;
 
   --cell-gap: 2px;
   --knob-size: 28px;
@@ -290,8 +290,8 @@ button, .knob, .level-chip, .btn {
 
 /* v0.3.0：六边形新色变量 */
 :root {
-  --color-cyan: #22d3ee;
-  --color-magenta: #e056fd;
+  --color-cyan: #1ab5c4;
+  --color-magenta: #c742d6;
 }
 
 /* v0.2.1：胜利庆祝动画——对角线波纹。

@@ -46,12 +46,12 @@ interface HexBoardViewProps {
 }
 
 const COLOR_HEX: Record<Color, string> = {
-  red: '#e94560',
-  yellow: '#f5d547',
-  blue: '#4d8df6',
-  green: '#4ecdc4',
-  cyan: '#22d3ee',
-  magenta: '#e056fd',
+  red: '#d93747',
+  yellow: '#e8b830',
+  blue: '#3a7bd5',
+  green: '#1b8a3b',
+  cyan: '#1ab5c4',
+  magenta: '#c742d6',
 };
 
 /** 立体感：三角形色块 3-stop 线性渐变颜色变体。
@@ -76,20 +76,20 @@ function darken(hex: string, amount: number): string {
   return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
 }
 const COLOR_LIGHT: Record<Color, string> = {
-  red: lighten('#e94560', 0.12),
-  yellow: lighten('#f5d547', 0.12),
-  blue: lighten('#4d8df6', 0.12),
-  green: lighten('#4ecdc4', 0.12),
-  cyan: lighten('#22d3ee', 0.12),
-  magenta: lighten('#e056fd', 0.12),
+  red: lighten('#d93747', 0.12),
+  yellow: lighten('#e8b830', 0.12),
+  blue: lighten('#3a7bd5', 0.12),
+  green: lighten('#1b8a3b', 0.12),
+  cyan: lighten('#1ab5c4', 0.12),
+  magenta: lighten('#c742d6', 0.12),
 };
 const COLOR_DARK: Record<Color, string> = {
-  red: darken('#e94560', 0.08),
-  yellow: darken('#f5d547', 0.08),
-  blue: darken('#4d8df6', 0.08),
-  green: darken('#4ecdc4', 0.08),
-  cyan: darken('#22d3ee', 0.08),
-  magenta: darken('#e056fd', 0.08),
+  red: darken('#d93747', 0.08),
+  yellow: darken('#e8b830', 0.08),
+  blue: darken('#3a7bd5', 0.08),
+  green: darken('#1b8a3b', 0.08),
+  cyan: darken('#1ab5c4', 0.08),
+  magenta: darken('#c742d6', 0.08),
 };
 function hexGradId(color: Color): string {
   return `hex-grad-${color}`;
