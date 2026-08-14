@@ -1,3 +1,12 @@
+/* v0.6.0：自定义字体 */
+@font-face {
+  font-family: 'GameFont';
+  src: url('./assets/fonts/font_style.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* v0.1.3：深色主题 → 浅色主题 */
   --bg: #ffffff;
@@ -23,6 +32,7 @@
   --rotate-duration: 200ms;
 }
 
+/* v0.6.0：首页 StartScreen — 固定画布设计 */
 * {
   margin: 0;
   padding: 0;
@@ -31,14 +41,269 @@
 
 html, body, #root {
   height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  /* v0.1.3：回退为系统字体栈，放弃过动的休闲字体 */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  color: #2d3748;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
-  /* v0.2.2：禁止 iOS 长按弹出菜单/选区，阻止双击缩放 */
   -webkit-touch-callout: none;
   user-select: none;
+}
+
+/* v0.6.0：首页容器——固定 375×667 画布，缩放适配 */
+.start-screen-v6 {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.start-canvas {
+  position: relative;
+  width: 375px;
+  height: 667px;
+  flex-shrink: 0;
+  /* 等比缩放适配屏幕 */
+  transform: scale(min(1, calc(100vh / 667), calc(100vw / 375)));
+  transform-origin: center center;
+}
+
+/* ===== 粉色背景矩形 ===== */
+.pink-bg {
+  position: absolute;
+  left: 14px;
+  top: 80px;
+  width: 347px;
+  height: 587px;
+  border-radius: 28px;
+  background: #E154EF;
+}
+
+/* ===== 拼图装饰 SVG ===== */
+.puzzle-decorations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== 顶部黄色标题牌（无白色外框，与粉色矩形左右对齐） ===== */
+.title-banner {
+  position: absolute;
+  left: 14px;
+  top: 5px;
+  width: 347px;
+  height: 155px;
+  z-index: 2;
+}
+
+/* 深黄色外框（直接与粉色矩形对齐） */
+.title-banner-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  background: #8B7D10;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* 亮黄色填充 */
+.title-banner-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 17px;
+  background: #FFD30D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 标题文字 */
+.title-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: #2d3748;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 1;
+}
+
+/* 标题牌高光 */
+.title-highlight-1 {
+  position: absolute;
+  left: 22px;
+  top: 14px;
+  width: 24px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+}
+
+.title-highlight-2 {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+}
+
+/* ===== 三个黄色胶囊按钮（1.5x） ===== */
+.mode-btn {
+  position: absolute;
+  left: 53px;
+  width: 270px;
+  height: 110px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 3;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.mode-btn:active {
+  transform: scale(0.96);
+}
+
+/* 白色外框 */
+.mode-btn-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 54px;
+  background: #ffffff;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+/* 深黄色内边 */
+.mode-btn-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 46px;
+  background: #B69B08;
+  padding: 7px;
+  box-sizing: border-box;
+}
+
+/* 亮黄色填充 */
+.mode-btn-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  background: #FFD30D;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  gap: 1px;
+}
+
+/* 按钮文字（1.5x） */
+.mode-btn-label {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 33px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 3px;
+  position: relative;
+  z-index: 1;
+}
+
+.mode-btn-sub {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #8B7D10;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 按钮高光 */
+.btn-highlight {
+  position: absolute;
+  left: 30px;
+  top: 15px;
+  width: 39px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+.btn-highlight::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 9px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+}
+
+/* ===== 开发者模式开关 ===== */
+.dev-toggle {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0.5;
+}
+
+.dev-toggle-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: all 0.15s;
+}
+
+.dev-toggle-box.checked {
+  background: #E154EF;
+  border-color: #E154EF;
+}
+
+.dev-toggle-check {
+  font-size: 10px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.dev-toggle-label {
+  font-size: 11px;
+  color: #999;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 768px) {
+  .start-screen-v6 {
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* v0.2.2：全局 touch-action——manipulation 允许点击但不触发双击缩放，
@@ -697,111 +962,6 @@ button, .knob, .level-chip, .btn {
     padding: 6px 14px;
     font-size: 14px;
   }
-}
-
-/* v0.2.3：初始界面 StartScreen */
-.start-screen {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 16px 24px;
-  padding-top: max(12px, env(safe-area-inset-top));
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
-  padding-left: max(16px, env(safe-area-inset-left));
-  padding-right: max(16px, env(safe-area-inset-right));
-  gap: 24px;
-}
-
-.start-logo {
-  font-size: 64px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  background: linear-gradient(135deg, var(--color-red), var(--color-yellow), var(--color-green), var(--color-blue));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.start-tagline {
-  font-size: 24px;
-  color: var(--text-dim);
-  text-align: center;
-}
-
-.mode-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  max-width: 420px;
-  align-items: center;
-}
-
-.mode-card {
-  width: 100%;
-  max-width: 360px;
-  padding: 24px 32px;
-  border-radius: 16px;
-  background: var(--panel);
-  border: 2px solid var(--grid-line);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  touch-action: manipulation;
-}
-
-.mode-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.mode-card.campaign {
-  border-color: var(--accent);
-  background: linear-gradient(135deg, var(--accent-soft), var(--panel));
-}
-
-.mode-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  align-items: center;
-}
-
-.mode-group-title {
-  font-size: 18px;
-  color: var(--text-dim);
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.mode-card.endless {
-  padding: 16px 24px;
-  max-width: 340px;
-}
-
-.mode-icon {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.mode-name {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.mode-desc {
-  font-size: 16px;
-  color: var(--text-dim);
-  text-align: center;
-  line-height: 1.4;
 }
 
 /* v0.2.3：无尽/闯关模式顶部返回栏 */

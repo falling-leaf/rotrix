@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="667" viewBox="0 0 375 667">
+  <defs>
+    <path id="pz1" d="M0,15 C0,6.7 6.7,0 15,0 h10 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-5 h10 c8.3,0 15,6.7 15,15 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v10 c0,8.3 -6.7,15 -15,15 h-10 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-8.3,0 -15,-6.7 -15,-15 v-10 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz2" d="M0,12 C0,5.4 5.4,0 12,0 h10 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-5 h6 c6.6,0 12,5.4 12,12 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v6 c0,6.6 -5.4,12 -12,12 h-6 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-6.6,0 -12,-5.4 -12,-12 v-6 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz3" d="M0,10 C0,4.5 4.5,0 10,0 h10 c3,0 5,2 5,4 c0,2 2,4 5,4 c3,0 5,-2 5,-4 c0,-2 2,-4 5,-4 h10 c5.5,0 10,4.5 10,10 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v15 c0,5.5 -4.5,10 -10,10 h-10 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-5.5,0 -10,-4.5 -10,-10 v-15 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz4" d="M0,15 C0,6.7 6.7,0 15,0 h15 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-0 h15 c8.3,0 15,6.7 15,15 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v10 c0,8.3 -6.7,15 -15,15 h-15 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-15 c-8.3,0 -15,-6.7 -15,-15 v-10 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+  </defs>
+  <rect width="375" height="667" fill="#FFFFFF" />
+  <rect x="14" y="80" width="347" height="587" rx="28" fill="#E154EF" />
+  <use href="#pz1" x="195" y="115" fill="#F2B4F3" opacity="0.65" transform="rotate(8, 235, 150) scale(1.1)" />
+  <use href="#pz2" x="278" y="195" fill="#F2B4F3" opacity="0.6" transform="rotate(-5, 308, 225)" />
+  <use href="#pz3" x="52" y="340" fill="#F2B4F3" opacity="0.7" transform="rotate(-10, 82, 372) scale(1.2)" />
+  <use href="#pz2" x="200" y="360" fill="#F2B4F3" opacity="0.55" transform="rotate(12, 230, 390)" />
+  <use href="#pz4" x="260" y="430" fill="#F2B4F3" opacity="0.65" transform="rotate(-8, 300, 465)" />
+  <use href="#pz3" x="62" y="510" fill="#F2B4F3" opacity="0.7" transform="rotate(6, 92, 542) scale(1.15)" />
+  <use href="#pz4" x="235" y="560" fill="#F2B4F3" opacity="0.65" transform="rotate(-12, 275, 595)" />
+  <!-- 标题牌：深黄色外框与粉色矩形左右对齐（x=14, w=347） -->
+  <rect x="14" y="5" width="347" height="155" rx="25" fill="#8B7D10" />
+  <rect x="22" y="13" width="331" height="139" rx="17" fill="#FFD30D" />
+  <text x="187" y="98" font-family="sans-serif" font-size="56" font-weight="700" fill="#2d3748" text-anchor="middle" letter-spacing="6">ROTRIX</text>
+  <ellipse cx="36" cy="27" rx="12" ry="6" fill="rgba(255,255,255,0.35)" />
+  <circle cx="24" cy="21" r="4" fill="rgba(255,255,255,0.25)" />
+  <!-- 按钮 1 (1.5x) -->
+  <rect x="53" y="250" width="270" height="110" rx="54" fill="#FFFFFF" />
+  <rect x="58" y="255" width="260" height="100" rx="46" fill="#B69B08" />
+  <rect x="65" y="262" width="246" height="86" rx="34" fill="#FFD30D" />
+  <!-- 按钮 2 -->
+  <rect x="53" y="397" width="270" height="110" rx="54" fill="#FFFFFF" />
+  <rect x="58" y="402" width="260" height="100" rx="46" fill="#B69B08" />
+  <rect x="65" y="409" width="246" height="86" rx="34" fill="#FFD30D" />
+  <!-- 按钮 3 -->
+  <rect x="53" y="544" width="270" height="110" rx="54" fill="#FFFFFF" />
+  <rect x="58" y="549" width="260" height="100" rx="46" fill="#B69B08" />
+  <rect x="65" y="556" width="246" height="86" rx="34" fill="#FFD30D" />
+</svg>
