@@ -46,50 +46,31 @@ interface HexBoardViewProps {
 }
 
 const COLOR_HEX: Record<Color, string> = {
-  red: '#d93747',
-  yellow: '#e8b830',
-  blue: '#3a7bd5',
-  green: '#1b8a3b',
-  cyan: '#1ab5c4',
-  magenta: '#c742d6',
+  red: '#EE2747',
+  yellow: '#FFCC00',
+  blue: '#2A5FCF',
+  green: '#16BB77',
+  cyan: '#38D0C0',
+  magenta: '#C742D6',
 };
 
-/** 立体感：三角形色块 3-stop 线性渐变颜色变体。
- * 亮色(混白12%)→本色→暗色(混黑8%)，模拟光源从左上照射。
- * 与正方形 .cell 的 CSS linear-gradient 同思路——仅色阶变化，无投影。 */
-function lighten(hex: string, amount: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const lr = Math.round(r + (255 - r) * amount);
-  const lg = Math.round(g + (255 - g) * amount);
-  const lb = Math.round(b + (255 - b) * amount);
-  return `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
-}
-function darken(hex: string, amount: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const dr = Math.round(r * (1 - amount));
-  const dg = Math.round(g * (1 - amount));
-  const db = Math.round(b * (1 - amount));
-  return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
-}
+/** v0.6.2-test: 使用 Kenney button_square_flat 色板。
+ * 亮色→本色，暗色用作描边+阴影模拟按钮深色外框。 */
 const COLOR_LIGHT: Record<Color, string> = {
-  red: lighten('#d93747', 0.12),
-  yellow: lighten('#e8b830', 0.12),
-  blue: lighten('#3a7bd5', 0.12),
-  green: lighten('#1b8a3b', 0.12),
-  cyan: lighten('#1ab5c4', 0.12),
-  magenta: lighten('#c742d6', 0.12),
+  red: '#FF627B',
+  yellow: '#FFEA9C',
+  blue: '#4A7FE7',
+  green: '#2FD792',
+  cyan: '#70F0E0',
+  magenta: '#E066FF',
 };
 const COLOR_DARK: Record<Color, string> = {
-  red: darken('#d93747', 0.08),
-  yellow: darken('#e8b830', 0.08),
-  blue: darken('#3a7bd5', 0.08),
-  green: darken('#1b8a3b', 0.08),
-  cyan: darken('#1ab5c4', 0.08),
-  magenta: darken('#c742d6', 0.08),
+  red: '#CD0B2A',
+  yellow: '#DEA312',
+  blue: '#1A3F9F',
+  green: '#029357',
+  cyan: '#18A090',
+  magenta: '#A030B0',
 };
 function hexGradId(color: Color): string {
   return `hex-grad-${color}`;
@@ -295,14 +276,16 @@ function HexBoardViewInner({
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         >
           {/* 渐变定义——每种颜色一个 linearGradient，
-           * 亮色(左上0%)→本色(50%)→暗色(右下100%)，模拟光源从左上照射。
-           * 无 feDropShadow 投影——仅靠色阶变化产生立体感。 */}
+           * 亮色(左上0%)→本色(右下100%)，模拟光源从左上照射。
+           * 暗色用作描边+阴影，模拟 Kenney button_square_flat 的三层立体效果。 */}
           <defs>
+            <filter id="hex-shadow" x="-10%" y="-10%" width="130%" height="130%">
+              <feDropShadow dx="0.5" dy="0.5" stdDeviation="0.4" floodColor="#000" floodOpacity="0.25"/>
+            </filter>
             {(['red', 'yellow', 'blue', 'green', 'cyan', 'magenta'] as Color[]).map((c) => (
               <linearGradient key={c} id={hexGradId(c)} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
-                <stop offset="50%" stopColor={COLOR_HEX[c]} />
-                <stop offset="100%" stopColor={COLOR_DARK[c]} />
+                <stop offset="100%" stopColor={COLOR_HEX[c]} />
               </linearGradient>
             ))}
           </defs>
@@ -318,32 +301,27 @@ function HexBoardViewInner({
             const isSwapping = !!swapAnimating && (swapAnimating.indexA === i || swapAnimating.indexB === i);
             const pointsStr = `${pts[0]},${pts[1]} ${pts[2]},${pts[3]} ${pts[4]},${pts[5]}`;
             // v0.3.2：胜利庆祝——对角线波纹延迟，与正方形版一致。
-            // 每个三角形的延迟按其质心的归一化对角线位置计算（左上→右下），
-            // 而非全体同时脉冲，形成从左上角到右下角的波浪扫过效果。
             const cx = (pts[0] + pts[2] + pts[4]) / 3;
             const cy = (pts[1] + pts[3] + pts[5]) / 3;
             const delay = celebrating
               ? Math.round(((cx + cy) / 200) * 600)
               : 0;
-            // v0.3.5：对换模式下，三角形可点击交互
             const swapSelected = swapMode && swapSelection === i;
             const swapClickable = swapMode && !preview && !animating && !swapAnimating;
-            // v0.3.5：对换动画中，原位置填充面板色；旋转中仍隐藏
             const fill = isSwapping ? 'var(--panel)' : `url(#${hexGradId(cell.color)})`;
+            // v0.6.2-test：Kenney style——暗色描边+阴影，模拟按钮深色外框
+            const strokeColor = isSwapping ? 'none' : COLOR_DARK[cell.color];
             return (
               <polygon
                 key={i}
                 points={pointsStr}
                 fill={fill}
-                stroke={isSwapping ? 'none' : '#ffffff'}
-                strokeWidth={preview ? 0.3 : 0.4}
+                stroke={strokeColor}
+                strokeWidth={preview ? 0.5 : 0.7}
                 strokeLinejoin="round"
+                filter={isSwapping ? 'none' : 'url(#hex-shadow)'}
                 className={`hex-tri tri-${i} ${swapSelected ? 'swap-selected' : ''} ${swapClickable ? 'swap-clickable' : ''} ${isSwapping ? 'swapping' : ''}`}
                 style={{
-                  // v0.3.5：swap-selected 的 transform: scale 需以三角形质心为原点，
-                  // 否则 SVG transform-origin 默认为 0,0（viewBox 左上角），
-                  // 缩放后三角形会向右下角偏移。
-                  // celebrate-pulse 动画同样需要质心为原点，否则缩放向右下偏移。
                   transformOrigin: `${cx}% ${cy}%`,
                   ...(isRotatingHidden
                     ? { opacity: 0 }
@@ -373,17 +351,17 @@ function HexBoardViewInner({
                     key={triIdx}
                     points={pointsStr}
                     fill={`url(#${hexGradId(rotateOverlay.colors[pos])})`}
-                    stroke="#ffffff"
-                    strokeWidth={0.4}
+                    stroke={COLOR_DARK[rotateOverlay.colors[pos]]}
+                    strokeWidth={0.7}
                     strokeLinejoin="round"
+                    filter="url(#hex-shadow)"
                   />
                 );
               })}
             </g>
           )}
 
-          {/* v0.3.5：对换动画 overlay——两个三角形互相飞移。
-           * 用 SVG <g> 包装每个飞行三角形，通过 translate 移动质心。 */}
+          {/* v0.3.5：对换动画 overlay——两个三角形互相飞移 */}
           {swapOverlay && (
             <>
               {/* 三角形 A 飞向 B 的位置 */}
@@ -395,9 +373,10 @@ function HexBoardViewInner({
                 <polygon
                   points={swapOverlay.polyA}
                   fill={`url(#${hexGradId(swapOverlay.colorA)})`}
-                  stroke="#ffffff"
-                  strokeWidth={0.4}
+                  stroke={COLOR_DARK[swapOverlay.colorA]}
+                  strokeWidth={0.7}
                   strokeLinejoin="round"
+                  filter="url(#hex-shadow)"
                 />
               </g>
               {/* 三角形 B 飞向 A 的位置 */}
@@ -409,9 +388,10 @@ function HexBoardViewInner({
                 <polygon
                   points={swapOverlay.polyB}
                   fill={`url(#${hexGradId(swapOverlay.colorB)})`}
-                  stroke="#ffffff"
-                  strokeWidth={0.4}
+                  stroke={COLOR_DARK[swapOverlay.colorB]}
+                  strokeWidth={0.7}
                   strokeLinejoin="round"
+                  filter="url(#hex-shadow)"
                 />
               </g>
             </>

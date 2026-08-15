@@ -20,10 +20,10 @@
   --knob: #d4a017;
   --knob-hover: #f0c040;
 
-  --color-red: #d93747;
-  --color-yellow: #e8b830;
-  --color-blue: #3a7bd5;
-  --color-green: #1b8a3b;
+  --color-red: #EE2747;
+  --color-yellow: #FFCC00;
+  --color-blue: #2A5FCF;
+  --color-green: #16BB77;
 
   --cell-gap: 2px;
   --knob-size: 28px;
@@ -494,13 +494,17 @@ button, .knob, .level-chip, .btn {
   transition: background-color 0.15s ease;
   /* 立体感：135° 斜向渐变——左上亮(混白15%)→本色(50%)→右下暗(混黑10%)。
    * 仅靠色阶变化模拟光照，无 box-shadow，避免叠影发脏。
-   * --cc 由各颜色类(.cell.red 等)设置；__panel 不设 --cc 而用纯色覆盖。 */
-  background: linear-gradient(
+   * --cc 由各颜色类(.cell.red 等)设置；__panel 不设 --cc 而用纯色覆盖。
+   * v0.6.2-test: Kenney button_square_flat 覆盖色块样式（.cell.red 等设 background-image）。 */
+  background-image: linear-gradient(
     135deg,
     color-mix(in srgb, var(--cc, var(--panel)) 85%, #fff) 0%,
     var(--cc, var(--panel)) 50%,
     color-mix(in srgb, var(--cc, var(--panel)) 90%, #000) 100%
   );
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* v0.1.2：旋转动画提交棋盘时，禁用 cell 的 background-color 过渡。
@@ -513,12 +517,12 @@ button, .knob, .level-chip, .btn {
   transition: none;
 }
 
-.cell.red { --cc: var(--color-red); }
-.cell.yellow { --cc: var(--color-yellow); }
-.cell.blue { --cc: var(--color-blue); }
-.cell.green { --cc: var(--color-green); }
-.cell.cyan { --cc: var(--color-cyan); }
-.cell.magenta { --cc: var(--color-magenta); }
+.cell.red { --cc: var(--color-red); background-image: url('/kenney/red_flat.svg'); }
+.cell.yellow { --cc: var(--color-yellow); background-image: url('/kenney/yellow_flat.svg'); }
+.cell.blue { --cc: var(--color-blue); background-image: url('/kenney/blue_flat.svg'); }
+.cell.green { --cc: var(--color-green); background-image: url('/kenney/green_flat.svg'); }
+.cell.cyan { --cc: var(--color-cyan); background-image: url('/kenney/cyan_flat.svg'); }
+.cell.magenta { --cc: var(--color-magenta); background-image: url('/kenney/magenta_flat.svg'); }
 /* 对换动画中原位置的白色底色——纯色覆盖渐变 */
 .cell.__panel { background: var(--panel); }
 
@@ -555,8 +559,8 @@ button, .knob, .level-chip, .btn {
 
 /* v0.3.0：六边形新色变量 */
 :root {
-  --color-cyan: #1ab5c4;
-  --color-magenta: #c742d6;
+  --color-cyan: #38D0C0;
+  --color-magenta: #C742D6;
 }
 
 /* v0.2.1：胜利庆祝动画——对角线波纹。
