@@ -1706,3 +1706,289 @@ button, .knob, .level-chip, .btn {
   color: var(--text-dim);
   line-height: 1.3;
 }
+
+/* ===================== v0.7.0 选关界面美术设计重构 ===================== */
+/* 固定画布容器 */
+.level-select-v6 {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* ===== 顶部紫色标题牌（多层胶囊） ===== */
+.ls-title-banner {
+  position: absolute;
+  left: 14px;
+  top: 49px;
+  width: 347px;
+  height: 90px;
+  z-index: 2;
+}
+
+/* 第一层：深紫色外框 */
+.ls-title-layer1 {
+  width: 100%;
+  height: 100%;
+  border-radius: 40px;
+  background: #A900D0;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+/* 第二层：洋红色过渡 */
+.ls-title-layer2 {
+  width: 100%;
+  height: 100%;
+  border-radius: 35px;
+  background: #C70CDB;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+/* 第三层：白色内圈 */
+.ls-title-layer3 {
+  width: 100%;
+  height: 100%;
+  border-radius: 31px;
+  background: #FFFFFF;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+/* 第四层：亮紫色填充 */
+.ls-title-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 27px;
+  background: #E052ED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 标题文字 */
+.ls-title-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: #FFFFFF;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 返回按钮（圆角矩形，左箭头+右"返回"） ===== */
+.ls-back-btn {
+  position: absolute;
+  left: 27px;
+  top: 142px;
+  width: 107px;
+  height: 33px;
+  z-index: 3;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.ls-back-btn:active {
+  transform: scale(0.96);
+}
+
+.ls-back-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.ls-back-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  /* arrow on left, text centered in remaining space */
+  padding: 0 10px;
+  gap: 6px;
+  position: relative;
+}
+
+.ls-back-arrow {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+
+.ls-back-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 1px;
+  flex: 1;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ===== 选关面板（深紫色圆角矩形） ===== */
+.ls-panel {
+  position: absolute;
+  left: 27px;
+  top: 178px;
+  width: 321px;
+  height: 430px;
+  z-index: 1;
+}
+
+.ls-panel-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 44px;
+  background: #FFFFFF;
+  padding: 5px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.ls-panel-inner::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 39px;
+  background: #C900D7;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== 关卡格子（绝对定位在面板内） ===== */
+.ls-cell-wrapper {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.ls-cell-wrapper:active {
+  transform: scale(0.92);
+}
+
+.ls-cell-wrapper.ls-locked {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.ls-cell-wrapper.ls-locked:active {
+  transform: none;
+}
+
+/* 已解锁关卡——黄色圆角矩形 */
+.level-cell-unlocked {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-cell-unlocked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  background: #FFD30A;
+  pointer-events: none;
+}
+
+.level-cell-num {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+.level-cell-check {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1b8a3b;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  line-height: 1;
+}
+
+/* ===== 底部导航按钮 ===== */
+.ls-nav-btn {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  z-index: 3;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.ls-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.ls-nav-btn.ls-nav-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ls-nav-btn.ls-nav-disabled:active {
+  transform: none;
+}
+
+.ls-nav-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.ls-nav-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ls-nav-arrow {
+  width: 28px;
+  height: 28px;
+}
