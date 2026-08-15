@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="667" viewBox="0 0 375 667">
+  <defs>
+    <path id="pz1" d="M0,15 C0,6.7 6.7,0 15,0 h10 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-5 h10 c8.3,0 15,6.7 15,15 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v10 c0,8.3 -6.7,15 -15,15 h-10 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-8.3,0 -15,-6.7 -15,-15 v-10 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz2" d="M0,12 C0,5.4 5.4,0 12,0 h10 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-5 h6 c6.6,0 12,5.4 12,12 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v6 c0,6.6 -5.4,12 -12,12 h-6 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-6.6,0 -12,-5.4 -12,-12 v-6 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz3" d="M0,10 C0,4.5 4.5,0 10,0 h10 c3,0 5,2 5,4 c0,2 2,4 5,4 c3,0 5,-2 5,-4 c0,-2 2,-4 5,-4 h10 c5.5,0 10,4.5 10,10 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v15 c0,5.5 -4.5,10 -10,10 h-10 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-10 c-5.5,0 -10,-4.5 -10,-10 v-15 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+    <path id="pz4" d="M0,15 C0,6.7 6.7,0 15,0 h15 c3,0 5,2 5,5 c0,3 2,5 5,5 c3,0 5,-2 5,-5 c0,-3 2,-5 5,-0 h15 c8.3,0 15,6.7 15,15 v10 c0,3 -2,5 -5,5 c-3,0 -5,2 -5,5 c0,3 2,5 5,5 c3,0 5,2 5,5 v10 c0,8.3 -6.7,15 -15,15 h-15 c-3,0 -5,-2 -5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,2 -5,5 c0,3 -2,5 -5,5 h-15 c-8.3,0 -15,-6.7 -15,-15 v-10 c0,-3 2,-5 5,-5 c3,0 5,-2 5,-5 c0,-3 -2,-5 -5,-5 c-3,0 -5,-2 -5,-5 z" />
+  </defs>
+
+  <rect width="375" height="667" fill="#FFFFFF" />
+
+  <!-- 粉色背景矩形（占据整个屏幕，顶部对齐） -->
+  <rect x="14" y="5" width="347" height="662" rx="28" fill="#E154EF" />
+
+  <!-- 拼图装饰 -->
+  <use href="#pz1" x="195" y="80" fill="#F2B4F3" opacity="0.65" transform="rotate(8, 235, 115) scale(1.1)" />
+  <use href="#pz2" x="278" y="160" fill="#F2B4F3" opacity="0.6" transform="rotate(-5, 308, 190)" />
+  <use href="#pz3" x="52" y="260" fill="#F2B4F3" opacity="0.7" transform="rotate(-10, 82, 292) scale(1.2)" />
+  <use href="#pz4" x="260" y="340" fill="#F2B4F3" opacity="0.65" transform="rotate(-8, 300, 375)" />
+  <use href="#pz3" x="62" y="420" fill="#F2B4F3" opacity="0.7" transform="rotate(6, 92, 452) scale(1.15)" />
+  <use href="#pz4" x="235" y="500" fill="#F2B4F3" opacity="0.65" transform="rotate(-12, 275, 535)" />
+
+  <!-- ===== 顶部行：返回按钮 | 步数 | 关卡标签 ===== -->
+  <rect x="27" y="5" width="107" height="33" rx="10" fill="#FFFFFF" />
+  <rect x="29" y="7" width="103" height="29" rx="8" fill="#DF4BEA" />
+  <path d="M 34 21.5 L 55 11 L 55 32 Z" fill="#A900D0" opacity="0.25" transform="translate(1, 1)" />
+  <path d="M 34 21.5 L 55 11 L 55 32 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round" />
+  <text x="94" y="26" font-family="sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">返回</text>
+
+  <!-- 步数 -->
+  <rect x="155" y="5" width="84" height="33" rx="10" fill="#FFFFFF" />
+  <rect x="157" y="7" width="80" height="29" rx="8" fill="#DF4BEA" />
+  <text x="197" y="26" font-family="sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">步数 0</text>
+
+  <!-- 关卡标签 -->
+  <rect x="260" y="5" width="88" height="33" rx="10" fill="#FFFFFF" />
+  <rect x="262" y="7" width="84" height="29" rx="8" fill="#DF4BEA" />
+  <text x="304" y="26" font-family="sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">第 1 关</text>
+
+  <!-- ===== 操作地图面板 ===== -->
+  <rect x="47" y="48" width="281" height="290" rx="20" fill="#FFFFFF" />
+  <rect x="51" y="52" width="273" height="282" rx="17" fill="#C900D7" />
+  <text x="187" y="78" font-family="sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">操作地图</text>
+
+  <!-- 棋盘 -->
+  <rect x="67" y="88" width="241" height="241" rx="12" fill="#FFFFFF" />
+  <rect x="69" y="90" width="237" height="237" rx="10" fill="#FFFFFF" />
+
+  <!-- 4×4 色块 -->
+  <rect x="71" y="92" width="57" height="57" rx="6" fill="#d93747" />
+  <rect x="130" y="92" width="57" height="57" rx="6" fill="#e8b830" />
+  <rect x="189" y="92" width="57" height="57" rx="6" fill="#3a7bd5" />
+  <rect x="248" y="92" width="57" height="57" rx="6" fill="#1b8a3b" />
+  <rect x="71" y="151" width="57" height="57" rx="6" fill="#e8b830" />
+  <rect x="130" y="151" width="57" height="57" rx="6" fill="#d93747" />
+  <rect x="189" y="151" width="57" height="57" rx="6" fill="#1b8a3b" />
+  <rect x="248" y="151" width="57" height="57" rx="6" fill="#3a7bd5" />
+  <rect x="71" y="210" width="57" height="57" rx="6" fill="#3a7bd5" />
+  <rect x="130" y="210" width="57" height="57" rx="6" fill="#1b8a3b" />
+  <rect x="189" y="210" width="57" height="57" rx="6" fill="#d93747" />
+  <rect x="248" y="210" width="57" height="57" rx="6" fill="#e8b830" />
+  <rect x="71" y="269" width="57" height="57" rx="6" fill="#1b8a3b" />
+  <rect x="130" y="269" width="57" height="57" rx="6" fill="#3a7bd5" />
+  <rect x="189" y="269" width="57" height="57" rx="6" fill="#e8b830" />
+  <rect x="248" y="269" width="57" height="57" rx="6" fill="#d93747" />
+
+  <!-- 9个旋钮：2x2色块组中心，金色圆盘+↻符号 -->
+  <!-- 行交界：92+57+151=150, 151+57+210=218, 210+57+269=268 -->
+  <!-- 列交界：71+57+130=129, 130+57+189=188, 189+57+248=247 -->
+  <circle cx="129" cy="150" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="129" y="155" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="188" cy="150" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="188" y="155" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="247" cy="150" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="247" y="155" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="129" cy="218" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="129" y="223" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="188" cy="218" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="188" y="223" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="247" cy="218" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="247" y="223" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="129" cy="268" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="129" y="273" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="188" cy="268" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="188" y="273" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <circle cx="247" cy="268" r="12" fill="#D4A017" stroke="#FFE44D" stroke-width="2" />
+  <text x="247" y="273" font-family="sans-serif" font-size="14" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+
+  <!-- ===== 目标地图矩形（1.2x 高度，目标地图 + 金币并列） ===== -->
+  <rect x="47" y="348" width="281" height="134" rx="20" fill="#FFFFFF" />
+  <rect x="51" y="352" width="273" height="126" rx="17" fill="#C900D7" />
+
+  <!-- ===== 左侧：目标地图（正方形迷你地图，适配背景） ===== -->
+  <!-- "目标地图"文字 -->
+  <text x="139" y="375" font-family="sans-serif" font-size="14" font-weight="600" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">目标地图</text>
+  <!-- 迷你棋盘白色方框（与地图适配为正方形） -->
+  <rect x="95" y="383" width="88" height="88" rx="10" fill="#FFFFFF" />
+  <!-- 迷你 4×4 grid（每个色块 19px，gap 2px，共 19*4+2*3=82px，居中于 88px 方框） -->
+  <!-- 方框内偏移：左=3px，上=3px，使 82px 网格居中于 88px 方框 -->
+  <rect x="98" y="386" width="19" height="19" rx="4" fill="#d93747" />
+  <rect x="119" y="386" width="19" height="19" rx="4" fill="#e8b830" />
+  <rect x="140" y="386" width="19" height="19" rx="4" fill="#3a7bd5" />
+  <rect x="161" y="386" width="19" height="19" rx="4" fill="#1b8a3b" />
+  <rect x="98" y="407" width="19" height="19" rx="4" fill="#e8b830" />
+  <rect x="119" y="407" width="19" height="19" rx="4" fill="#d93747" />
+  <rect x="140" y="407" width="19" height="19" rx="4" fill="#1b8a3b" />
+  <rect x="161" y="407" width="19" height="19" rx="4" fill="#3a7bd5" />
+  <rect x="98" y="428" width="19" height="19" rx="4" fill="#3a7bd5" />
+  <rect x="119" y="428" width="19" height="19" rx="4" fill="#1b8a3b" />
+  <rect x="140" y="428" width="19" height="19" rx="4" fill="#d93747" />
+  <rect x="161" y="428" width="19" height="19" rx="4" fill="#e8b830" />
+  <rect x="98" y="449" width="19" height="19" rx="4" fill="#1b8a3b" />
+  <rect x="119" y="449" width="19" height="19" rx="4" fill="#3a7bd5" />
+  <rect x="140" y="449" width="19" height="19" rx="4" fill="#e8b830" />
+  <rect x="161" y="449" width="19" height="19" rx="4" fill="#d93747" />
+
+  <!-- ===== 右侧：金币（放大）+ 切换方向按钮 ===== -->
+  <!-- 金币圆心位于目标地图矩形垂直居中 -->
+  <!-- 金币：r=32，直径64px -->
+  <circle cx="265" cy="415" r="32" fill="#D4A017" />
+  <circle cx="265" cy="415" r="28" fill="#F0C040" />
+  <circle cx="265" cy="415" r="25" fill="#FFD30D" />
+  <!-- 金币高光 -->
+  <ellipse cx="258" cy="405" rx="7" ry="3.5" fill="rgba(255,255,255,0.4)" />
+  <!-- 金币符号（↻） -->
+  <text x="265" y="422" font-family="sans-serif" font-size="24" font-weight="700" fill="#2d3748" text-anchor="middle">↻</text>
+  <!-- "顺时针"文字（黑色，在金币内部） -->
+  <text x="265" y="438" font-family="sans-serif" font-size="11" font-weight="600" fill="#2d3748" text-anchor="middle" letter-spacing="1">顺时针</text>
+
+  <!-- 切换方向按钮（放大） -->
+  <rect x="233" y="457" width="64" height="26" rx="13" fill="#FFFFFF" />
+  <rect x="235" y="459" width="60" height="22" rx="11" fill="#FFD30D" />
+  <text x="265" y="474" font-family="sans-serif" font-size="11" font-weight="600" fill="#2d3748" text-anchor="middle">切换方向</text>
+
+  <!-- ===== 底部区域：对换 + 重置按钮 ===== -->
+  <rect x="47" y="492" width="281" height="60" rx="20" fill="#FFFFFF" />
+  <rect x="51" y="496" width="273" height="52" rx="17" fill="#C900D7" />
+
+  <!-- 对换按钮（左侧，无魔法棒图标） -->
+  <rect x="81" y="503" width="100" height="38" rx="19" fill="#FFFFFF" />
+  <rect x="83" y="505" width="96" height="34" rx="17" fill="#FFD30D" />
+  <text x="118" y="528" font-family="sans-serif" font-size="15" font-weight="700" fill="#2d3748" text-anchor="middle">对换</text>
+  <text x="155" y="528" font-family="sans-serif" font-size="12" font-weight="700" fill="#8B7D10" text-anchor="middle">3/3</text>
+
+  <!-- 重置按钮（右侧） -->
+  <rect x="194" y="503" width="100" height="38" rx="19" fill="#FFFFFF" />
+  <rect x="196" y="505" width="96" height="34" rx="17" fill="#FFD30D" />
+  <text x="242" y="528" font-family="sans-serif" font-size="15" font-weight="700" fill="#2d3748" text-anchor="middle">重置</text>
+</svg>
