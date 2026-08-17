@@ -154,7 +154,9 @@ function pictureFromString(rows: string[]): Board {
       cells.push({ color });
     }
   }
-  return { dims: [6, 6], cells };
+  const h = rows.length;
+  const w = rows[0]?.length ?? 0;
+  return { dims: [h, w], cells };
 }
 
 /**
@@ -338,10 +340,301 @@ export function createSolvedPicture40(): Board {
     'YRRRRY',
     'BYYYYB',
     'BBBBBB',
-  ]);
-}
+      ]);
+    }
 
-/** 深拷贝棋盘 */
+    /**
+     * v0.6.3：构建一个已求解的目标棋盘（8x8 基础玩法）。
+     * 四象限纯色，每区 4x4：
+     *   左上红、右上黄、左下蓝、右下绿
+     */
+    export function createSolvedSquare8x8(): Board {
+      const colorOf = (r: number, c: number): Color => {
+        if (r < 4 && c < 4) return 'red';
+        if (r < 4 && c >= 4) return 'yellow';
+        if (r >= 4 && c < 4) return 'blue';
+        return 'green';
+      };
+      const cells: Cell[] = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          cells.push({ color: colorOf(r, c) });
+        }
+      }
+      return { dims: [8, 8], cells };
+    }
+
+    /**
+     * v0.6.3 第 41 关：火箭图案。
+     *
+     * 红色火箭 + 橙色尾焰 + 黄色芯 + 蓝色背景。
+     *
+     *   ···RR···
+     *   ··RRRR··
+     *   ·RRRRRR·
+     *   RRRBBRRR
+     *   RRRRRRRR
+     *   ·RRRRRR·
+     *   ·OOYYOO·
+     *   OOOYYOOO
+     */
+    export function createSolvedPicture41(): Board {
+      return pictureFromString([
+        'CCCRRCCC',
+        'CCRRRRCC',
+        'CRRRRRRC',
+        'RRRBBRRR',
+        'RRRRRRRR',
+        'CRRRRRRC',
+        'COOYYOOC',
+        'OOOYYOOO',
+      ]);
+    }
+
+    /**
+     * v0.6.3 第 42 关：蘑菇图案。
+     *
+     * 红色蘑菇伞 + 黄色斑点 + 绿色菌柄。
+     *
+     *   ···RR···
+     *   ·RRRRRR·
+     *   RRYRRYRR
+     *   RRYRRYYR
+     *   RRRRRRRR
+     *   ··GGGG··
+     *   ··GGGG··
+     *   ··GGGG··
+     */
+    export function createSolvedPicture42(): Board {
+      return pictureFromString([
+        'BBBRRBBB',
+        'BRRRRRRB',
+        'RRYRRYRR',
+        'RRYRRYYR',
+        'RRRRRRRR',
+        'BBGGGGBB',
+        'BBGGGGBB',
+        'BBGGGGBB',
+      ]);
+    }
+
+    /**
+     * v0.6.3 第 43 关：城堡图案。
+     *
+     * 红色城堡 + 黄色城垛 + 蓝色门 + 绿色基座。
+     *
+     *   R··RR··R
+     *   RR·RR·RR
+     *   RRRRRRRR
+     *   RRYYYYRR
+     *   RRYBBYRR
+     *   RRYYYYRR
+     *   RRRRRRRR
+     *   RR·GG·RR
+     */
+    export function createSolvedPicture43(): Board {
+      return pictureFromString([
+        'RCCRRCCR',
+        'RRCRRCRR',
+        'RRRRRRRR',
+        'RRYYYYRR',
+        'RRYBBYRR',
+        'RRYYYYRR',
+        'RRRRRRRR',
+        'RRCGGCRR',
+      ]);
+    }
+
+    /**
+     * v0.6.3 第 44 关：蝴蝶图案。
+     *
+     * 蓝色/青色翅膀 + 黄色下翅 + 红色身体。
+     *
+     *   B··CC··B
+     *   BB·CC·BB
+     *   BBBYYBBB
+     *   ·BBYYYBB
+     *   ··BYYYB·
+     *   ···RR···
+     *   ··RRRR··
+     *   ··R··R··
+     */
+    export function createSolvedPicture44(): Board {
+      return pictureFromString([
+        'BGGCCGGB',
+        'BBGCCGBB',
+        'BBBYYBBB',
+        'GBBYYYBB',
+        'GGBYYYBG',
+        'GGGRRGGG',
+        'GGRRRRGG',
+        'GGRGGRGG',
+      ]);
+    }
+
+    /**
+     * v0.6.3 第 45 关：仙人掌图案。
+     *
+     * 绿色仙人掌 + 黄色刺 + 橙色花 + 蓝色花盆。
+     *
+     *   ···GG···
+     *   ··GGGG··
+     *   ··GYYG··
+     *   ·GGGGGG·
+     *   ·GGGGG··
+     *   ··GGG···
+     *   ··OOO···
+     *   BBBBBBBB
+     */
+    export function createSolvedPicture45(): Board {
+      return pictureFromString([
+        'CCCGGCCC',
+        'CCGGGGCC',
+        'CCGYYGCC',
+        'CGGGGGGC',
+        'CGGGGGCC',
+        'CCGGGCCC',
+        'CCOOOCCC',
+        'BBBBBBBB',
+              ]);
+            }
+
+            /**
+             * v0.6.3 第 46 关：钥匙图案。
+             *
+             * 黄色钥匙 + 蓝色背景。
+             *
+             *   BBBBBBBB
+             *   BBBBYYBB
+             *   BBBBYYBB
+             *   BBBBYYBB
+             *   BBBBYYBB
+             *   BBBYYYYB
+             *   BBYYYYYB
+             *   BBYYBBBB
+             */
+            export function createSolvedPicture46(): Board {
+              return pictureFromString([
+                'BBBBBBBB',
+                'BBBBYYBB',
+                'BBBBYYBB',
+                'BBBBYYBB',
+                'BBBBYYBB',
+                'BBBYYYYB',
+                'BBYYYYYB',
+                'BBYYBBBB',
+              ]);
+            }
+
+            /**
+             * v0.6.3 第 47 关：皇冠图案。
+             *
+             * 黄色皇冠 + 红色宝石 + 橙色底座 + 蓝色背景。
+             *
+             *   YBBYBBYB
+             *   YYBYBYYB
+             *   YYYYYYYY
+             *   BYYYYYYB
+             *   BYRYRYYB
+             *   BYYYYYYB
+             *   BOOOOOOB
+             *   BOOOOOOB
+             */
+            export function createSolvedPicture47(): Board {
+              return pictureFromString([
+                'YBBYBBYB',
+                'YYBYBYYB',
+                'YYYYYYYY',
+                'BYYYYYYB',
+                'BYRYRYYB',
+                'BYYYYYYB',
+                'BOOOOOOB',
+                'BOOOOOOB',
+              ]);
+            }
+
+            /**
+             * v0.6.3 第 48 关：热气球图案。
+             *
+             * 红色/橙色热气球 + 黄色吊篮 + 蓝色天空。
+             *
+             *   BBBRRBBB
+             *   BRROORRB
+             *   RROYYORR
+             *   RROYYORR
+             *   RROYYORR
+             *   BRROORRB
+             *   BBBRRBBB
+             *   BBBBBBBB
+             */
+            export function createSolvedPicture48(): Board {
+              return pictureFromString([
+                'BBBRRBBB',
+                'BRROORRB',
+                'RROYYORR',
+                'RROYYORR',
+                'RROYYORR',
+                'BRROORRB',
+                'BBBRRBBB',
+                'BBBBBBBB',
+              ]);
+            }
+
+            /**
+             * v0.6.3 第 49 关：眼镜图案。
+             *
+             * 青色镜片 + 蓝色镜框/背景。
+             *
+             *   BBBBBBBB
+             *   BBBBBBBB
+             *   BBCCBBBC
+             *   BCCCCCCB
+             *   BBCCBBBC
+             *   BBBBBBBB
+             *   BBBBBBBB
+             *   BBBBBBBB
+             */
+            export function createSolvedPicture49(): Board {
+              return pictureFromString([
+                'BBBBBBBB',
+                'BBBBBBBB',
+                'BBCCBBBC',
+                'BCCCCCCB',
+                'BBCCBBBC',
+                'BBBBBBBB',
+                'BBBBBBBB',
+                'BBBBBBBB',
+              ]);
+            }
+
+            /**
+             * v0.6.3 第 50 关：宝箱图案。
+             *
+             * 橙色宝箱 + 黄色锁扣 + 红色宝石 + 蓝色边框。
+             *
+             *   BBBOOOO BB
+             *   BOOOOOOOB
+             *   OOOOOOOO
+             *   OOOYYOOO
+             *   OOORROOO
+             *   OOOYYOOO
+             *   OOOOOOOO
+             *   BOOOOOBB
+             */
+            export function createSolvedPicture50(): Board {
+              return pictureFromString([
+                'BBBOOOOB',
+                'BOOOOOOB',
+                'OOOOOOOO',
+                'OOOYYOOO',
+                'OOORROOO',
+                'OOOYYOOO',
+                'OOOOOOOO',
+                'BOOOOOBB',
+              ]);
+            }
+
+            /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
   return {
     dims: [...board.dims],

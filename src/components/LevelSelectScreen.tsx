@@ -8,10 +8,10 @@ interface LevelSelectScreenProps {
   developerMode: boolean;
 }
 
-/** 关卡显示顺序：1-40, 50 */
+/** 关卡显示顺序：1-50, 51 */
 const DISPLAY_IDS = [
-  ...Array.from({ length: 40 }, (_, i) => i + 1),
-  50,
+  ...Array.from({ length: 50 }, (_, i) => i + 1),
+  51,
 ];
 
 const LEVELS_PER_PAGE = 24; // 4 columns × 6 rows

@@ -77,13 +77,13 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
 
   const nextLevelId = useMemo(() => {
     if (levelId === 0) return 1;
-    if (levelId < 40) return levelId + 1;
-    if (levelId === 40) return 50;
+    if (levelId < 50) return levelId + 1;
+    if (levelId === 50) return 51;
     return null;
   }, [levelId]);
 
   const isTutorial = levelId === 0;
-  const isLastLevel = levelId === 50;
+  const isLastLevel = levelId === 51;
 
   // 教程步骤对应的禁用状态
   const tutorialDisableKnobs = isTutorial && (tutorialStep === 0 || tutorialStep === 1 || tutorialStep === 4);
@@ -199,7 +199,7 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
                   swapAnimating={game.swapAnimating}
                   onCellClick={game.handleCellClick}
                   onSwapAnimationEnd={game.onSwapAnimationEnd}
-                  pictureId={level.topologyKind === 'square-6x6-picture' ? level.id : undefined}
+                  pictureId={level.topologyKind === 'square-6x6-picture' || level.topologyKind === 'square-8x8-picture' ? level.id : undefined}
                   allowedKnobId={tutorialDisableKnobs ? null : (tutorialConfig?.highlightKnobId ?? null)}
                 />
               </div>

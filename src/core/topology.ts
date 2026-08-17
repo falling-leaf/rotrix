@@ -149,3 +149,76 @@ export function square6x6(): Square6x6Topology {
   if (!_instance6) _instance6 = new Square6x6Topology();
   return _instance6;
 }
+
+/**
+ * 8x8 正方形拓扑
+ *
+ * 旋钮位于每个 2x2 区域的中心，共 49 个旋钮（7x7 排布）。
+ * 每个旋钮旋转其覆盖的 4 个色块。
+ *
+ * 目标区域为 4 个 4x4 象限：
+ *   TL: rows 0-3, cols 0-3
+ *   TR: rows 0-3, cols 4-7
+ *   BL: rows 4-7, cols 0-3
+ *   BR: rows 4-7, cols 4-7
+ */
+export const SQUARE_8X8_KIND = 'square-8x8';
+
+export class Square8x8Topology implements Topology {
+  readonly kind = SQUARE_8X8_KIND;
+  private readonly rows = 8;
+  private readonly cols = 8;
+
+  size(): number {
+    return this.rows * this.cols;
+  }
+
+  /** 7x7 = 49 个旋钮 */
+  knobs(): Knob[] {
+    const result: Knob[] = [];
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        const tl = r * this.cols + c;
+        const tr = r * this.cols + (c + 1);
+        const br = (r + 1) * this.cols + (c + 1);
+        const bl = (r + 1) * this.cols + c;
+        result.push({
+          id: `K${r}${c}`,
+          center: [r + 0.5, c + 0.5],
+          cells: [tl, tr, br, bl], // 顺时针
+          directions: ['CW'],
+        });
+      }
+    }
+    return result;
+  }
+
+  /** 4 个 4x4 象限作为目标区域 */
+  regions(): Region[] {
+    const tl: number[] = [];
+    const tr: number[] = [];
+    const bl: number[] = [];
+    const br: number[] = [];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        tl.push(r * this.cols + c);
+        tr.push(r * this.cols + (c + 4));
+        bl.push((r + 4) * this.cols + c);
+        br.push((r + 4) * this.cols + (c + 4));
+      }
+    }
+    return [
+      { id: 'TL', cells: tl },
+      { id: 'TR', cells: tr },
+      { id: 'BL', cells: bl },
+      { id: 'BR', cells: br },
+    ];
+  }
+}
+
+/** 单例 */
+let _instance8: Square8x8Topology | null = null;
+export function square8x8(): Square8x8Topology {
+  if (!_instance8) _instance8 = new Square8x8Topology();
+  return _instance8;
+}

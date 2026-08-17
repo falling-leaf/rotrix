@@ -64,8 +64,8 @@ export function getTopologyEntry(kind: string): TopologyRegistryEntry {
 }
 
 /** 注册当前已有的方形拓扑 */
-import { square4x4, SQUARE_4X4_KIND, square6x6, SQUARE_6X6_KIND } from './topology';
-import { createSolvedSquare4x4, createSolvedSquare6x6 } from './board';
+import { square4x4, SQUARE_4X4_KIND, square6x6, SQUARE_6X6_KIND, square8x8, SQUARE_8X8_KIND } from './topology';
+import { createSolvedSquare4x4, createSolvedSquare6x6, createSolvedSquare8x8 } from './board';
 registerTopology(SQUARE_4X4_KIND, {
   topology: square4x4,
   defaultGoal: () => new QuadrantUniformGoal(),
@@ -75,6 +75,11 @@ registerTopology(SQUARE_6X6_KIND, {
   topology: square6x6,
   defaultGoal: () => new QuadrantUniformGoal(),
   defaultSolvedBoard: createSolvedSquare6x6,
+});
+registerTopology(SQUARE_8X8_KIND, {
+  topology: square8x8,
+  defaultGoal: () => new QuadrantUniformGoal(),
+  defaultSolvedBoard: createSolvedSquare8x8,
 });
 
 /** 供外部使用的颜色集合 */
@@ -236,4 +241,16 @@ registerTopology(PICTURE_6X6_KIND, {
   topology: square6x6,
   defaultGoal: () => new PictureGoal(createSolvedSquare6x6()),
   defaultSolvedBoard: createSolvedSquare6x6,
+});
+
+/**
+ * v0.6.3：注册 8x8 图案玩法拓扑。
+ * 复用 square8x8 拓扑（49 个 2x2 旋钮），与 6x6-picture 同理，
+ * levels.ts 在运行时自行构造 PictureGoal。
+ */
+export const PICTURE_8X8_KIND = 'square-8x8-picture';
+registerTopology(PICTURE_8X8_KIND, {
+  topology: square8x8,
+  defaultGoal: () => new PictureGoal(createSolvedSquare8x8()),
+  defaultSolvedBoard: createSolvedSquare8x8,
 });

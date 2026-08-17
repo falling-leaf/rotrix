@@ -17,7 +17,7 @@
 import type { Level, Board } from '../core/types';
 import { generatePuzzle, generatePicturePuzzle } from '../core/generator';
 import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal, PictureGoal } from '../core/goals';
-import { createSolvedPicture31, createSolvedPicture32, createSolvedPicture33, createSolvedPicture34, createSolvedPicture35, createSolvedPicture36, createSolvedPicture37, createSolvedPicture38, createSolvedPicture39, createSolvedPicture40 } from '../core/board';
+import { createSolvedPicture31, createSolvedPicture32, createSolvedPicture33, createSolvedPicture34, createSolvedPicture35, createSolvedPicture36, createSolvedPicture37, createSolvedPicture38, createSolvedPicture39, createSolvedPicture40, createSolvedPicture41, createSolvedPicture42, createSolvedPicture43, createSolvedPicture44, createSolvedPicture45, createSolvedPicture46, createSolvedPicture47, createSolvedPicture48, createSolvedPicture49, createSolvedPicture50 } from '../core/board';
 
 interface LevelSpec {
   id: number;
@@ -89,12 +89,34 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 39, topologyKind: 'square-6x6-picture', scramble: 27, seed: 609 },
   // 第 40 关：笑脸（黄脸蓝眼红嘴），scramble=29
   { id: 40, topologyKind: 'square-6x6-picture', scramble: 29, seed: 610 },
-  // 第 41-49 关：预留，后续版本填充
-  // 第 50 关：骰子 4x4 玩法（v0.4.0 起设为第 31 关，v0.4.1 移至第 50 关）
-  // 回到 4x4 正方形网格，每色块携带骰子点数 1-4，
-  // 胜利需颜色+数字同时匹配目标。scramble=8 中等难度作为骰子玩法入门。
-  // v0.4.1：第 50 关为独立挑战关，不参与前 30 关的"下一关/最后一关"线性流程。
-  { id: 50, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
+  // 第 41-45 关：8x8 图案玩法（v0.6.3）——正方形网格扩展至 8x8，49 个 2x2 旋钮
+  // 每关图案为手工设计的像素图形，scramble 从 20 递增到 40 体现难度梯度
+  // 第 41 关：火箭（R/O/Y/B 四色），scramble=20
+  { id: 41, topologyKind: 'square-8x8-picture', scramble: 20, seed: 701 },
+  // 第 42 关：蘑菇（R/Y/G 三色），scramble=26
+  { id: 42, topologyKind: 'square-8x8-picture', scramble: 26, seed: 702 },
+  // 第 43 关：城堡（R/Y/B/G 四色），scramble=32
+  { id: 43, topologyKind: 'square-8x8-picture', scramble: 32, seed: 703 },
+  // 第 44 关：蝴蝶（B/C/Y/R 四色），scramble=28
+  { id: 44, topologyKind: 'square-8x8-picture', scramble: 28, seed: 704 },
+  // 第 45 关：仙人掌（G/Y/O/B 四色），scramble=40 高难度
+    { id: 45, topologyKind: 'square-8x8-picture', scramble: 40, seed: 705 },
+    // 第 46-50 关：8x8 图案玩法（v0.6.3）
+    // 第 46 关：钥匙（Y/B 双色），scramble=18 低难度
+    { id: 46, topologyKind: 'square-8x8-picture', scramble: 18, seed: 706 },
+    // 第 47 关：皇冠（Y/B/R/O 四色），scramble=35
+    { id: 47, topologyKind: 'square-8x8-picture', scramble: 35, seed: 707 },
+    // 第 48 关：热气球（B/R/O/Y 四色），scramble=30
+    { id: 48, topologyKind: 'square-8x8-picture', scramble: 30, seed: 708 },
+    // 第 49 关：眼镜（B/C 双色），scramble=15 低难度
+    { id: 49, topologyKind: 'square-8x8-picture', scramble: 15, seed: 709 },
+    // 第 50 关：宝箱（B/O/Y/R 四色），scramble=32
+    { id: 50, topologyKind: 'square-8x8-picture', scramble: 32, seed: 710 },
+    // 第 51 关：骰子 4x4 玩法（v0.4.0 起设为第 31 关，v0.4.1 移至第 50 关，v0.6.3 移至第 51 关）
+    // 回到 4x4 正方形网格，每色块携带骰子点数 1-4，
+    // 胜利需颜色+数字同时匹配目标。scramble=8 中等难度作为骰子玩法入门。
+    // v0.4.1：第 51 关为独立挑战关，不参与前 50 关的"下一关/最后一关"线性流程。
+    { id: 51, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
   // 第 0 关：新手教程（v0.4.5）——4x4 仅两次旋转即可通关，
   // 配合 TutorialGuide 组件逐步引导玩家学习旋转操作。
   // 作为独立关卡置于数组末尾，不影响既有 1-40 + 50 关的索引与测试。
@@ -118,11 +140,21 @@ export function getLevels(): Level[] {
     38: createSolvedPicture38,
     39: createSolvedPicture39,
     40: createSolvedPicture40,
-  };
+    41: createSolvedPicture41,
+    42: createSolvedPicture42,
+    43: createSolvedPicture43,
+    44: createSolvedPicture44,
+    45: createSolvedPicture45,
+        46: createSolvedPicture46,
+        47: createSolvedPicture47,
+        48: createSolvedPicture48,
+        49: createSolvedPicture49,
+        50: createSolvedPicture50,
+      };
 
   const levels: Level[] = LEVEL_SPECS.map((spec) => {
     if (spec.topologyKind === 'square-6x6-picture') {
-      // v0.4.2：图案关卡——用自定义目标棋盘生成题目，PictureGoal 逐格校验
+      // v0.4.2：图案关卡（6x6）——用自定义目标棋盘生成题目，PictureGoal 逐格校验
       const solvedBoard = PICTURE_SOLVED[spec.id]!();
       const gen = generatePicturePuzzle('square-6x6', solvedBoard, spec.scramble, spec.seed);
       const goal = new PictureGoal(solvedBoard);
@@ -135,6 +167,22 @@ export function getLevels(): Level[] {
         goal,
         solution: gen.solution,
         solvedBoard, // 图案关卡携带目标棋盘供 App 预览
+      };
+    }
+    if (spec.topologyKind === 'square-8x8-picture') {
+      // v0.6.3：图案关卡（8x8）——复用 8x8 拓扑，49 个 2x2 旋钮
+      const solvedBoard = PICTURE_SOLVED[spec.id]!();
+      const gen = generatePicturePuzzle('square-8x8', solvedBoard, spec.scramble, spec.seed);
+      const goal = new PictureGoal(solvedBoard);
+      return {
+        id: spec.id,
+        name: `第 ${spec.id} 关`,
+        difficulty: gen.difficulty,
+        topologyKind: spec.topologyKind,
+        initial: gen.initial,
+        goal,
+        solution: gen.solution,
+        solvedBoard,
       };
     }
     // v0.2.1：一行调用，无需重复访问注册表/RNG
