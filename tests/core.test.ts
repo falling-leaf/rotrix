@@ -609,7 +609,7 @@ describe('HexTriangle - 六边形三角形拓扑', () => {
     const board = createSolvedHexTriangle();
     const regions = hexTriangle().regions();
     expect(regions).toHaveLength(6);
-    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'orange'];
     for (let i = 0; i < 6; i++) {
       for (const idx of regions[i].cells) {
         expect(board.cells[idx].color).toBe(COLORS[i]);
@@ -678,7 +678,7 @@ describe('HexTriangle - 六边形三角形拓扑', () => {
     const wrong: Cell[] = solved.cells.map((c) => ({ ...c }));
     // 全部扇区颜色轮换一位：S0→yellow, S1→green, ...
     const regions = topo.regions();
-    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'orange'];
     for (let i = 0; i < 6; i++) {
       const shiftedColor = COLORS[(i + 1) % 6] as Cell['color'];
       for (const idx of regions[i].cells) {
@@ -845,7 +845,7 @@ describe('HexSmallTriangle - 六边形三角形简单版拓扑', () => {
     const board = createSolvedHexSmallTriangle();
     const regions = hexSmallTriangle().regions();
     expect(regions).toHaveLength(6);
-    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+    const COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'orange'];
     for (let i = 0; i < 6; i++) {
       for (const idx of regions[i].cells) {
         expect(board.cells[idx].color).toBe(COLORS[i]);
@@ -915,7 +915,7 @@ describe('HexSmallTriangle - 六边形三角形简单版拓扑', () => {
       cells: solved.cells.map((c) => ({ ...c })),
     };
     const regions = topo.regions();
-    const HEX_COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'] as const;
+    const HEX_COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'orange'] as const;
     for (let i = 0; i < 6; i++) {
       const color = HEX_COLORS[(i + 1) % 6];
       for (const idx of regions[i].cells) {
@@ -1215,9 +1215,9 @@ describe('Picture - 图案玩法', () => {
     const board = createSolvedPicture31();
     expect(board.dims).toEqual([6, 6]);
     expect(board.cells).toHaveLength(36);
-    // 外圈为 magenta
-    expect(board.cells[0].color).toBe('magenta');
-    expect(board.cells[35].color).toBe('magenta');
+    // 外圈为 orange
+        expect(board.cells[0].color).toBe('orange');
+        expect(board.cells[35].color).toBe('orange');
     // 中心为 green/yellow
     expect(board.cells[14].color).toBe('green');  // (2,2)
     expect(board.cells[15].color).toBe('yellow');  // (2,3)

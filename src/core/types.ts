@@ -6,14 +6,14 @@
  */
 
 /** 色块颜色。后续可扩展更多颜色。 */
-export type Color = 'red' | 'yellow' | 'blue' | 'green' | 'cyan' | 'magenta';
+export type Color = 'red' | 'yellow' | 'blue' | 'green' | 'cyan' | 'orange';
 
 /** 正方形玩法可用颜色，顺序即"目标象限"的默认分配顺序（TL, TR, BL, BR）。 */
 export const ALL_COLORS: Color[] = ['red', 'yellow', 'blue', 'green'];
 
 /** 六边形玩法可用颜色（6 色），顺序即 6 个大三角形（扇区）的默认配色。
  * 扇区 0..5 按 CW 顺序，由各扇区三角形中心角度决定。 */
-export const HEX_COLORS: Color[] = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+export const HEX_COLORS: Color[] = ['red', 'yellow', 'green', 'cyan', 'blue', 'orange'];
 
 /** 单个色块。id 用于后续"相邻约束"等属性玩法，当前可不填。 */
 export interface Cell {

@@ -51,7 +51,7 @@ const COLOR_HEX: Record<Color, string> = {
   blue: '#2A5FCF',
   green: '#16BB77',
   cyan: '#38D0C0',
-  magenta: '#C742D6',
+  orange: '#FF7029',
 };
 
 /** v0.6.2-test: 使用 Kenney button_square_flat 色板。
@@ -62,7 +62,7 @@ const COLOR_LIGHT: Record<Color, string> = {
   blue: '#4A7FE7',
   green: '#2FD792',
   cyan: '#70F0E0',
-  magenta: '#E066FF',
+  orange: '#FF9A5C',
 };
 const COLOR_DARK: Record<Color, string> = {
   red: '#CD0B2A',
@@ -70,7 +70,7 @@ const COLOR_DARK: Record<Color, string> = {
   blue: '#1A3F9F',
   green: '#029357',
   cyan: '#18A090',
-  magenta: '#A030B0',
+  orange: '#D94F00',
 };
 function hexGradId(color: Color): string {
   return `hex-grad-${color}`;
@@ -282,7 +282,7 @@ function HexBoardViewInner({
             <filter id="hex-shadow" x="-10%" y="-10%" width="130%" height="130%">
               <feDropShadow dx="0.5" dy="0.5" stdDeviation="0.4" floodColor="#000" floodOpacity="0.25"/>
             </filter>
-            {(['red', 'yellow', 'blue', 'green', 'cyan', 'magenta'] as Color[]).map((c) => (
+            {(['red', 'yellow', 'blue', 'green', 'cyan', 'orange'] as Color[]).map((c) => (
               <linearGradient key={c} id={hexGradId(c)} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
                 <stop offset="100%" stopColor={COLOR_HEX[c]} />

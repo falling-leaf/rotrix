@@ -522,7 +522,7 @@ button, .knob, .level-chip, .btn {
 .cell.blue { --cc: var(--color-blue); background-image: url('/kenney/blue_flat.svg'); }
 .cell.green { --cc: var(--color-green); background-image: url('/kenney/green_flat.svg'); }
 .cell.cyan { --cc: var(--color-cyan); background-image: url('/kenney/cyan_flat.svg'); }
-.cell.magenta { --cc: var(--color-magenta); background-image: url('/kenney/magenta_flat.svg'); }
+.cell.orange { --cc: var(--color-orange); background-image: url('/kenney/orange_flat.svg'); }
 /* 对换动画中原位置的白色底色——纯色覆盖渐变 */
 .cell.__panel { background: var(--panel); }
 
@@ -560,7 +560,7 @@ button, .knob, .level-chip, .btn {
 /* v0.3.0：六边形新色变量 */
 :root {
   --color-cyan: #38D0C0;
-  --color-magenta: #C742D6;
+  --color-orange: #FF7029;
 }
 
 /* v0.2.1：胜利庆祝动画——对角线波纹。
@@ -2203,6 +2203,12 @@ button, .knob, .level-chip, .btn {
 }
 .gs-board-area .board-wrapper .board .cell {
   border-radius: 6px;
+}
+/* v0.6.2-fix：旋转 overlay 底色改为紫色，与操作地图面板背景同色。
+ * 色块旋转时因 scale 缩放露出四角三角形缺口，原白色 var(--panel)
+ * 与紫色面板背景不协调，改为 #C900D7 匹配面板底色。 */
+.gs-board-area .rotate-overlay {
+  background: #C900D7;
 }
 /* 预览模式覆盖（操作地图不应有预览模式） */
 .gs-board-area .board-wrapper.preview {

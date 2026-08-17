@@ -102,12 +102,12 @@ export function createSolvedDice4x4(): Board {
  */
 export function createSolvedPicture31(): Board {
   return pictureFromString([
-    'MMMMMM',
-    'MRRRRM',
-    'MRGYRM',
-    'MRGYRM',
-    'MRRRRM',
-    'MMMMMM',
+    'OOOOOO',
+        'ORRRRO',
+        'ORGYRO',
+        'ORGYRO',
+        'ORRRRO',
+        'OOOOOO',
   ]);
 }
 
@@ -138,11 +138,11 @@ export function createSolvedPicture32(): Board {
 /**
  * v0.4.2：从字符串数组构建 6x6 图案棋盘的辅助函数。
  *
- * 每个字符代表一个色块颜色：R=red, Y=yellow, B=blue, G=green, C=cyan, M=magenta。
+ * 每个字符代表一个色块颜色：R=red, Y=yellow, B=blue, G=green, C=cyan, O=orange。
  * 用于手工设计像素图案——将可视化的图案文本转为 Board 数据结构。
  */
 const CHAR_TO_COLOR: Record<string, Color> = {
-  R: 'red', Y: 'yellow', B: 'blue', G: 'green', C: 'cyan', M: 'magenta',
+  R: 'red', Y: 'yellow', B: 'blue', G: 'green', C: 'cyan', O: 'orange',
 };
 
 function pictureFromString(rows: string[]): Board {
