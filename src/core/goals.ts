@@ -254,3 +254,15 @@ registerTopology(PICTURE_8X8_KIND, {
   defaultGoal: () => new PictureGoal(createSolvedSquare8x8()),
   defaultSolvedBoard: createSolvedSquare8x8,
 });
+
+/**
+ * v0.7.1：注册六边形三角形简单版图案玩法拓扑。
+ * 复用 hexSmallTriangle 拓扑（24 三角形 / 7 旋钮），
+ * levels.ts 在运行时自行构造 PictureGoal。
+ */
+export const PICTURE_HEX_SMALL_KIND = 'hex-small-triangle-picture';
+registerTopology(PICTURE_HEX_SMALL_KIND, {
+  topology: hexSmallTriangle,
+  defaultGoal: () => new PictureGoal(createSolvedHexSmallTriangle()),
+  defaultSolvedBoard: createSolvedHexSmallTriangle,
+});

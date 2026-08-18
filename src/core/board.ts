@@ -632,9 +632,46 @@ export function createSolvedPicture40(): Board {
                 'OOOOOOOO',
                 'BOOOOOBB',
               ]);
-            }
+                          }
 
-            /** 深拷贝棋盘 */
+              // v0.7.1：六边形三角形简单版图案玩法（第 46-50 关，24 三角形 / 7 旋钮）
+              // 每个图案由 24 个三角形组成，使用 hex-small-triangle 拓扑。
+              function hexPictureFromString(pattern: string): Board {
+                const cells: Cell[] = [];
+                for (const ch of pattern) {
+                  const color = CHAR_TO_COLOR[ch];
+                  if (!color) throw new Error(`Unknown color char: ${ch}`);
+                  cells.push({ color });
+                }
+                return { dims: [cells.length], cells };
+              }
+
+              /** 第 46 关：双色棋盘风（R/Y/B，24 三角形） */
+              export function createSolvedHexPicture46(): Board {
+                return hexPictureFromString('YYYBYRRRRRRYYYBYYRBYRBYB');
+              }
+
+              /** 第 47 关：蓝黄绿旋转风车（G/R/Y/B，24 三角形） */
+              export function createSolvedHexPicture47(): Board {
+                return hexPictureFromString('GYBYRGRRBYYBBYYBBGRRYBYG');
+              }
+
+              /** 第 48 关：三色六芒星（R/Y/G/B，24 三角形） */
+              export function createSolvedHexPicture48(): Board {
+                return hexPictureFromString('RGRYGBRBYBYYYRYRYRYGBYGY');
+              }
+
+              /** 第 49 关：四色花瓣（G/R/Y/B，24 三角形） */
+              export function createSolvedHexPicture49(): Board {
+                return hexPictureFromString('GRBYRYBRBYGGGBYGRBYRYGRB');
+              }
+
+              /** 第 50 关：四色几何菱花（G/R/Y/B，24 三角形） */
+              export function createSolvedHexPicture50(): Board {
+                return hexPictureFromString('GYYRRBRYYYBGGBRYYRBYRYRG');
+              }
+
+              /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
   return {
     dims: [...board.dims],
