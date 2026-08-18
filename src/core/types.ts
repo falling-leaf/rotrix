@@ -20,6 +20,8 @@ export interface Cell {
   color: Color;
   /** v0.4.0：骰子点数 1-4（可选，仅骰子玩法棋盘携带） */
   number?: number;
+  /** v0.7.2：图标标记（可选，仅图标玩法棋盘携带） */
+  icon?: boolean;
   id?: string;
   /** 预留：后续属性玩法（相邻、固定、不可旋转等） */
   attrs?: Record<string, unknown>;

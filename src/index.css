@@ -557,6 +557,20 @@ button, .knob, .level-chip, .btn {
   background: rgba(255, 255, 255, 0.92);
 }
 
+/* v0.7.2：图标标记——在色块中心显示 icon.png */
+.cell-icon {
+  position: absolute;
+  inset: 8%;
+  background: url('/icon.png') no-repeat center / contain;
+  pointer-events: none;
+  z-index: 2;
+}
+/* 旋转动画中的图标也需同比例渲染 */
+.rotate-overlay .cell-icon,
+.swap-piece .cell-icon {
+  inset: 8%;
+}
+
 /* v0.3.0：六边形新色变量 */
 :root {
   --color-cyan: #38D0C0;

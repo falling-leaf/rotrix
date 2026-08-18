@@ -17,8 +17,8 @@
 
 import type { Level, Board } from '../core/types';
 import { generatePuzzle, generatePicturePuzzle } from '../core/generator';
-import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal, PictureGoal } from '../core/goals';
-import { createSolvedPicture31, createSolvedPicture32, createSolvedPicture33, createSolvedPicture34, createSolvedPicture35, createSolvedPicture36, createSolvedPicture37, createSolvedPicture38, createSolvedPicture39, createSolvedPicture40, createSolvedPicture41, createSolvedPicture42, createSolvedPicture43, createSolvedPicture44, createSolvedPicture45, createSolvedPicture46, createSolvedPicture47, createSolvedPicture48, createSolvedPicture49, createSolvedPicture50, createSolvedHexPicture46, createSolvedHexPicture47, createSolvedHexPicture48, createSolvedHexPicture49, createSolvedHexPicture50 } from '../core/board';
+import { QuadrantUniformGoal, HexUniformGoal, DiceQuadrantGoal, PictureGoal, IconGoal } from '../core/goals';
+import { createSolvedPicture31, createSolvedPicture32, createSolvedPicture33, createSolvedPicture34, createSolvedPicture35, createSolvedPicture36, createSolvedPicture37, createSolvedPicture38, createSolvedPicture39, createSolvedPicture40, createSolvedPicture41, createSolvedPicture42, createSolvedPicture47, createSolvedPicture48, createSolvedPicture50, createSolvedHexPicture46, createSolvedHexPicture47, createSolvedHexPicture48, createSolvedHexPicture49, createSolvedHexPicture50, createSolvedIcon4x4, createSolvedIcon7, createSolvedIcon8, createSolvedIcon9, createSolvedIcon10, createSolvedIcon16, createSolvedIcon17, createSolvedIcon18, createSolvedIcon19, createSolvedIcon20, createSolvedIcon21, createSolvedIcon22, createSolvedIcon23, createSolvedIcon24, createSolvedIcon25 } from '../core/board';
 
 interface LevelSpec {
   id: number;
@@ -35,30 +35,29 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 3,  topologyKind: 'square-4x4', scramble: 7,  seed: 103 },
   { id: 4,  topologyKind: 'square-4x4', scramble: 9,  seed: 104 },
   { id: 5,  topologyKind: 'square-4x4', scramble: 12, seed: 105 },
-  { id: 6,  topologyKind: 'square-4x4', scramble: 15, seed: 106 },
-  { id: 7,  topologyKind: 'square-4x4', scramble: 18, seed: 107 },
-  { id: 8,  topologyKind: 'square-4x4', scramble: 22, seed: 108 },
-  { id: 9,  topologyKind: 'square-4x4', scramble: 26, seed: 109 },
-  { id: 10, topologyKind: 'square-4x4', scramble: 30, seed: 110 },
+  { id: 6,  topologyKind: 'square-4x4-icon', scramble: 10, seed: 106 },
+    { id: 7,  topologyKind: 'square-4x4-icon', scramble: 13, seed: 107 },
+    { id: 8,  topologyKind: 'square-4x4-icon', scramble: 16, seed: 108 },
+    { id: 9,  topologyKind: 'square-4x4-icon', scramble: 19, seed: 109 },
+    { id: 10, topologyKind: 'square-4x4-icon', scramble: 22, seed: 110 },
   // 第 11-15 关：6x6 网格
   { id: 11, topologyKind: 'square-6x6', scramble: 5,  seed: 201 },
   { id: 12, topologyKind: 'square-6x6', scramble: 8,  seed: 202 },
   { id: 13, topologyKind: 'square-6x6', scramble: 12, seed: 203 },
   { id: 14, topologyKind: 'square-6x6', scramble: 16, seed: 204 },
   { id: 15, topologyKind: 'square-6x6', scramble: 20, seed: 205 },
-  // 第 16-25 关：6x6 图案玩法（v0.7.1：原 31-40 关移至此处）
-  // 目标地图为手工设计的 6x6 像素图案，胜利判定为拼成目标地图即可。
-  // 每关图案布局不同（含可辨识图形：同心方框/螺旋回字/太阳/房子/心形/三色棋盘/钻石/箭头/树/笑脸）。
-  { id: 16, topologyKind: 'square-6x6-picture', scramble: 20, seed: 601 },
-  { id: 17, topologyKind: 'square-6x6-picture', scramble: 28, seed: 602 },
-  { id: 18, topologyKind: 'square-6x6-picture', scramble: 25, seed: 603 },
-  { id: 19, topologyKind: 'square-6x6-picture', scramble: 30, seed: 604 },
-  { id: 20, topologyKind: 'square-6x6-picture', scramble: 22, seed: 605 },
-  { id: 21, topologyKind: 'square-6x6-picture', scramble: 35, seed: 606 },
-  { id: 22, topologyKind: 'square-6x6-picture', scramble: 26, seed: 607 },
-  { id: 23, topologyKind: 'square-6x6-picture', scramble: 24, seed: 608 },
-  { id: 24, topologyKind: 'square-6x6-picture', scramble: 27, seed: 609 },
-  { id: 25, topologyKind: 'square-6x6-picture', scramble: 29, seed: 610 },
+  // 第 16-20 关：6x6 图标玩法（v0.7.2：图案改为图标玩法）
+  // 标准四象限纯色，图标在特定位置形成图案形状
+  { id: 16, topologyKind: 'square-6x6-icon', scramble: 18, seed: 601 },
+  { id: 17, topologyKind: 'square-6x6-icon', scramble: 22, seed: 602 },
+  { id: 18, topologyKind: 'square-6x6-icon', scramble: 24, seed: 603 },
+  { id: 19, topologyKind: 'square-6x6-icon', scramble: 26, seed: 604 },
+  { id: 20, topologyKind: 'square-6x6-icon', scramble: 28, seed: 605 },
+  { id: 21, topologyKind: 'square-6x6-icon', scramble: 30, seed: 606 },
+  { id: 22, topologyKind: 'square-6x6-icon', scramble: 32, seed: 607 },
+  { id: 23, topologyKind: 'square-6x6-icon', scramble: 34, seed: 608 },
+  { id: 24, topologyKind: 'square-6x6-icon', scramble: 36, seed: 609 },
+  { id: 25, topologyKind: 'square-6x6-icon', scramble: 38, seed: 610 },
   // 第 26-30 关：6x6 图案玩法（v0.7.1：精选 5 个图案，0.7.2 改为新玩法）
     // 目标地图为手工设计的 6x6 像素图案
     { id: 26, topologyKind: 'square-6x6-picture', scramble: 20, seed: 601 },
@@ -140,9 +139,28 @@ export function getLevels(): Level[] {
         48: createSolvedHexPicture48,
         49: createSolvedHexPicture49,
         50: createSolvedHexPicture50,
-  };
+          };
 
-  const levels: Level[] = LEVEL_SPECS.map((spec) => {
+          // v0.7.2：图标玩法 ID 映射——按关卡 ID 映射到对应的图标棋盘工厂函数
+          const ICON_SOLVED: Record<number, () => Board> = {
+            6: createSolvedIcon4x4,
+            7: createSolvedIcon7,
+            8: createSolvedIcon8,
+            9: createSolvedIcon9,
+            10: createSolvedIcon10,
+            16: createSolvedIcon16,
+            17: createSolvedIcon17,
+            18: createSolvedIcon18,
+            19: createSolvedIcon19,
+            20: createSolvedIcon20,
+            21: createSolvedIcon21,
+            22: createSolvedIcon22,
+            23: createSolvedIcon23,
+            24: createSolvedIcon24,
+            25: createSolvedIcon25,
+          };
+
+          const levels: Level[] = LEVEL_SPECS.map((spec) => {
     if (spec.topologyKind === 'square-6x6-picture') {
       // v0.4.2：图案关卡（6x6）——用自定义目标棋盘生成题目，PictureGoal 逐格校验
       const solvedBoard = PICTURE_SOLVED[spec.id]!();
@@ -191,6 +209,40 @@ export function getLevels(): Level[] {
                 solvedBoard,
               };
             }
+            if (spec.topologyKind === 'square-4x4-icon') {
+                          // v0.7.2：图标玩法（4x4）——标准四象限纯色，图标位置按关卡不同
+                          // 使用 generatePicturePuzzle 传入自定义 solvedBoard，
+                          // 确保初始棋盘从正确图标布局打乱，而非注册表默认
+                          const solvedBoard = ICON_SOLVED[spec.id]!();
+                          const gen = generatePicturePuzzle('square-4x4', solvedBoard, spec.scramble, spec.seed);
+                          const goal = new IconGoal(solvedBoard);
+                          return {
+                            id: spec.id,
+                            name: `第 ${spec.id} 关`,
+                            difficulty: gen.difficulty,
+                            topologyKind: spec.topologyKind,
+                            initial: gen.initial,
+                            goal,
+                            solution: gen.solution,
+                            solvedBoard,
+                          };
+                        }
+                        if (spec.topologyKind === 'square-6x6-icon') {
+                          // v0.7.2：图标玩法（6x6）——标准四象限纯色，图标在特定位置形成图案
+                          const solvedBoard = ICON_SOLVED[spec.id]!();
+                          const gen = generatePicturePuzzle('square-6x6', solvedBoard, spec.scramble, spec.seed);
+                          const goal = new IconGoal(solvedBoard);
+                          return {
+                            id: spec.id,
+                            name: `第 ${spec.id} 关`,
+                            difficulty: gen.difficulty,
+                            topologyKind: spec.topologyKind,
+                            initial: gen.initial,
+                            goal,
+                            solution: gen.solution,
+                            solvedBoard,
+                          };
+                        }
             // v0.2.1：一行调用，无需重复访问注册表/RNG
     const gen = generatePuzzle(spec.topologyKind, spec.scramble, spec.seed);
     // v0.3.0/v0.3.2/v0.4.0：根据拓扑类型选择对应 Goal

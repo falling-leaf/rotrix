@@ -18,6 +18,8 @@ interface CellProps {
   style?: CSSProperties;
   /** v0.4.0：骰子点数 1-4（可选，有则渲染骰子点） */
   number?: number;
+  /** v0.7.2：图标标记（可选，有则渲染图标） */
+  icon?: boolean;
 }
 
 /**
@@ -58,10 +60,11 @@ function DicePips({ number, counterRotate }: { number: number; counterRotate?: n
   );
 }
 
-function CellBlock({ color, className, style, number }: CellProps) {
+function CellBlock({ color, className, style, number, icon }: CellProps) {
   return (
     <div className={`cell ${color} ${className ?? ''}`} style={style}>
       {number !== undefined && <DicePips number={number} />}
+      {icon && <div className="cell-icon" />}
     </div>
   );
 }
@@ -146,20 +149,22 @@ function BoardViewInner({
     // 旋钮覆盖的 4 个 cell（顺时针：tl, tr, br, bl）
     const indices = knob.cells;
     const colors = indices.map((i) => board.cells[i].color);
-    // v0.4.0：携带骰子点数，旋转 overlay 中同步渲染骰子点
-    const numbers = indices.map((i) => board.cells[i].number);
-    // 旋钮中心坐标 [r+0.5, c+0.5]，2x2 区域的左上角 = [r, c]
-    const r = Math.floor(knob.center[0]);
-    const c = Math.floor(knob.center[1]);
-    // 转百分比：2x2 区域占棋盘的 50%
-    const top = (r / board.dims[0]) * 100;
-    const left = (c / board.dims[1]) * 100;
-    // 目标旋转角度：CW=+90, CCW=-90
-    const targetAngle = animating.direction === 'CW' ? 90 : -90;
-    // v0.2.0：overlay 尺寸按网格维度动态计算（2x2 区域占整盘比例）
-    // 4x4: 2/4=50%，6x6: 2/6≈33.3%
-    const overlayPct = (2 / board.dims[0]) * 100;
-    return { colors, numbers, top, left, width: overlayPct, height: overlayPct, targetAngle };
+        // v0.4.0：携带骰子点数，旋转 overlay 中同步渲染骰子点
+        const numbers = indices.map((i) => board.cells[i].number);
+        // v0.7.2：携带图标标记，旋转 overlay 中同步渲染图标
+        const icons = indices.map((i) => board.cells[i].icon);
+        // 旋钮中心坐标 [r+0.5, c+0.5]，2x2 区域的左上角 = [r, c]
+        const r = Math.floor(knob.center[0]);
+        const c = Math.floor(knob.center[1]);
+        // 转百分比：2x2 区域占棋盘的 50%
+        const top = (r / board.dims[0]) * 100;
+        const left = (c / board.dims[1]) * 100;
+        // 目标旋转角度：CW=+90, CCW=-90
+        const targetAngle = animating.direction === 'CW' ? 90 : -90;
+        // v0.2.0：overlay 尺寸按网格维度动态计算（2x2 区域占整盘比例）
+        // 4x4: 2/4=50%，6x6: 2/6≈33.3%
+        const overlayPct = (2 / board.dims[0]) * 100;
+        return { colors, numbers, icons, top, left, width: overlayPct, height: overlayPct, targetAngle };
   }, [animating, board, preview]);
 
   // v0.3.5：计算对换动画 overlay 数据——两个格子的位置和颜色
@@ -167,23 +172,26 @@ function BoardViewInner({
     if (!swapAnimating || preview) return null;
     const { indexA, indexB } = swapAnimating;
     const colorA = board.cells[indexA].color;
-    const colorB = board.cells[indexB].color;
-    // v0.4.0：携带骰子点数，对换 overlay 中同步渲染
-    const numberA = board.cells[indexA].number;
-    const numberB = board.cells[indexB].number;
-    // 格子在网格中的位置（行优先）
-    const rowA = Math.floor(indexA / board.dims[1]);
-    const colA = indexA % board.dims[1];
-    const rowB = Math.floor(indexB / board.dims[1]);
-    const colB = indexB % board.dims[1];
-    // 转百分比坐标（格子中心）
-    const cellW = 100 / board.dims[1];
-    const cellH = 100 / board.dims[0];
-    const ax = (colA + 0.5) * cellW;
-    const ay = (rowA + 0.5) * cellH;
-    const bx = (colB + 0.5) * cellW;
-    const by = (rowB + 0.5) * cellH;
-    return { colorA, colorB, numberA, numberB, ax, ay, bx, by, cellW, cellH };
+        const colorB = board.cells[indexB].color;
+        // v0.4.0：携带骰子点数，对换 overlay 中同步渲染
+        const numberA = board.cells[indexA].number;
+        const numberB = board.cells[indexB].number;
+        // v0.7.2：携带图标标记，对换 overlay 中同步渲染
+        const iconA = board.cells[indexA].icon;
+        const iconB = board.cells[indexB].icon;
+        // 格子在网格中的位置（行优先）
+        const rowA = Math.floor(indexA / board.dims[1]);
+        const colA = indexA % board.dims[1];
+        const rowB = Math.floor(indexB / board.dims[1]);
+        const colB = indexB % board.dims[1];
+        // 转百分比坐标（格子中心）
+        const cellW = 100 / board.dims[1];
+        const cellH = 100 / board.dims[0];
+        const ax = (colA + 0.5) * cellW;
+        const ay = (rowA + 0.5) * cellH;
+        const bx = (colB + 0.5) * cellW;
+        const by = (rowB + 0.5) * cellH;
+        return { colorA, colorB, numberA, numberB, iconA, iconB, ax, ay, bx, by, cellW, cellH };
   }, [swapAnimating, board, preview]);
 
   // rAF 驱动：angle 从 0 度动画到 targetAngle。
@@ -363,69 +371,75 @@ function BoardViewInner({
                 onClick={swapClickable ? () => onCellClick?.(i) : undefined}
               >
                 <CellBlock
-                  color={displayColor as Color}
-                  number={isSwapping ? undefined : cell.number}
-                  style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
-                />
+                                  color={displayColor as Color}
+                                  number={isSwapping ? undefined : cell.number}
+                                  icon={isSwapping ? undefined : cell.icon}
+                                  style={celebrating ? { animationDelay: `${delay}ms` } : undefined}
+                                />
               </div>
             );
           })}
         </div>
 
         {/* 旋转动画 overlay：在被旋转的 2x2 区域上叠加旋转层 */}
-        {rotateOverlay && (
-          <div
-            className="rotate-overlay"
-            style={{
-              top: `${rotateOverlay.top}%`,
-              left: `${rotateOverlay.left}%`,
-              width: `${rotateOverlay.width}%`,
-              height: `${rotateOverlay.height}%`,
-            }}
-          >
-            <div
-              className="rotate-inner"
-              style={{
-                transform: `rotate(${angle}deg) scale(${scale})`,
-                transformOrigin: 'center center',
-              }}
-            >
-              {/* 2x2 grid 按 DOM 行优先顺序排列：TL, TR, BL, BR */}
-              {/* knob.cells 顺序为 [TL, TR, BR, BL]，因此 3/4 需交换 */}
-              {/* v0.4.0：骰子点数也需按行优先交换索引 3/2 */}
-              {/* v0.4.1：骰子点数保持正立，仅随色块平移不旋转——
-                  传入当前旋转角度，DicePips 内施加反向 rotate(-angle) */}
-              <div className="rot-cell tl">
-                <div className={`cell ${rotateOverlay.colors[0]}`}>
-                  {rotateOverlay.numbers[0] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[0]} counterRotate={angle} />
-                  )}
-                </div>
-              </div>
-              <div className="rot-cell tr">
-                <div className={`cell ${rotateOverlay.colors[1]}`}>
-                  {rotateOverlay.numbers[1] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[1]} counterRotate={angle} />
-                  )}
-                </div>
-              </div>
-              <div className="rot-cell bl">
-                <div className={`cell ${rotateOverlay.colors[3]}`}>
-                  {rotateOverlay.numbers[3] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[3]} counterRotate={angle} />
-                  )}
-                </div>
-              </div>
-              <div className="rot-cell br">
-                <div className={`cell ${rotateOverlay.colors[2]}`}>
-                  {rotateOverlay.numbers[2] !== undefined && (
-                    <DicePips number={rotateOverlay.numbers[2]} counterRotate={angle} />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                {rotateOverlay && (
+                  <div
+                    className="rotate-overlay"
+                    style={{
+                      top: `${rotateOverlay.top}%`,
+                      left: `${rotateOverlay.left}%`,
+                      width: `${rotateOverlay.width}%`,
+                      height: `${rotateOverlay.height}%`,
+                    }}
+                  >
+                    <div
+                      className="rotate-inner"
+                      style={{
+                        transform: `rotate(${angle}deg) scale(${scale})`,
+                        transformOrigin: 'center center',
+                      }}
+                    >
+                      {/* 2x2 grid 按 DOM 行优先顺序排列：TL, TR, BL, BR */}
+                      {/* knob.cells 顺序为 [TL, TR, BR, BL]，因此 3/4 需交换 */}
+                      {/* v0.4.0：骰子点数也需按行优先交换索引 3/2 */}
+                      {/* v0.4.1：骰子点数保持正立，仅随色块平移不旋转——
+                          传入当前旋转角度，DicePips 内施加反向 rotate(-angle) */}
+                      {/* v0.7.2：图标保持绝对姿态，施加反向 rotate(-angle) 抵消父级旋转 */}
+                      <div className="rot-cell tl">
+                        <div className={`cell ${rotateOverlay.colors[0]}`}>
+                          {rotateOverlay.numbers[0] !== undefined && (
+                            <DicePips number={rotateOverlay.numbers[0]} counterRotate={angle} />
+                          )}
+                          {rotateOverlay.icons[0] && <div className="cell-icon" style={{ transform: `rotate(${-angle}deg)` }} />}
+                        </div>
+                      </div>
+                      <div className="rot-cell tr">
+                        <div className={`cell ${rotateOverlay.colors[1]}`}>
+                          {rotateOverlay.numbers[1] !== undefined && (
+                            <DicePips number={rotateOverlay.numbers[1]} counterRotate={angle} />
+                          )}
+                          {rotateOverlay.icons[1] && <div className="cell-icon" style={{ transform: `rotate(${-angle}deg)` }} />}
+                        </div>
+                      </div>
+                      <div className="rot-cell bl">
+                        <div className={`cell ${rotateOverlay.colors[3]}`}>
+                          {rotateOverlay.numbers[3] !== undefined && (
+                            <DicePips number={rotateOverlay.numbers[3]} counterRotate={angle} />
+                          )}
+                          {rotateOverlay.icons[3] && <div className="cell-icon" style={{ transform: `rotate(${-angle}deg)` }} />}
+                        </div>
+                      </div>
+                      <div className="rot-cell br">
+                        <div className={`cell ${rotateOverlay.colors[2]}`}>
+                          {rotateOverlay.numbers[2] !== undefined && (
+                            <DicePips number={rotateOverlay.numbers[2]} counterRotate={angle} />
+                          )}
+                          {rotateOverlay.icons[2] && <div className="cell-icon" style={{ transform: `rotate(${-angle}deg)` }} />}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
         {/* v0.3.5：对换动画 overlay——两个色块互相飞移 */}
         {swapOverlay && (
@@ -441,20 +455,20 @@ function BoardViewInner({
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <CellBlock color={swapOverlay.colorA} number={swapOverlay.numberA} />
-            </div>
-            {/* 格子 B 的色块飞向 A 的位置 */}
-            <div
-              className="swap-piece"
-              style={{
-                width: `${swapOverlay.cellW}%`,
-                height: `${swapOverlay.cellH}%`,
-                left: `${swapOverlay.bx + (swapOverlay.ax - swapOverlay.bx) * swapProgress}%`,
-                top: `${swapOverlay.by + (swapOverlay.ay - swapOverlay.by) * swapProgress}%`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              <CellBlock color={swapOverlay.colorB} number={swapOverlay.numberB} />
+              <CellBlock color={swapOverlay.colorA} number={swapOverlay.numberA} icon={swapOverlay.iconA} />
+                          </div>
+                          {/* 格子 B 的色块飞向 A 的位置 */}
+                          <div
+                            className="swap-piece"
+                            style={{
+                              width: `${swapOverlay.cellW}%`,
+                              height: `${swapOverlay.cellH}%`,
+                              left: `${swapOverlay.bx + (swapOverlay.ax - swapOverlay.bx) * swapProgress}%`,
+                              top: `${swapOverlay.by + (swapOverlay.ay - swapOverlay.by) * swapProgress}%`,
+                              transform: 'translate(-50%, -50%)',
+                            }}
+                          >
+                            <CellBlock color={swapOverlay.colorB} number={swapOverlay.numberB} icon={swapOverlay.iconB} />
             </div>
           </div>
         )}

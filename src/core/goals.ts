@@ -7,7 +7,7 @@
 
 import type { Board, Goal, Topology } from './types';
 import { ALL_COLORS } from './types';
-import { createSolvedDice4x4 } from './board';
+import { createSolvedDice4x4, createSolvedIcon4x4, createSolvedSquare6x6Icon } from './board';
 
 export const QUADRANT_GOAL_KIND = 'quadrant-uniform';
 
@@ -195,6 +195,29 @@ registerTopology(DICE_4X4_KIND, {
 });
 
 /**
+ * v0.7.2：注册图标玩法拓扑——复用 square4x4 拓扑，仅替换 Goal 与 solvedBoard。
+ * 图标在 (0,0) 和 (3,3) 位置，玩家需旋转旋钮使色块颜色和图标位置都与目标一致。
+ */
+export const ICON_4X4_KIND = 'square-4x4-icon';
+registerTopology(ICON_4X4_KIND, {
+  topology: square4x4,
+  defaultGoal: () => new IconGoal(createSolvedIcon4x4()),
+  defaultSolvedBoard: createSolvedIcon4x4,
+});
+
+/**
+ * v0.7.2：注册 6x6 图标玩法拓扑——复用 square6x6 拓扑（25 个 2x2 旋钮），
+ * 默认棋盘为无图标的标准四象限色板。
+ * levels.ts 在运行时通过 ICON_SOLVED 映射使用对应棋盘。
+ */
+export const ICON_6X6_KIND = 'square-6x6-icon';
+registerTopology(ICON_6X6_KIND, {
+  topology: square6x6,
+  defaultGoal: () => new IconGoal(createSolvedSquare6x6Icon()),
+  defaultSolvedBoard: createSolvedSquare6x6Icon,
+});
+
+/**
  * v0.4.2：图案玩法的目标判定策略。
  *
  * 胜利条件简化为"操作地图与目标地图完全一致"——逐格校验颜色匹配。
@@ -224,6 +247,39 @@ export class PictureGoal implements Goal {
 
   describe(): string {
     return '拼成目标地图即可';
+  }
+}
+
+/**
+ * v0.7.2：图标玩法的目标判定策略。
+ *
+ * 胜利条件：操作地图与目标地图完全一致——逐格校验颜色和图标标记。
+ * 不要求象限纯色，也不校验 number——纯粹拼图还原。
+ *
+ * 与 PictureGoal 类似，但额外校验 icon 属性。
+ */
+export const ICON_GOAL_KIND = 'icon';
+
+export class IconGoal implements Goal {
+  readonly kind = ICON_GOAL_KIND;
+  private readonly solvedBoard: Board;
+
+  constructor(solvedBoard: Board) {
+    this.solvedBoard = solvedBoard;
+  }
+
+  satisfied(board: Board, _topology: Topology): boolean {
+    if (board.cells.length !== this.solvedBoard.cells.length) return false;
+    for (let i = 0; i < board.cells.length; i++) {
+      if (board.cells[i].color !== this.solvedBoard.cells[i].color) return false;
+      // 图标位置也必须匹配
+      if (board.cells[i].icon !== this.solvedBoard.cells[i].icon) return false;
+    }
+    return true;
+  }
+
+  describe(): string {
+    return '拼成目标地图且图标位置一致';
   }
 }
 

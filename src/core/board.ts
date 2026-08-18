@@ -85,10 +85,128 @@ export function createSolvedDice4x4(): Board {
     }
   }
   return { dims: [4, 4], cells };
-}
+  }
 
-/**
- * v0.4.2：构建第 31 关目标图案——6x6 同心方框。
+  /**
+   * v0.7.2：构建第 6 关图标玩法的目标棋盘（4x4）。
+   *
+   * 标准四象限纯色（左上红、右上黄、左下蓝、右下绿），
+   * 在 (0,0) 和 (3,3) 位置放置图标标记。
+   * 玩家需要旋转旋钮，使色块颜色和图标位置都与目标一致。
+   */
+  export function createSolvedIcon4x4(): Board {
+      return createSolvedIconBoard([[0, 0], [3, 3]]);
+    }
+
+    /** v0.7.2：第 7 关图标玩法——(1,1),(2,1),(1,2),(2,2) 中心 2x2 */
+    export function createSolvedIcon7(): Board {
+      return createSolvedIconBoard([[1,1],[2,1],[1,2],[2,2]]);
+    }
+
+    /** v0.7.2：第 8 关图标玩法——双对角线 */
+    export function createSolvedIcon8(): Board {
+      return createSolvedIconBoard([[0,0],[1,1],[2,2],[3,3],[3,0],[2,1],[1,2],[0,3]]);
+    }
+
+    /** v0.7.2：第 9 关图标玩法——棋盘间隔 */
+    export function createSolvedIcon9(): Board {
+      return createSolvedIconBoard([[0,0],[0,2],[1,0],[1,2],[2,1],[2,3],[3,1],[3,3]]);
+    }
+
+    /** v0.7.2：第 10 关图标玩法——除四角外全满 */
+    export function createSolvedIcon10(): Board {
+          return createSolvedIconBoard([[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,0],[2,1],[2,2],[2,3],[3,1],[3,2]]);
+        }
+
+        // v0.7.2：第 16-20 关图标玩法（6x6 网格，图案形状）
+        /** 第 16 关：爱心 ❤️ */
+        export function createSolvedIcon16(): Board {
+          return createSolvedIcon6x6Board([[1,2],[1,3],[0,1],[0,4],[1,0],[1,5],[2,1],[2,4],[3,2],[3,3],[4,2],[4,3],[5,2]]);
+        }
+        /** 第 17 关：笑脸 😊 */
+        export function createSolvedIcon17(): Board {
+          return createSolvedIcon6x6Board([[0,1],[0,2],[0,3],[0,4],[1,0],[1,5],[2,0],[2,2],[2,3],[2,5],[3,0],[3,5],[4,1],[4,4],[5,2],[5,3]]);
+        }
+        /** 第 18 关：房子 🏠 */
+        export function createSolvedIcon18(): Board {
+          return createSolvedIcon6x6Board([[0,2],[0,3],[1,1],[1,4],[2,0],[2,5],[3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[4,0],[4,5],[5,0],[5,1],[5,2],[5,3],[5,4],[5,5]]);
+        }
+        /** 第 19 关：树 🌳 */
+        export function createSolvedIcon19(): Board {
+          return createSolvedIcon6x6Board([[0,2],[0,3],[1,1],[1,2],[1,3],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[4,2],[4,3],[5,2],[5,3]]);
+        }
+        /** 第 20 关：五角星 ★ */
+                export function createSolvedIcon20(): Board {
+                  return createSolvedIcon6x6Board([[0,2],[0,3],[1,1],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[4,0],[4,1],[4,4],[4,5],[5,0],[5,5]]);
+                }
+                /** 第 21 关：小鱼 🐟 */
+                export function createSolvedIcon21(): Board {
+                  return createSolvedIcon6x6Board([[0,1],[0,2],[1,0],[1,3],[2,0],[2,1],[2,2],[2,3],[2,4],[3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[4,1],[4,2],[4,3],[5,2]]);
+                }
+                /** 第 22 关：钥匙 🔑 */
+                export function createSolvedIcon22(): Board {
+                  return createSolvedIcon6x6Board([[0,0],[0,1],[1,0],[1,1],[2,0],[2,1],[2,2],[3,1],[3,2],[3,3],[4,2],[4,3],[4,4],[5,3],[5,4],[5,5]]);
+                }
+                /** 第 23 关：闪电 ⚡ */
+                export function createSolvedIcon23(): Board {
+                  return createSolvedIcon6x6Board([[0,3],[0,4],[1,2],[1,3],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3],[4,2],[4,3],[4,4],[5,3]]);
+                }
+                /** 第 24 关：蝴蝶 🦋 */
+                export function createSolvedIcon24(): Board {
+                  return createSolvedIcon6x6Board([[0,0],[0,1],[0,4],[0,5],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[3,2],[3,3],[4,1],[4,4],[5,0],[5,5]]);
+                }
+                /** 第 25 关：雨伞 ☂ */
+                export function createSolvedIcon25(): Board {
+                  return createSolvedIcon6x6Board([[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,4],[4,2],[4,3],[5,3]]);
+                }
+
+        /** 图标玩法辅助函数（6x6）：给定图标位置列表，生成 6x6 标准四象限棋盘 */
+                function createSolvedIcon6x6Board(positions: [number, number][]): Board {
+                  const colorOf = (r: number, c: number): Color => {
+            if (r < 3 && c < 3) return 'red';
+            if (r < 3 && c >= 3) return 'yellow';
+            if (r >= 3 && c < 3) return 'blue';
+            return 'green';
+          };
+          const cells: Cell[] = [];
+          for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+              cells.push({
+                color: colorOf(r, c),
+                icon: positions.some(([ir, ic]) => ir === r && ic === c),
+              });
+            }
+          }
+          return { dims: [6, 6], cells };
+                  }
+
+                  /** 6x6 图标玩法默认棋盘（无图标，仅标准四象限色） */
+                  export function createSolvedSquare6x6Icon(): Board {
+                    return createSolvedIcon6x6Board([]);
+                  }
+
+                  /** 图标玩法辅助函数：给定图标位置列表，生成 4x4 标准四象限棋盘 */
+    function createSolvedIconBoard(positions: [number, number][]): Board {
+      const colorOf = (r: number, c: number): Color => {
+        if (r < 2 && c < 2) return 'red';
+        if (r < 2 && c >= 2) return 'yellow';
+        if (r >= 2 && c < 2) return 'blue';
+        return 'green';
+      };
+      const cells: Cell[] = [];
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          cells.push({
+            color: colorOf(r, c),
+            icon: positions.some(([ir, ic]) => ir === r && ic === c),
+          });
+        }
+      }
+      return { dims: [4, 4], cells };
+    }
+
+    /**
+   * v0.4.2：构建第 31 关目标图案——6x6 同心方框。
  *
  * 3 色同心方框，由外向内：
  *   外圈品红 → 红圈 → 中心绿/黄对角分色
@@ -679,7 +797,7 @@ export function cloneBoard(board: Board): Board {
   };
 }
 
-/** 判断两个棋盘内容是否相等（忽略 id/attrs，比较颜色+数字） */
+/** 判断两个棋盘内容是否相等（忽略 id/attrs，比较颜色+数字+图标） */
 export function boardsEqual(a: Board, b: Board): boolean {
   if (a.dims.length !== b.dims.length) return false;
   for (let i = 0; i < a.dims.length; i++) {
@@ -693,6 +811,10 @@ export function boardsEqual(a: Board, b: Board): boolean {
     const an = a.cells[i].number;
     const bn = b.cells[i].number;
     if (an !== bn) return false;
+    // v0.7.2：图标玩法需比较 icon 标记
+    const ai = a.cells[i].icon;
+    const bi = b.cells[i].icon;
+    if (ai !== bi) return false;
   }
   return true;
 }

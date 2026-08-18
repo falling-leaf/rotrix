@@ -199,7 +199,7 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
                   swapAnimating={game.swapAnimating}
                   onCellClick={game.handleCellClick}
                   onSwapAnimationEnd={game.onSwapAnimationEnd}
-                  pictureId={level.topologyKind === 'square-6x6-picture' || level.topologyKind === 'square-8x8-picture' || level.topologyKind === 'hex-small-triangle-picture' ? level.id : undefined}
+                  pictureId={level.topologyKind === 'square-6x6-picture' || level.topologyKind === 'square-8x8-picture' || level.topologyKind === 'hex-small-triangle-picture' || level.topologyKind === 'square-4x4-icon' ? level.id : undefined}
                   allowedKnobId={tutorialDisableKnobs ? null : (tutorialConfig?.highlightKnobId ?? null)}
                 />
               </div>
