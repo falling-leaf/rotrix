@@ -752,42 +752,76 @@ export function createSolvedPicture40(): Board {
               ]);
                           }
 
-              // v0.7.1：六边形三角形简单版图案玩法（第 46-50 关，24 三角形 / 7 旋钮）
-              // 每个图案由 24 个三角形组成，使用 hex-small-triangle 拓扑。
-              function hexPictureFromString(pattern: string): Board {
-                const cells: Cell[] = [];
-                for (const ch of pattern) {
-                  const color = CHAR_TO_COLOR[ch];
-                  if (!color) throw new Error(`Unknown color char: ${ch}`);
-                  cells.push({ color });
-                }
-                return { dims: [cells.length], cells };
-              }
+              // v0.7.3：六边形三角形简单版图案玩法（第 46-50 关，24 三角形 / 7 旋钮）
+                            // 每个图案由 24 个三角形组成，使用 hex-small-triangle 拓扑。
+                            //
+                            // 三角索引 0-23 的视觉布局（点朝上六边形，基于三角形中心坐标）：
+                            //   列1(x≈14-21)  列2(x≈36-43)  列3(x≈57-64)  列4(x≈79-86)
+                            //     ——           6(42.8)      12(57.2)       ——
+                            //   1(21.1)       5(35.6)      14(64.4)      19(78.9)
+                            //   0(13.9)       8(42.8)      13(57.2)      21(86.1)
+                            //   3(21.1)       7(35.6)*     16(64.4)*     20(78.9)
+                            //   2(13.9)      10(42.8)      15(57.2)      23(86.1)
+                            //   4(21.1)       9(35.6)      18(64.4)      22(78.9)
+                            //     ——          11(42.8)      17(57.2)       ——
+                            //  * 中心六边形（围绕中心点）：7,8,10,13,15,16
+                            function hexPictureFromString(pattern: string): Board {
+                              const cells: Cell[] = [];
+                              for (const ch of pattern) {
+                                const color = CHAR_TO_COLOR[ch];
+                                if (!color) throw new Error(`Unknown color char: ${ch}`);
+                                cells.push({ color });
+                              }
+                              return { dims: [cells.length], cells };
+                            }
 
-              /** 第 46 关：双色棋盘风（R/Y/B，24 三角形） */
-              export function createSolvedHexPicture46(): Board {
-                return hexPictureFromString('YYYBYRRRRRRYYYBYYRBYRBYB');
-              }
+                            /**
+                             * 第 46 关：双色——外圈红色，中心 6 个三角形蓝色。
+                             * 中心六边形（7,8,10,13,15,16）= 蓝，其余 18 个 = 红。
+                             */
+                            export function createSolvedHexPicture46(): Board {
+                              return hexPictureFromString('RRRRRRRBBRBRRBRBBRRRRRRR');
+                            }
 
-              /** 第 47 关：蓝黄绿旋转风车（G/R/Y/B，24 三角形） */
-              export function createSolvedHexPicture47(): Board {
-                return hexPictureFromString('GYBYRGRRBYYBBYYBBGRRYBYG');
-              }
+                            /**
+                             * 第 47 关：双色——中心六边形及其邻接 6 个三角形为红色，其余为蓝色。
+                             * 中心六边形（7,8,10,13,15,16）+ 邻接（3,5,9,14,18,20）= 红，
+                             * 其余 12 个（0,1,2,4,6,11,12,17,19,21,22,23）= 蓝。
+                             */
+                            export function createSolvedHexPicture47(): Board {
+                              return hexPictureFromString('BBBRBRBRRRRBBRRRRBRBRBBB');
+                            }
 
-              /** 第 48 关：三色六芒星（R/Y/G/B，24 三角形） */
-              export function createSolvedHexPicture48(): Board {
-                return hexPictureFromString('RGRYGBRBYBYYYRYRYRYGBYGY');
-              }
+                            /**
+                             * 第 48 关：双色——垂直方向第二、第三竖列以及左下、右下各两个三角形为红色，其余为蓝色。
+                             * 列2（5,6,7,8,9,10,11）+ 列3（12,13,14,15,16,17,18）
+                             * + 左下（2,4）+ 右下（22,23）= 红
+                             * 其余（0,1,3,19,20,21）= 蓝
+                             */
+                            export function createSolvedHexPicture48(): Board {
+                              return hexPictureFromString('BBRBRRRRRRRRRRRRRRRBBBRR');
+                            }
 
-              /** 第 49 关：四色花瓣（G/R/Y/B，24 三角形） */
-              export function createSolvedHexPicture49(): Board {
-                return hexPictureFromString('GRBYRYBRBYGGGBYGRBYRYGRB');
-              }
+                            /**
+                             * 第 49 关：三色——中心六边形为红色，垂直方向第一、第四竖列为黄色，其余为蓝色。
+                             * 中心六边形（7,8,10,13,15,16）= 红
+                             * 列1（0,1,2,3,4）+ 列4（19,20,21,22,23）= 黄
+                             * 其余（5,6,9,11,12,14,17,18）= 蓝
+                             */
+                            export function createSolvedHexPicture49(): Board {
+                              return hexPictureFromString('YYYYYBBRRBRBBRBRRBBYYYYY');
+                            }
 
-              /** 第 50 关：四色几何菱花（G/R/Y/B，24 三角形） */
-              export function createSolvedHexPicture50(): Board {
-                return hexPictureFromString('GYYRRBRYYYBGGBRYYRBYRYRG');
-              }
+                            /**
+                             * 第 50 关：四色——按垂直方向分为 4 个竖列，分别为红、黄、蓝、绿。
+                             * 列1（0,1,2,3,4）= 红
+                             * 列2（5,6,7,8,9,10,11）= 黄
+                             * 列3（12,13,14,15,16,17,18）= 蓝
+                             * 列4（19,20,21,22,23）= 绿
+                             */
+                            export function createSolvedHexPicture50(): Board {
+                              return hexPictureFromString('RRRRRYYYYYYYBBBBBBBGGGGG');
+                            }
 
               /** 深拷贝棋盘 */
 export function cloneBoard(board: Board): Board {
