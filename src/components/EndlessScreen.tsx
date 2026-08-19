@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BoardViewRouter as BoardView } from './BoardView';
 import { RotationDirectionSwitch } from './RotationDirectionSwitch';
 import { SwapButton } from './SwapButton';
 import { useGame } from '../hooks/useGame';
 import { getTopologyEntry } from '../core/goals';
 import { generateRandomPuzzle } from '../core/generator';
-import { QuadrantUniformGoal } from '../core/goals';
+import { QuadrantUniformGoal, HexUniformGoal } from '../core/goals';
 import type { Board, Level } from '../core/types';
 import type { EndlessKind } from '../App';
 
@@ -13,39 +13,75 @@ import type { EndlessKind } from '../App';
 const ENDLESS_CONFIG: Record<EndlessKind, { topologyKind: string; scramble: number }> = {
   '4x4': { topologyKind: 'square-4x4', scramble: 30 },
   '6x6': { topologyKind: 'square-6x6', scramble: 60 },
+  'hex-small': { topologyKind: 'hex-small-triangle', scramble: 20 },
+  'hex-triangle': { topologyKind: 'hex-triangle', scramble: 60 },
 };
 
 /** localStorage key 前缀 */
 const LS_PREFIX = 'rotrix:endless:';
 
-function loadBest(kind: EndlessKind): number {
-  try {
-    const v = localStorage.getItem(LS_PREFIX + kind);
-    return v ? parseInt(v, 10) || 0 : 0;
-  } catch {
-    return 0;
-  }
+/** 格式化时间为 MM:SS */
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function saveBest(kind: EndlessKind, val: number): void {
+/** 读取无尽模式历史统计 */
+function loadCleared(kind: EndlessKind): number {
   try {
-    localStorage.setItem(LS_PREFIX + kind, String(val));
-  } catch {
-    // localStorage 不可用时静默
-  }
+    const v = localStorage.getItem(LS_PREFIX + kind + ':cleared')
+      || localStorage.getItem(LS_PREFIX + kind) // 兼容旧版
+      || '0';
+    return parseInt(v, 10) || 0;
+  } catch { return 0; }
+}
+
+function loadBestTime(kind: EndlessKind): number {
+  try {
+    const v = localStorage.getItem(LS_PREFIX + kind + ':bestTime');
+    return v ? parseInt(v, 10) || 0 : 0;
+  } catch { return 0; }
+}
+
+function loadBestSteps(kind: EndlessKind): number {
+  try {
+    const v = localStorage.getItem(LS_PREFIX + kind + ':bestSteps');
+    return v ? parseInt(v, 10) || 0 : 0;
+  } catch { return 0; }
+}
+
+function saveCleared(kind: EndlessKind, val: number): void {
+  try {
+    localStorage.setItem(LS_PREFIX + kind + ':cleared', String(val));
+    localStorage.setItem(LS_PREFIX + kind, String(val)); // 兼容旧版
+  } catch { /* ignore */ }
+}
+
+function saveBestTime(kind: EndlessKind, val: number): void {
+  try {
+    localStorage.setItem(LS_PREFIX + kind + ':bestTime', String(val));
+  } catch { /* ignore */ }
+}
+
+function saveBestSteps(kind: EndlessKind, val: number): void {
+  try {
+    localStorage.setItem(LS_PREFIX + kind + ':bestSteps', String(val));
+  } catch { /* ignore */ }
 }
 
 /** 生成一个无尽模式关卡 */
 function createEndlessLevel(kind: EndlessKind): Level {
   const { topologyKind, scramble } = ENDLESS_CONFIG[kind];
   const gen = generateRandomPuzzle(topologyKind, scramble);
+  const isHex = topologyKind === 'hex-small-triangle' || topologyKind === 'hex-triangle';
   return {
     id: Date.now(),
     name: `无尽 ${kind}`,
     difficulty: gen.difficulty,
     topologyKind,
     initial: gen.initial,
-    goal: new QuadrantUniformGoal(),
+    goal: isHex ? new HexUniformGoal() : new QuadrantUniformGoal(),
     solution: gen.solution,
     scramble,
   };
@@ -58,12 +94,17 @@ interface EndlessScreenProps {
 
 /**
  * v0.6.2：无尽模式游戏页面视觉重设计。
+ * v0.9.0：新增计时器与统计追踪（已通过关数、最短时间、最短步数）。
  * 固定 375×667 画布，与闯关模式游戏页面布局一致。
  */
 export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
   const [level, setLevel] = useState<Level>(() => createEndlessLevel(kind));
-  const [cleared, setCleared] = useState(0);
-  const [best, setBest] = useState(() => loadBest(kind));
+  const [cleared, setCleared] = useState(() => loadCleared(kind));
+  const [bestTime, setBestTime] = useState(() => loadBestTime(kind));
+  const [bestSteps, setBestSteps] = useState(() => loadBestSteps(kind));
+  // v0.9.0：计时器——当前关卡已用秒数
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const game = useGame(level, 0, false, () => false);
   const solvedBoard = useMemo<Board>(
@@ -71,30 +112,94 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
     [level.topologyKind],
   );
 
+  // v0.9.0：金币
+  const [coins] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('rotrix:coins') || '0', 10) || 0;
+    } catch { return 0; }
+  });
+
   // v0.2.3 fix: level 变化时重置游戏状态
   useEffect(() => {
     game.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
+  // v0.9.0：计时器——每秒更新，赢后停止
+  useEffect(() => {
+    if (game.won) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+    } else {
+      if (!timerRef.current) {
+        timerRef.current = setInterval(() => {
+          setElapsed((s) => s + 1);
+        }, 1000);
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [game.won]);
+
   // 切换 kind 时重新生成
   useEffect(() => {
     setLevel(createEndlessLevel(kind));
-    setCleared(0);
-    setBest(loadBest(kind));
+    setCleared(loadCleared(kind));
+    setBestTime(loadBestTime(kind));
+    setBestSteps(loadBestSteps(kind));
+    setElapsed(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind]);
 
-  // 通关后 +1 并生成下一题
+  // 通关后 +1 并生成下一题，记录最佳成绩
   const handleNext = useCallback(() => {
     const newCleared = cleared + 1;
+    const steps = game.moveCount;
+    const time = elapsed;
     setCleared(newCleared);
-    if (newCleared > best) {
-      setBest(newCleared);
-      saveBest(kind, newCleared);
+    saveCleared(kind, newCleared);
+
+    // 更新最短步数
+    if (bestSteps === 0 || steps < bestSteps) {
+      setBestSteps(steps);
+      saveBestSteps(kind, steps);
     }
+
+    // 更新最短时间
+    if (bestTime === 0 || time < bestTime) {
+      setBestTime(time);
+      saveBestTime(kind, time);
+    }
+
+    setElapsed(0);
     setLevel(createEndlessLevel(kind));
-  }, [cleared, best, kind]);
+  }, [cleared, bestSteps, bestTime, kind, game.moveCount, elapsed]);
+
+  // 重置时重置计时器
+  const handleReset = useCallback(() => {
+    game.reset();
+    setElapsed(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game]);
+
+  // 胜利弹窗中点击"返回"——先保存当前关卡成绩再返回
+  const handleWinBack = useCallback(() => {
+    const newCleared = cleared + 1;
+    const steps = game.moveCount;
+    const time = elapsed;
+    saveCleared(kind, newCleared);
+    if (bestSteps === 0 || steps < bestSteps) {
+      saveBestSteps(kind, steps);
+    }
+    if (bestTime === 0 || time < bestTime) {
+      saveBestTime(kind, time);
+    }
+    onBack();
+  }, [cleared, bestSteps, bestTime, kind, game.moveCount, elapsed, onBack]);
 
   return (
     <div className="game-screen-v6">
@@ -118,7 +223,7 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
           <use href="#pz4" x="235" y="543" fill="#F2B4F3" opacity="0.65" transform="rotate(-12, 275, 578)" />
         </svg>
 
-        {/* ===== 顶部行：返回按钮 | 步数 | 无尽标签 ===== */}
+        {/* ===== 第一行：返回 | 金币 | 4x4矩阵无尽 ===== */}
         <div className="gs-back-btn" onClick={onBack}>
           <div className="gs-back-outer">
             <div className="gs-back-inner">
@@ -131,18 +236,49 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
           </div>
         </div>
 
-        <div className="gs-step-counter">
-          <div className="gs-step-outer">
-            <div className="gs-step-inner">
-              <span className="gs-step-text">步数 {game.moveCount}</span>
+        {/* 金币（第一行中间） */}
+        <div className="es-coin-display">
+          <div className="es-coin-outer">
+            <div className="es-coin-inner">
+              <img className="gs-coin-icon" src="/coin.png" alt="金币" />
+              <span className="gs-coin-text">{coins}</span>
             </div>
           </div>
         </div>
 
-        <div className="gs-level-label" style={{ width: '112px', left: '248px' }}>
-          <div className="gs-level-outer">
-            <div className="gs-level-inner">
-              <span className="gs-level-text">无尽 {kind}</span>
+        {/* 模式全称（第一行右侧） */}
+        <div className="es-mode-fullname">
+          <div className="es-mode-fullname-outer">
+            <div className="es-mode-fullname-inner">
+              <span className="es-mode-fullname-text">{kind === '4x4' ? '4×4 矩阵' : kind === '6x6' ? '6×6 矩阵' : kind === 'hex-small' ? '小型三角' : '大型三角'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== 第二行：左侧大第1关 | 右侧步数（上）+ 时间（下）居中 ===== */}
+        {/* 第1关（大，占满第二行高度） */}
+        <div className="es-level-badge">
+          <div className="es-level-badge-outer">
+            <div className="es-level-badge-inner">
+              <span className="es-level-badge-text">第 {cleared + 1} 关</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 步数（第1关右侧上方） */}
+        <div className="es-steps-badge">
+          <div className="es-steps-badge-outer">
+            <div className="es-steps-badge-inner">
+              <span className="es-steps-badge-text">{game.moveCount} 步</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 时间（第1关右侧下方） */}
+        <div className="es-time-badge">
+          <div className="es-time-badge-outer">
+            <div className="es-time-badge-inner">
+              <span className="es-time-badge-text">{formatTime(elapsed)}</span>
             </div>
           </div>
         </div>
@@ -212,7 +348,7 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
                 disabled={game.won}
                 onClick={game.toggleSwapMode}
               />
-              <button className="gs-reset-btn" onClick={game.reset}>
+              <button className="gs-reset-btn" onClick={handleReset}>
                 重置
               </button>
             </div>
@@ -225,14 +361,14 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
             <div className="win-card">
               <h2 className="win-title">🎉 通关！</h2>
               <p className="win-stats">
-                无尽 {kind} · 第 {cleared + 1} 关 · 用了 {game.moveCount} 步
+                {kind === '4x4' ? '4×4 矩阵' : kind === '6x6' ? '6×6 矩阵' : kind === 'hex-small' ? '小型三角' : '大型三角'} · 第 {cleared + 1} 关 · 用了 {game.moveCount} 步 · {formatTime(elapsed)}
               </p>
               <div className="win-actions">
                 <button className="btn primary" onClick={handleNext}>
                   下一题 →
                 </button>
-                <button className="btn" onClick={() => game.reset()}>
-                  再玩一次
+                <button className="btn" onClick={handleWinBack}>
+                  返回
                 </button>
               </div>
             </div>

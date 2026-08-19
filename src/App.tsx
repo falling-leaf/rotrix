@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StartScreen } from './components/StartScreen';
 import { EndlessScreen } from './components/EndlessScreen';
+import { EndlessSelectScreen } from './components/EndlessSelectScreen';
 import { LevelSelectScreen } from './components/LevelSelectScreen';
 import { GameScreen } from './components/GameScreen';
 import { useProgress, computeStars } from './hooks/useProgress';
 import { getLevel } from './levels/levels';
 
 /** 无尽模式子类型 */
-export type EndlessKind = '4x4' | '6x6';
+export type EndlessKind = '4x4' | '6x6' | 'hex-small' | 'hex-triangle';
 
 /** localStorage key：是否已询问过新手教程 */
 const LS_TUTORIAL_ASKED = 'rotrix:tutorial:asked';
 
 /**
  * v0.5.0：App 重构为四态视图状态机。
- * - start:       初始界面（闯关模式 / 4x4 无尽 / 6x6 无尽）
+ * v0.9.0：无尽模式改为单入口，选择页分离。
+ * - start:       初始界面（闯关模式 / 无尽模式）
+ * - endlessSelect: 无尽模式选择（4x4 矩阵 / 6x6 矩阵）
  * - levelSelect: 关卡选择界面（50 格 + 逐关解锁）
  * - playing:     游戏关卡界面（带返回选关按钮）
- * - endless:     无尽模式
+ * - endless:     无尽模式（继承所选 kind）
  *
  * 闯关流程：
  *   start → levelSelect → playing（选关）→ 胜利弹窗 → 下一关 / 返回选关
@@ -26,10 +29,26 @@ const LS_TUTORIAL_ASKED = 'rotrix:tutorial:asked';
  *   首次进入第 1 关 → 弹窗询问是否需要教程 → 是→playing(0)→教程完成→playing(1)
  *                                                    否→playing(1)
  */
+/** 读取无尽模式统计 */
+function loadEndlessStats(kind: EndlessKind) {
+  const prefix = 'rotrix:endless:' + kind;
+  try {
+    const cleared = parseInt(localStorage.getItem(prefix + ':cleared')
+      || localStorage.getItem(prefix) || '0', 10) || 0;
+    const bestTime = parseInt(localStorage.getItem(prefix + ':bestTime') || '0', 10) || 0;
+    const bestSteps = parseInt(localStorage.getItem(prefix + ':bestSteps') || '0', 10) || 0;
+    return { cleared, bestTime, bestSteps };
+  } catch {
+    return { cleared: 0, bestTime: 0, bestSteps: 0 };
+  }
+}
+
 export function App() {
   const [view, setView] = useState<View>({ mode: 'start' });
-  const [best4x4, setBest4x4] = useState(0);
-  const [best6x6, setBest6x6] = useState(0);
+  const [endlessStats4x4, setEndlessStats4x4] = useState(() => loadEndlessStats('4x4'));
+  const [endlessStats6x6, setEndlessStats6x6] = useState(() => loadEndlessStats('6x6'));
+  const [endlessStatsHexSmall, setEndlessStatsHexSmall] = useState(() => loadEndlessStats('hex-small'));
+  const [endlessStatsHexTri, setEndlessStatsHexTri] = useState(() => loadEndlessStats('hex-triangle'));
   const { completed, stars, markCompleted } = useProgress();
   // v0.5.0：新手教程询问弹窗
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
@@ -53,15 +72,13 @@ export function App() {
     }
   }, [coins]);
 
-  // 进入初始界面时读取无尽模式历史最佳
+  // 进入初始界面时读取无尽模式统计
   useEffect(() => {
     if (view.mode === 'start') {
-      try {
-        setBest4x4(parseInt(localStorage.getItem('rotrix:endless:4x4') || '0', 10) || 0);
-        setBest6x6(parseInt(localStorage.getItem('rotrix:endless:6x6') || '0', 10) || 0);
-      } catch {
-        // localStorage 不可用
-      }
+      setEndlessStats4x4(loadEndlessStats('4x4'));
+      setEndlessStats6x6(loadEndlessStats('6x6'));
+      setEndlessStatsHexSmall(loadEndlessStats('hex-small'));
+      setEndlessStatsHexTri(loadEndlessStats('hex-triangle'));
     }
   }, [view]);
 
@@ -128,10 +145,8 @@ export function App() {
   if (view.mode === 'start') {
     return (
       <StartScreen
-        bestScore4x4={best4x4}
-        bestScore6x6={best6x6}
         onStart={() => setView({ mode: 'levelSelect' })}
-        onEndless={(kind) => setView({ mode: 'endless', kind })}
+        onEndless={() => setView({ mode: 'endlessSelect' })}
         developerMode={developerMode}
         onToggleDeveloperMode={() => setDeveloperMode((d) => !d)}
         onResetCache={handleResetCache}
@@ -209,12 +224,27 @@ export function App() {
     );
   }
 
+  // endlessSelect 模式——选择 4x4 / 6x6 / 小型三角 / 大型三角
+  if (view.mode === 'endlessSelect') {
+    return (
+      <EndlessSelectScreen
+        stats4x4={endlessStats4x4}
+        stats6x6={endlessStats6x6}
+        statsHexSmall={endlessStatsHexSmall}
+        statsHexTri={endlessStatsHexTri}
+        onSelect={(kind) => setView({ mode: 'endless', kind })}
+        onBack={() => setView({ mode: 'start' })}
+      />
+    );
+  }
+
   // endless 模式
   return <EndlessScreen kind={view.kind} onBack={() => setView({ mode: 'start' })} />;
 }
 
 type View =
   | { mode: 'start' }
+  | { mode: 'endlessSelect' }
   | { mode: 'levelSelect' }
   | { mode: 'playing'; levelId: number }
   | { mode: 'endless'; kind: EndlessKind };

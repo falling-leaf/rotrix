@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import type { EndlessKind } from '../App';
 
 interface StartScreenProps {
   onStart: (mode: 'campaign') => void;
-  onEndless: (kind: EndlessKind) => void;
-  /** 无尽模式历史最高通关数 */
-  bestScore4x4: number;
-  bestScore6x6: number;
+  onEndless: () => void;
   /** v0.5.1：开发者模式——所有关卡解锁，始终提示新手教程 */
   developerMode: boolean;
   onToggleDeveloperMode: () => void;
@@ -16,11 +12,12 @@ interface StartScreenProps {
 
 /**
  * v0.6.0：首页视觉重设计。
+ * v0.9.0：无尽模式改为单入口，选择页分离。
  * 固定 375×667 画布，缩放适配屏幕。
  * 设计参考：docs/v0.6.0_homepage_design.svg
  */
 export function StartScreen({
-  onStart, onEndless, bestScore4x4, bestScore6x6, developerMode, onToggleDeveloperMode, onResetCache,
+  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache,
 }: StartScreenProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -79,24 +76,11 @@ export function StartScreen({
           </div>
         </button>
 
-        <button className="mode-btn" style={{ top: '397px' }} onClick={() => onEndless('4x4')}>
+        <button className="mode-btn" style={{ top: '397px' }} onClick={onEndless}>
           <div className="mode-btn-outer">
             <div className="mode-btn-inner">
               <div className="mode-btn-fill">
-                <span className="mode-btn-label">4x4 无尽</span>
-                <span className="mode-btn-sub">最佳：{bestScore4x4} 关</span>
-                <span className="btn-highlight" />
-              </div>
-            </div>
-          </div>
-        </button>
-
-        <button className="mode-btn" style={{ top: '544px' }} onClick={() => onEndless('6x6')}>
-          <div className="mode-btn-outer">
-            <div className="mode-btn-inner">
-              <div className="mode-btn-fill">
-                <span className="mode-btn-label">6x6 无尽</span>
-                <span className="mode-btn-sub">最佳：{bestScore6x6} 关</span>
+                <span className="mode-btn-label">无尽模式</span>
                 <span className="btn-highlight" />
               </div>
             </div>

@@ -255,6 +255,88 @@ html, body, #root {
   background: rgba(255,255,255,0.35);
 }
 
+/* ===== 无尽模式选择按钮 ===== */
+.endless-select-btn {
+  position: absolute;
+  left: 53px;
+  width: 270px;
+  height: 110px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 3;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.endless-select-btn:active {
+  transform: scale(0.96);
+}
+
+.endless-select-btn-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 54px;
+  background: #ffffff;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.endless-select-btn-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 46px;
+  background: #B69B08;
+  padding: 7px;
+  box-sizing: border-box;
+}
+
+.endless-select-btn-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  background: #FFD30D;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.endless-select-btn-icon {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.endless-select-btn-label {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.endless-select-btn-sub {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #8B7D10;
+  position: absolute;
+  bottom: 10px;
+  right: 16px;
+  z-index: 1;
+}
+
 /* ===== 开发者模式开关 ===== */
 .dev-toggle {
   position: absolute;
@@ -1900,9 +1982,9 @@ button, .knob, .level-chip, .btn {
 /* ===== 选关面板（深紫色圆角矩形） ===== */
 .ls-panel {
   position: absolute;
-  left: 27px;
+  left: 20px;
   top: 178px;
-  width: 321px;
+  width: 335px;
   height: 430px;
   z-index: 1;
 }
@@ -2062,6 +2144,98 @@ button, .knob, .level-chip, .btn {
   height: 28px;
 }
 
+/* ===== v0.9.0 无尽模式选择——4 行垂直排列 ===== */
+.es-row {
+  position: absolute;
+  left: 10px;
+  width: 315px;
+  height: 86px;
+  z-index: 2;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.es-row:active {
+  transform: scale(0.96);
+}
+
+.es-row-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: #FFFFFF;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+.es-row-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 13px;
+  background: #FFD30A;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 14px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.es-row-name {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-right: 14px;
+}
+
+.es-row-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.es-row-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.es-row-stat-label {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: #2d3748;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.es-row-stat-val {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.es-row-stat-unit {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #8B7D10;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
 /* ===================== v0.6.2 游戏页面视觉重设计 ===================== */
 .game-screen-v6 {
   position: fixed;
@@ -2132,6 +2306,41 @@ button, .knob, .level-chip, .btn {
   line-height: 1;
 }
 
+/* ===== 闯关模式关卡标签 ===== */
+.gs-level-label {
+  position: absolute;
+  left: 260px;
+  top: 10px;
+  width: 88px;
+  height: 33px;
+  z-index: 3;
+}
+.gs-level-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+.gs-level-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gs-level-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
 /* ===== 金币显示 v0.8.1：替换原来步数位置 ===== */
 .gs-coin-display {
   position: absolute;
@@ -2174,16 +2383,123 @@ button, .knob, .level-chip, .btn {
   line-height: 1;
 }
 
-/* ===== 关卡标签 v0.8.0：上移至 top:10 ===== */
-.gs-level-label {
+/* ===== v0.9.0 无尽模式顶部：第一行 返回|金币|模式名 | 第二行 大第1关|步数+时间 ===== */
+
+/* 第1关徽章（第二行左侧，大，居中） */
+.es-level-badge {
   position: absolute;
-  left: 260px;
+  left: 98px;
+  top: 43px;
+  width: 95px;
+  height: 65px;
+  z-index: 3;
+}
+.es-level-badge-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 3px;
+  box-sizing: border-box;
+}
+.es-level-badge-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  background: #E052ED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-level-badge-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* 步数徽章（第1关右侧上方，居中） */
+.es-steps-badge {
+  position: absolute;
+  left: 207px;
+  top: 47px;
+  width: 70px;
+  height: 28px;
+  z-index: 3;
+}
+.es-steps-badge-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+.es-steps-badge-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-steps-badge-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+/* 时间徽章（第1关右侧下方，居中） */
+.es-time-badge {
+  position: absolute;
+  left: 207px;
+  top: 78px;
+  width: 70px;
+  height: 28px;
+  z-index: 3;
+}
+.es-time-badge-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+.es-time-badge-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-time-badge-text {
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+/* 金币显示（第一行中间） */
+.es-coin-display {
+  position: absolute;
+  left: 135px;
   top: 10px;
-  width: 88px;
+  width: 70px;
   height: 33px;
   z-index: 3;
 }
-.gs-level-outer {
+.es-coin-outer {
   width: 100%;
   height: 100%;
   border-radius: 10px;
@@ -2191,7 +2507,36 @@ button, .knob, .level-chip, .btn {
   padding: 2px;
   box-sizing: border-box;
 }
-.gs-level-inner {
+.es-coin-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: #DF4BEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 4px;
+}
+
+/* 模式全称（第一行右侧） */
+.es-mode-fullname {
+  position: absolute;
+  left: 220px;
+  top: 10px;
+  width: 135px;
+  height: 33px;
+  z-index: 3;
+}
+.es-mode-fullname-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #FFFFFF;
+  padding: 2px;
+  box-sizing: border-box;
+}
+.es-mode-fullname-inner {
   width: 100%;
   height: 100%;
   border-radius: 8px;
@@ -2200,13 +2545,14 @@ button, .knob, .level-chip, .btn {
   align-items: center;
   justify-content: center;
 }
-.gs-level-text {
+.es-mode-fullname-text {
   font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #FFFFFF;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* ===== v0.8.0：星级进度条 ===== */
