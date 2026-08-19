@@ -3,6 +3,7 @@ import { isLevelUnlocked } from '../hooks/useProgress';
 
 interface LevelSelectScreenProps {
   completed: Set<number>;
+  stars: Record<number, number>;
   onSelect: (levelId: number) => void;
   onBack: () => void;
   developerMode: boolean;
@@ -56,12 +57,41 @@ function LevelCell({ id, cleared }: { id: number; cleared: boolean }) {
 }
 
 /**
+ * 单颗星 SVG（14×14，viewBox 16×16，白色轮廓）。
+ * 三颗星 + 2×2px 间隙 = 14+2+14+2+14 = 46px，等于关卡方框宽度。
+ */
+function Star({ filled }: { filled: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M8 1l2.472 5.008 5.528.804-4 3.9.944 5.504L8 12.26 3.056 16.216 4 10.712 0 6.812l5.528-.804z"
+        fill={filled ? '#FFD30A' : '#D9A0E0'}
+        stroke="white"
+        strokeWidth="0.8"
+      />
+    </svg>
+  );
+}
+
+/** 三星条（三颗星水平排列，filledCount 控制点亮前几颗） */
+function StarBar({ filledCount }: { filledCount: number }) {
+  return (
+    <div className="level-star-bar">
+      <Star filled={filledCount >= 1} />
+      <Star filled={filledCount >= 2} />
+      <Star filled={filledCount >= 3} />
+    </div>
+  );
+}
+
+/**
  * v0.7.0：选关界面美术设计重构。
  * 设计参考：docs/v0.7.0_level-select_design.svg
  * 固定 375×667 画布，缩放适配屏幕。
+ * v0.8.0：新增星级评定——每关下方显示三颗星，白色轮廓，14px 完美嵌入 46px 方框。
  */
 export function LevelSelectScreen({
-  completed, onSelect, onBack, developerMode,
+  completed, stars, onSelect, onBack, developerMode,
 }: LevelSelectScreenProps) {
   const [page, setPage] = useState(0);
   const isFirstPage = page === 0;
@@ -121,6 +151,7 @@ export function LevelSelectScreen({
               const cy = gridRows[row];
               const unlocked = isLevelUnlocked(id, completed, developerMode);
               const cleared = completed.has(id);
+              const starCount = stars[id] ?? 0;
 
               return (
                 <div
@@ -135,7 +166,23 @@ export function LevelSelectScreen({
                   onClick={() => unlocked && onSelect(id)}
                 >
                   {unlocked ? (
-                    <LevelCell id={id} cleared={cleared} />
+                    <>
+                      <LevelCell id={id} cleared={cleared} />
+                      {/* v0.8.0：星级显示——仅已通关关卡显示星星，与关卡方框下界重叠 */}
+                      {cleared && (
+                        <div
+                          className="ls-star-container"
+                          style={{
+                            position: 'absolute',
+                            bottom: -7,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                          }}
+                        >
+                          <StarBar filledCount={starCount} />
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <LockIcon />
                   )}

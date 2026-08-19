@@ -3,7 +3,8 @@ import { StartScreen } from './components/StartScreen';
 import { EndlessScreen } from './components/EndlessScreen';
 import { LevelSelectScreen } from './components/LevelSelectScreen';
 import { GameScreen } from './components/GameScreen';
-import { useProgress } from './hooks/useProgress';
+import { useProgress, computeStars } from './hooks/useProgress';
+import { getLevel } from './levels/levels';
 
 /** 无尽模式子类型 */
 export type EndlessKind = '4x4' | '6x6';
@@ -29,7 +30,7 @@ export function App() {
   const [view, setView] = useState<View>({ mode: 'start' });
   const [best4x4, setBest4x4] = useState(0);
   const [best6x6, setBest6x6] = useState(0);
-  const { completed, markCompleted } = useProgress();
+  const { completed, stars, markCompleted } = useProgress();
   // v0.5.0：新手教程询问弹窗
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
   // v0.5.1：开发者模式——调试用，最终版本删除
@@ -104,6 +105,7 @@ export function App() {
       <>
         <LevelSelectScreen
           completed={completed}
+          stars={stars}
           onSelect={handleSelectLevel}
           onBack={() => setView({ mode: 'start' })}
           developerMode={developerMode}
@@ -136,7 +138,12 @@ export function App() {
       <GameScreen
         key={view.levelId}
         levelId={view.levelId}
-        onWin={markCompleted}
+        onWin={(levelId, moveCount) => {
+          // v0.8.0：计算星级并与通关状态一起保存
+          const level = getLevel(levelId);
+          const starCount = level ? computeStars(level.scramble, moveCount, level.topologyKind) : 1;
+          markCompleted(levelId, starCount);
+        }}
         onBack={() => setView({ mode: 'levelSelect' })}
         onNext={(nextId) => setView({ mode: 'playing', levelId: nextId })}
         onTutorialComplete={() => setView({ mode: 'playing', levelId: 1 })}

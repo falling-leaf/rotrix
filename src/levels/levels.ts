@@ -175,6 +175,7 @@ export function getLevels(): Level[] {
         goal,
         solution: gen.solution,
         solvedBoard, // 图案关卡携带目标棋盘供 App 预览
+        scramble: spec.scramble,
       };
     }
     if (spec.topologyKind === 'square-8x8-picture') {
@@ -191,6 +192,7 @@ export function getLevels(): Level[] {
         goal,
         solution: gen.solution,
         solvedBoard,
+        scramble: spec.scramble,
               };
             }
             if (spec.topologyKind === 'hex-small-triangle-picture') {
@@ -207,6 +209,7 @@ export function getLevels(): Level[] {
                 goal,
                 solution: gen.solution,
                 solvedBoard,
+                scramble: spec.scramble,
               };
             }
             if (spec.topologyKind === 'square-4x4-icon') {
@@ -225,6 +228,7 @@ export function getLevels(): Level[] {
                             goal,
                             solution: gen.solution,
                             solvedBoard,
+                            scramble: spec.scramble,
                           };
                         }
                         if (spec.topologyKind === 'square-6x6-icon') {
@@ -241,6 +245,7 @@ export function getLevels(): Level[] {
                             goal,
                             solution: gen.solution,
                             solvedBoard,
+                            scramble: spec.scramble,
                           };
                         }
             // v0.2.1：一行调用，无需重复访问注册表/RNG
@@ -262,6 +267,7 @@ export function getLevels(): Level[] {
       initial: gen.initial,
       goal,
       solution: gen.solution,
+      scramble: spec.scramble,
     };
   });
 

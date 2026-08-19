@@ -1963,6 +1963,16 @@ button, .knob, .level-chip, .btn {
   line-height: 1;
 }
 
+/* v0.8.0：星级条——三颗星水平排列，14px 星星 + 2px 间隙 = 46px 对齐方框宽度 */
+.level-star-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
 /* ===== 底部导航按钮 ===== */
 .ls-nav-btn {
   position: absolute;
@@ -2031,11 +2041,11 @@ button, .knob, .level-chip, .btn {
   transform-origin: center center;
 }
 
-/* ===== 顶部返回按钮（复用选关页风格） ===== */
+/* ===== 顶部返回按钮（复用选关页风格）v0.8.0：上移至 top:10 ===== */
 .gs-back-btn {
   position: absolute;
   left: 27px;
-  top: 48px;
+  top: 10px;
   width: 107px;
   height: 33px;
   z-index: 3;
@@ -2081,11 +2091,11 @@ button, .knob, .level-chip, .btn {
   line-height: 1;
 }
 
-/* ===== 步数显示 ===== */
+/* ===== 步数显示 v0.8.0：上移至 top:10 ===== */
 .gs-step-counter {
   position: absolute;
   left: 155px;
-  top: 48px;
+  top: 10px;
   width: 84px;
   height: 33px;
   z-index: 3;
@@ -2116,11 +2126,11 @@ button, .knob, .level-chip, .btn {
   line-height: 1;
 }
 
-/* ===== 关卡标签 ===== */
+/* ===== 关卡标签 v0.8.0：上移至 top:10 ===== */
 .gs-level-label {
   position: absolute;
   left: 260px;
-  top: 48px;
+  top: 10px;
   width: 88px;
   height: 33px;
   z-index: 3;
@@ -2149,6 +2159,16 @@ button, .knob, .level-chip, .btn {
   color: #FFFFFF;
   letter-spacing: 2px;
   line-height: 1;
+}
+
+/* ===== v0.8.0：星级进度条 ===== */
+.gs-star-bar-wrapper {
+  position: absolute;
+  left: 27px;
+  top: 48px;
+  width: 321px;
+  height: 42px;
+  z-index: 3;
 }
 
 /* ===== 操作地图面板 ===== */

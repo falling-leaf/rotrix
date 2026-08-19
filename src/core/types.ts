@@ -106,6 +106,8 @@ export interface Level {
   /** v0.4.2：图案关卡的目标棋盘（可选，用于预览渲染。
    * 非图案关卡为 undefined，App 从注册表 defaultSolvedBoard 获取。 */
   solvedBoard?: Board;
+  /** v0.8.0：打乱步数，用于星级评定阈值计算 */
+  scramble: number;
 }
 
 /** 生成结果 */

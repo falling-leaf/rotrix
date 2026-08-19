@@ -47,6 +47,7 @@ function createEndlessLevel(kind: EndlessKind): Level {
     initial: gen.initial,
     goal: new QuadrantUniformGoal(),
     solution: gen.solution,
+    scramble,
   };
 }
 
