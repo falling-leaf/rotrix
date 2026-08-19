@@ -35,6 +35,23 @@ export function App() {
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
   // v0.5.1：开发者模式——调试用，最终版本删除
   const [developerMode, setDeveloperMode] = useState(false);
+  // v0.8.1：金币
+  const [coins, setCoins] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('rotrix:coins') || '0', 10) || 0;
+    } catch { return 0; }
+  });
+  // v0.8.1：本次通关获得的金币数（用于胜利弹窗展示）
+  const [coinsEarned, setCoinsEarned] = useState(0);
+
+  // v0.8.1：金币持久化
+  useEffect(() => {
+    try {
+      localStorage.setItem('rotrix:coins', String(coins));
+    } catch {
+      // localStorage 不可用时静默
+    }
+  }, [coins]);
 
   // 进入初始界面时读取无尽模式历史最佳
   useEffect(() => {
@@ -64,6 +81,27 @@ export function App() {
     }
     setView({ mode: 'playing', levelId });
   }, [developerMode]);
+
+  // v0.8.1：清空所有缓存
+  const handleResetCache = useCallback(() => {
+    try {
+      // 清除所有 rotrix: 前缀的 localStorage 缓存
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('rotrix:')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      // 重置状态
+      setCoins(0);
+      // 重新加载——刷新页面使 useProgress 等 hook 重新读取 localStorage
+      window.location.reload();
+    } catch {
+      // localStorage 不可用时静默
+    }
+  }, []);
 
   // v0.5.0：教程询问弹窗——是
   const handleTutorialYes = useCallback(() => {
@@ -96,6 +134,7 @@ export function App() {
         onEndless={(kind) => setView({ mode: 'endless', kind })}
         developerMode={developerMode}
         onToggleDeveloperMode={() => setDeveloperMode((d) => !d)}
+        onResetCache={handleResetCache}
       />
     );
   }
@@ -138,15 +177,34 @@ export function App() {
       <GameScreen
         key={view.levelId}
         levelId={view.levelId}
+        coins={coins}
+        coinsEarned={coinsEarned}
+        developerMode={developerMode}
         onWin={(levelId, moveCount) => {
           // v0.8.0：计算星级并与通关状态一起保存
           const level = getLevel(levelId);
-          const starCount = level ? computeStars(level.scramble, moveCount, level.topologyKind) : 1;
+          if (!level) return;
+          const starCount = computeStars(level.scramble, moveCount, level.topologyKind);
+          // v0.8.1：金币获取——通过一关获得星级数×20，重复通关若星级提升则追加差额
+          const prevStarCount = stars[levelId] ?? 0;
+          let earned = 0;
+          if (starCount > prevStarCount) {
+            earned = (starCount - prevStarCount) * 20;
+            setCoins((c) => c + earned);
+          }
+          setCoinsEarned(earned);
           markCompleted(levelId, starCount);
         }}
         onBack={() => setView({ mode: 'levelSelect' })}
         onNext={(nextId) => setView({ mode: 'playing', levelId: nextId })}
         onTutorialComplete={() => setView({ mode: 'playing', levelId: 1 })}
+        onBuySwap={() => {
+          if (coins >= 100) {
+            setCoins((c) => c - 100);
+            return true;
+          }
+          return false;
+        }}
       />
     );
   }

@@ -10,10 +10,14 @@ import { computeStars, getStarThresholds } from '../hooks/useProgress';
 
 interface GameScreenProps {
   levelId: number;
+  coins: number;
+  coinsEarned: number;
+  developerMode: boolean;
   onWin: (levelId: number, moveCount: number) => void;
   onBack: () => void;
   onNext: (nextLevelId: number) => void;
   onTutorialComplete: () => void;
+  onBuySwap: () => boolean;
 }
 
 /**
@@ -49,20 +53,12 @@ function StarProgressBar({
   // 三颗星的点亮状态
   const star3Filled = moveCount <= threshold3;  // 绿色阈值下方——未到则亮
   const star2Filled = moveCount <= threshold2;  // 黄色阈值下方——未到则亮
-  const star1Filled = true;                     // 红色阈值（末尾）——始终亮
 
   return (
     <div className="gs-star-bar-wrapper">
       <svg width={barWidth} height="42" viewBox={`0 0 ${barWidth} 42`} fill="none">
         <defs>
-          {/* 14px 星星路径（白色轮廓） */}
-          <g id="star-gs">
-            <path
-              d="M8 1l2.472 5.008 5.528.804-4 3.9.944 5.504L8 12.26 3.056 16.216 4 10.712 0 6.812l5.528-.804z"
-              stroke="white"
-              strokeWidth="0.8"
-            />
-          </g>
+          {/* 14px 星星路径（白色轮廓）——v0.8.1 改用 star.png */}
         </defs>
 
         {/* 背景轨道 */}
@@ -81,13 +77,34 @@ function StarProgressBar({
         {/* 当前位置圆点 */}
         <circle cx={posCurrent} cy="10" r="4" fill="white" stroke={zoneColor} strokeWidth="1.5" />
 
-        {/* 三颗星——各在阈值下方 */}
+        {/* 三颗星——各在阈值下方，v0.8.1 改用 star.png */}
         {/* 星星 3：绿色阈值下方 */}
-        <use href="#star-gs" x={pos3 - 8} y="24" fill={star3Filled ? '#FFD30A' : '#D9A0E0'} />
+        <image
+          href="/star.png"
+          x={pos3 - 8}
+          y="22"
+          width="16"
+          height="16"
+          style={{ opacity: star3Filled ? 1 : 0.3 }}
+        />
         {/* 星星 2：黄色阈值下方 */}
-        <use href="#star-gs" x={pos2 - 8} y="24" fill={star2Filled ? '#FFD30A' : '#D9A0E0'} />
+        <image
+          href="/star.png"
+          x={pos2 - 8}
+          y="22"
+          width="16"
+          height="16"
+          style={{ opacity: star2Filled ? 1 : 0.3 }}
+        />
         {/* 星星 1：红色阈值（末尾）下方 */}
-        <use href="#star-gs" x={barWidth - 24} y="24" fill={star1Filled ? '#FFD30A' : '#D9A0E0'} />
+        <image
+          href="/star.png"
+          x={barWidth - 24}
+          y="22"
+          width="16"
+          height="16"
+          style={{ opacity: 1 }}
+        />
       </svg>
     </div>
   );
@@ -99,11 +116,12 @@ function StarProgressBar({
  * 移动端布局：操作地图在上，目标地图和金币并列，对换和重置在底部。
  * PC 端也显示为移动端版面。
  * v0.8.0：顶部栏上移，新增星级进度条。
+ * v0.8.1：步数移至进度条下方，原位置显示金币。
  */
-export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete }: GameScreenProps) {
+export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, onBack, onNext, onTutorialComplete, onBuySwap }: GameScreenProps) {
   const levels = getLevels();
   const level = levels.find((l) => l.id === levelId) ?? levels[0];
-  const game = useGame(level);
+  const game = useGame(level, coins, developerMode, onBuySwap);
   const solvedBoard = useMemo(
     () =>
       level.solvedBoard ?? getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
@@ -229,7 +247,7 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
           <use href="#pz4" x="235" y="543" fill="#F2B4F3" opacity="0.65" transform="rotate(-12, 275, 578)" />
         </svg>
 
-        {/* ===== 顶部行：返回按钮 | 步数 | 关卡标签（v0.8.0：上移留出星级进度条空间） ===== */}
+        {/* ===== 顶部行：返回按钮 | 金币 | 关卡标签 ===== */}
         <div className="gs-back-btn" onClick={onBack}>
           <div className="gs-back-outer">
             <div className="gs-back-inner">
@@ -242,10 +260,11 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
           </div>
         </div>
 
-        <div className="gs-step-counter">
-          <div className="gs-step-outer">
-            <div className="gs-step-inner">
-              <span className="gs-step-text">{game.moveCount}</span>
+        <div className="gs-coin-display">
+          <div className="gs-coin-outer">
+            <div className="gs-coin-inner">
+              <img className="gs-coin-icon" src="/coin.png" alt="金币" />
+              <span className="gs-coin-text">{coins}</span>
             </div>
           </div>
         </div>
@@ -260,12 +279,22 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
 
         {/* ===== v0.8.0：星级进度条（非教程关卡显示） ===== */}
         {!isTutorial && (
-                  <StarProgressBar
-                    scramble={level.scramble}
-                    moveCount={game.moveCount}
-                    topologyKind={level.topologyKind}
-                  />
-                )}
+          <StarProgressBar
+            scramble={level.scramble}
+            moveCount={game.moveCount}
+            topologyKind={level.topologyKind}
+          />
+        )}
+
+        {/* ===== v0.8.1：步数显示——进度条下方，第一颗星星左侧 ===== */}
+        <div className="gs-step-counter-below">
+          <div className="gs-step-below-outer">
+            <div className="gs-step-below-inner">
+              <span className="gs-step-below-label">步数</span>
+              <span className="gs-step-below-text">{game.moveCount}</span>
+            </div>
+          </div>
+        </div>
 
         {/* ===== 操作地图面板 ===== */}
         <div className="gs-board-panel">
@@ -330,6 +359,9 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
               <SwapButton
                 active={game.swapMode}
                 swapsLeft={game.swapsLeft}
+                swapCost={game.swapCost}
+                coins={coins}
+                developerMode={developerMode}
                 disabled={game.won || tutorialDisableControls}
                 onClick={game.toggleSwapMode}
               />
@@ -363,6 +395,12 @@ export function GameScreen({ levelId, onWin, onBack, onNext, onTutorialComplete 
               <p className="win-stats">
                 第 {level.id} 关 · 用了 {game.moveCount} 步 · 获得{computeStars(level.scramble, game.moveCount, level.topologyKind)}星
               </p>
+              {coinsEarned > 0 && (
+                <p className="win-coins">
+                  <img className="win-coin-icon" src="/coin.png" alt="" />
+                  +{coinsEarned} 金币
+                </p>
+              )}
               <div className="win-actions">
                 {isTutorial ? (
                   <button className="btn primary" onClick={onTutorialComplete}>

@@ -65,7 +65,7 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
   const [cleared, setCleared] = useState(0);
   const [best, setBest] = useState(() => loadBest(kind));
 
-  const game = useGame(level);
+  const game = useGame(level, 0, false, () => false);
   const solvedBoard = useMemo<Board>(
     () => getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
     [level.topologyKind],
@@ -206,6 +206,9 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
               <SwapButton
                 active={game.swapMode}
                 swapsLeft={game.swapsLeft}
+                swapCost={game.swapCost}
+                coins={0}
+                developerMode={false}
                 disabled={game.won}
                 onClick={game.toggleSwapMode}
               />

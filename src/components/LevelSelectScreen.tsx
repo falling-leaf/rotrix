@@ -57,19 +57,18 @@ function LevelCell({ id, cleared }: { id: number; cleared: boolean }) {
 }
 
 /**
- * 单颗星 SVG（14×14，viewBox 16×16，白色轮廓）。
+ * 单颗星——v0.8.1 改用 star.png
  * 三颗星 + 2×2px 间隙 = 14+2+14+2+14 = 46px，等于关卡方框宽度。
  */
 function Star({ filled }: { filled: boolean }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M8 1l2.472 5.008 5.528.804-4 3.9.944 5.504L8 12.26 3.056 16.216 4 10.712 0 6.812l5.528-.804z"
-        fill={filled ? '#FFD30A' : '#D9A0E0'}
-        stroke="white"
-        strokeWidth="0.8"
-      />
-    </svg>
+    <img
+      src="/star.png"
+      width="14"
+      height="14"
+      alt="★"
+      style={{ opacity: filled ? 1 : 0.3, display: 'block' }}
+    />
   );
 }
 

@@ -20,8 +20,9 @@ export interface SwapAnimationState {
   indexB: number;
 }
 
-/** v0.3.5：对换道具每关可用次数 */
-const MAX_SWAPS = 3;
+/** v0.3.5：对换道具每关可用次数（v0.8.1：5次免费，之后使用金币购买） */
+const MAX_FREE_SWAPS = 5;
+const SWAP_COST = 100;
 
 /**
  * v0.2.1：庆祝动画状态。
@@ -43,7 +44,7 @@ const CELEBRATE_DURATION = 1400;
  * 修复：用 ref 存储动画状态，所有 state setter 在顶层独立调用，
  * 不嵌套在任何 updater body 内。
  */
-export function useGame(level: Level) {
+export function useGame(level: Level, coins: number, developerMode: boolean, onBuySwap: () => boolean) {
   // v0.2.0：从拓扑注册表按 level.topologyKind 动态获取拓扑，
   // 不再硬编码 square4x4()，支持 6x6 等新拓扑。
   const topology = useMemo<Topology>(
@@ -74,7 +75,7 @@ export function useGame(level: Level) {
   const [swapMode, setSwapMode] = useState(false);
   const [swapSelection, setSwapSelection] = useState<number | null>(null);
   const [swapAnimating, setSwapAnimating] = useState<SwapAnimationState | null>(null);
-  const [swapsLeft, setSwapsLeft] = useState(MAX_SWAPS);
+  const [swapsLeft, setSwapsLeft] = useState(MAX_FREE_SWAPS);
   // 用 ref 存动画状态，避免在 updater body 内嵌套 setState
   const animatingRef = useRef<AnimationState | null>(null);
   // v0.3.5：swapAnimating 的 ref，供 onSwapAnimationEnd 读取
@@ -112,18 +113,19 @@ export function useGame(level: Level) {
 
   /**
    * v0.3.5：进入/退出对换模式。
-   * 进入条件：非动画、非已胜利、剩余次数 > 0。
-   * 退出时清除当前选择。切换自身会清除 swapSelection。
+   * v0.8.1：免费次数用完后可使用金币购买（100金币/次），开发者模式无限使用。
    */
   const toggleSwapMode = useCallback(() => {
-    if (won || animatingRef.current || swapsLeft <= 0) return;
+    if (won || animatingRef.current) return;
     if (swapAnimatingRef.current) return;
+    // 检查是否可以用对换：有免费次数 / 开发者模式 / 金币足够
+    if (swapsLeft <= 0 && !developerMode && coins < SWAP_COST) return;
     setSwapMode((m) => {
       const next = !m;
       if (!next) setSwapSelection(null);
       return next;
     });
-  }, [won, swapsLeft]);
+  }, [won, swapsLeft, developerMode, coins]);
 
   /**
    * v0.3.5：用户在操作地图上点击了一个格子。
@@ -189,6 +191,7 @@ export function useGame(level: Level) {
    * v0.3.5：对换动画结束后调用：交换两个格子的颜色，提交棋盘，判定胜利。
    * 与旋转动画 onAnimationEnd 同模式——所有 setState 在顶层独立调用。
    * 不增加 moveCount（对换是道具，不计步数），但消耗一次 swapsLeft。
+   * v0.8.1：免费次数用完后消费金币购买对换。
    */
   const onSwapAnimationEnd = useCallback(() => {
     const current = swapAnimatingRef.current;
@@ -203,9 +206,16 @@ export function useGame(level: Level) {
       setWon(true);
       setCelebrating(true);
     }
-    setSwapsLeft((n) => Math.max(0, n - 1));
+    // 免费次数用完则扣金币
+    if (swapsLeft <= 0) {
+      if (!developerMode) {
+        onBuySwap();
+      }
+    } else {
+      setSwapsLeft((n) => Math.max(0, n - 1));
+    }
     setSwapAnimating(null);
-  }, [level, topology, board]);
+  }, [level, topology, board, swapsLeft, developerMode, onBuySwap]);
 
   const reset = useCallback(() => {
     animatingRef.current = null;
@@ -223,7 +233,7 @@ export function useGame(level: Level) {
     setSwapMode(false);
     setSwapSelection(null);
     setSwapAnimating(null);
-    setSwapsLeft(MAX_SWAPS);
+    setSwapsLeft(MAX_FREE_SWAPS);
   }, [level]);
 
   // v0.2.1：庆祝动画自动清除——celebrating 置 true 后，
@@ -258,5 +268,8 @@ export function useGame(level: Level) {
     toggleSwapMode,
     handleCellClick,
     onSwapAnimationEnd,
+    // v0.8.1：对换道具常量
+    swapCost: SWAP_COST,
+    isDeveloperMode: developerMode,
   };
 }

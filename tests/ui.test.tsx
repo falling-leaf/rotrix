@@ -18,7 +18,7 @@ describe('BoardView 组件渲染', () => {
   it('渲染 16 个色块和 9 个旋钮', () => {
     const level = getLevel(1)!;
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       return (
         <BoardView
           board={game.board}
@@ -55,7 +55,7 @@ describe('BoardView 组件渲染', () => {
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       capturedGame = game;
       return (
         <BoardView
@@ -104,7 +104,7 @@ describe('BoardView 组件渲染', () => {
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       capturedGame = game;
       return (
         <BoardView
@@ -152,7 +152,7 @@ describe('BoardView 组件渲染', () => {
     // v0.2.0：6x6 网格渲染测试；v0.2.1：6x6 关卡移至第 11 关
     const level = getLevel(11)!;
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       return (
         <BoardView
           board={game.board}
@@ -172,7 +172,7 @@ describe('BoardView 组件渲染', () => {
   it('六边形棋盘渲染 54 三角形和 19 旋钮', () => {
     const level = getLevel(41)!;
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       return (
         <BoardViewRouter
           board={game.board}
@@ -193,7 +193,7 @@ describe('BoardView 组件渲染', () => {
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       capturedGame = game;
       return (
         <BoardViewRouter
@@ -245,7 +245,7 @@ describe('BoardView 组件渲染', () => {
   it('六边形简单版棋盘渲染 24 三角形和 7 旋钮', () => {
     const level = getLevel(36)!;
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       return (
         <BoardViewRouter
           board={game.board}
@@ -266,7 +266,7 @@ describe('BoardView 组件渲染', () => {
     let capturedGame: ReturnType<typeof useGame> | null = null;
 
     const Wrapper = () => {
-      const game = useGame(level);
+      const game = useGame(level, 0, false, () => false);
       capturedGame = game;
       return (
         <BoardViewRouter
@@ -319,7 +319,7 @@ describe('BoardView 组件渲染', () => {
     it('默认旋转方向为 CW', () => {
       const level = getLevel(1)!;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         return (
           <BoardView
             board={game.board}
@@ -343,7 +343,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -374,7 +374,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -425,7 +425,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -482,11 +482,11 @@ describe('BoardView 组件渲染', () => {
 
   // v0.3.5：对换道具测试
   describe('v0.3.5 对换道具', () => {
-    it('初始状态：对换模式关闭，剩余次数为 3', () => {
+    it('初始状态：对换模式关闭，剩余次数为 5', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -505,7 +505,7 @@ describe('BoardView 组件渲染', () => {
       };
       render(<Wrapper />);
       expect(capturedGame!.swapMode).toBe(false);
-      expect(capturedGame!.swapsLeft).toBe(3);
+      expect(capturedGame!.swapsLeft).toBe(5);
       expect(capturedGame!.swapSelection).toBeNull();
       expect(capturedGame!.swapAnimating).toBeNull();
     });
@@ -514,7 +514,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -550,7 +550,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -585,7 +585,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -654,7 +654,7 @@ describe('BoardView 组件渲染', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -691,7 +691,7 @@ describe('BoardView 组件渲染', () => {
       });
       rerender(<Wrapper />);
 
-      expect(capturedGame!.swapsLeft).toBe(2);
+      expect(capturedGame!.swapsLeft).toBe(4);
 
       // 重置
       act(() => {
@@ -702,14 +702,14 @@ describe('BoardView 组件渲染', () => {
       expect(capturedGame!.swapMode).toBe(false);
       expect(capturedGame!.swapSelection).toBeNull();
       expect(capturedGame!.swapAnimating).toBeNull();
-      expect(capturedGame!.swapsLeft).toBe(3);
+      expect(capturedGame!.swapsLeft).toBe(5);
     });
 
     it('次数耗尽后无法激活对换模式', () => {
       const level = getLevel(1)!;
       let capturedGame: ReturnType<typeof useGame> | null = null;
       const Wrapper = () => {
-        const game = useGame(level);
+        const game = useGame(level, 0, false, () => false);
         capturedGame = game;
         return (
           <BoardView
@@ -728,8 +728,8 @@ describe('BoardView 组件渲染', () => {
       };
       const { rerender } = render(<Wrapper />);
 
-      // 消耗 3 次对换
-      for (let i = 0; i < 3; i++) {
+      // 消耗 5 次对换
+      for (let i = 0; i < 5; i++) {
         act(() => {
           capturedGame!.toggleSwapMode();
         });

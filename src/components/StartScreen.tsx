@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { EndlessKind } from '../App';
 
 interface StartScreenProps {
@@ -9,6 +10,8 @@ interface StartScreenProps {
   /** v0.5.1：开发者模式——所有关卡解锁，始终提示新手教程 */
   developerMode: boolean;
   onToggleDeveloperMode: () => void;
+  /** v0.8.1：清空缓存 */
+  onResetCache: () => void;
 }
 
 /**
@@ -17,8 +20,10 @@ interface StartScreenProps {
  * 设计参考：docs/v0.6.0_homepage_design.svg
  */
 export function StartScreen({
-  onStart, onEndless, bestScore4x4, bestScore6x6, developerMode, onToggleDeveloperMode,
+  onStart, onEndless, bestScore4x4, bestScore6x6, developerMode, onToggleDeveloperMode, onResetCache,
 }: StartScreenProps) {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   return (
     <div className="start-screen-v6">
       <div className="start-canvas">
@@ -105,6 +110,49 @@ export function StartScreen({
           </div>
           <span className="dev-toggle-label">开发者模式</span>
         </div>
+
+        {/* ===== v0.8.1：清空缓存按钮（右下角） ===== */}
+        <div className="gs-reset-cache-btn" onClick={() => setShowResetConfirm(true)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            {/* 重置/刷新图标 */}
+            <path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8h-2c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v2l4-3-4-3v2z" fill="#FFFFFF" />
+          </svg>
+        </div>
+
+        {/* ===== v0.8.1：清空缓存确认弹窗 ===== */}
+        {showResetConfirm && (
+          <div className="win-overlay" onClick={() => setShowResetConfirm(false)}>
+            <div className="win-card" style={{ borderColor: '#F44336' }}>
+              <h2 className="win-title" style={{ color: '#F44336', fontSize: '32px' }}>
+                ⚠️ 清空缓存
+              </h2>
+              <p className="win-stats">
+                确定要清空所有缓存数据吗？<br />
+                这将删除所有关卡通关记录、星级评定和金币数据。<br />
+                <strong>此操作不可恢复！</strong>
+              </p>
+              <div className="win-actions">
+                <button
+                  className="btn primary"
+                  style={{ background: '#F44336', borderColor: '#F44336' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onResetCache();
+                    setShowResetConfirm(false);
+                  }}
+                >
+                  确认清空
+                </button>
+                <button className="btn" onClick={(e) => {
+                  e.stopPropagation();
+                  setShowResetConfirm(false);
+                }}>
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
