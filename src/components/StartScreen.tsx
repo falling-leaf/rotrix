@@ -8,6 +8,8 @@ interface StartScreenProps {
   onToggleDeveloperMode: () => void;
   /** v0.8.1：清空缓存 */
   onResetCache: () => void;
+  /** v0.8.3：成就 */
+  onAchievements: () => void;
 }
 
 /**
@@ -17,7 +19,7 @@ interface StartScreenProps {
  * 设计参考：docs/v0.6.0_homepage_design.svg
  */
 export function StartScreen({
-  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache,
+  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache, onAchievements,
 }: StartScreenProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -101,6 +103,18 @@ export function StartScreen({
             {/* 重置/刷新图标 */}
             <path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8h-2c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v2l4-3-4-3v2z" fill="#FFFFFF" />
           </svg>
+        </div>
+
+        {/* ===== v0.8.3：成就入口按钮（左下角，紫色胶囊） ===== */}
+        <div className="gs-ach-home-btn" onClick={onAchievements}>
+          <div className="gs-ach-home-outer">
+            <div className="gs-ach-home-inner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C10.9 2 10 2.9 10 4v1H6C4.9 5 4 5.9 4 7v1c0 2.21 1.79 4 4 4h.42c.75 1.76 2.36 3 4.25 3.44V18H10c-1.1 0-2 .9-2 2v1h8v-1c0-1.1-.9-2-2-2h-2.67v-2.56c1.88-.44 3.5-1.68 4.25-3.44H16c2.21 0 4-1.79 4-4V7c0-1.1-.9-2-2-2h-4V4c0-1.1-.9-2-2-2zM7 10.5c-1.1 0-2-.9-2-2V7h2v3.5zm10 0V7h2v1.5c0 1.1-.9 2-2 2z" fill="#FFFFFF" />
+              </svg>
+              <span className="gs-ach-home-label">成就</span>
+            </div>
+          </div>
         </div>
 
         {/* ===== v0.8.1：清空缓存确认弹窗 ===== */}

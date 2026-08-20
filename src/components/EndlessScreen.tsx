@@ -90,6 +90,8 @@ function createEndlessLevel(kind: EndlessKind): Level {
 interface EndlessScreenProps {
   kind: EndlessKind;
   onBack: () => void;
+  /** v0.8.3：对换使用回调——记录成就用 */
+  onSwapUsed?: () => void;
 }
 
 /**
@@ -97,7 +99,7 @@ interface EndlessScreenProps {
  * v0.9.0：新增计时器与统计追踪（已通过关数、最短时间、最短步数）。
  * 固定 375×667 画布，与闯关模式游戏页面布局一致。
  */
-export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
+export function EndlessScreen({ kind, onBack, onSwapUsed }: EndlessScreenProps) {
   const [level, setLevel] = useState<Level>(() => createEndlessLevel(kind));
   const [cleared, setCleared] = useState(() => loadCleared(kind));
   const [bestTime, setBestTime] = useState(() => loadBestTime(kind));
@@ -106,7 +108,7 @@ export function EndlessScreen({ kind, onBack }: EndlessScreenProps) {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const game = useGame(level, 0, false, () => false);
+  const game = useGame(level, 0, false, () => false, onSwapUsed);
   const solvedBoard = useMemo<Board>(
     () => getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
     [level.topologyKind],

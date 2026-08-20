@@ -44,7 +44,7 @@ const CELEBRATE_DURATION = 1400;
  * 修复：用 ref 存储动画状态，所有 state setter 在顶层独立调用，
  * 不嵌套在任何 updater body 内。
  */
-export function useGame(level: Level, coins: number, developerMode: boolean, onBuySwap: () => boolean) {
+export function useGame(level: Level, coins: number, developerMode: boolean, onBuySwap: () => boolean, onFreeSwap?: () => void) {
   // v0.2.0：从拓扑注册表按 level.topologyKind 动态获取拓扑，
   // 不再硬编码 square4x4()，支持 6x6 等新拓扑。
   const topology = useMemo<Topology>(
@@ -214,8 +214,10 @@ export function useGame(level: Level, coins: number, developerMode: boolean, onB
     } else {
       setSwapsLeft((n) => Math.max(0, n - 1));
     }
+    // v0.8.3：记录对换使用（成就统计）
+    onFreeSwap?.();
     setSwapAnimating(null);
-  }, [level, topology, board, swapsLeft, developerMode, onBuySwap]);
+  }, [level, topology, board, swapsLeft, developerMode, onBuySwap, onFreeSwap]);
 
   const reset = useCallback(() => {
     animatingRef.current = null;

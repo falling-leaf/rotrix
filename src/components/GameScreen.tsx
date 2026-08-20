@@ -18,6 +18,8 @@ interface GameScreenProps {
   onNext: (nextLevelId: number) => void;
   onTutorialComplete: () => void;
   onBuySwap: () => boolean;
+  /** v0.8.3：免费对换——记录成就用 */
+  onFreeSwap?: () => void;
 }
 
 /**
@@ -118,10 +120,10 @@ function StarProgressBar({
  * v0.8.0：顶部栏上移，新增星级进度条。
  * v0.8.1：步数移至进度条下方，原位置显示金币。
  */
-export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, onBack, onNext, onTutorialComplete, onBuySwap }: GameScreenProps) {
+export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, onBack, onNext, onTutorialComplete, onBuySwap, onFreeSwap }: GameScreenProps) {
   const levels = getLevels();
   const level = levels.find((l) => l.id === levelId) ?? levels[0];
-  const game = useGame(level, coins, developerMode, onBuySwap);
+  const game = useGame(level, coins, developerMode, onBuySwap, onFreeSwap);
   const solvedBoard = useMemo(
     () =>
       level.solvedBoard ?? getTopologyEntry(level.topologyKind).defaultSolvedBoard(),
