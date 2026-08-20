@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BoardViewRouter as BoardView } from './BoardView';
 import { RotationDirectionSwitch } from './RotationDirectionSwitch';
 import { SwapButton } from './SwapButton';
-import { TutorialGuide, type TutorialPose } from './TutorialGuide';
-import { useGame } from '../hooks/useGame';
+import { TutorialGuide, type TutorialPose, type GuidePosition } from './TutorialGuide';
+import { useGame, type SwapAnimationState } from '../hooks/useGame';
 import { getLevels } from '../levels/levels';
 import { getTopologyEntry } from '../core/goals';
 import { computeStars, getStarThresholds } from '../hooks/useProgress';
@@ -132,6 +132,8 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
 
   // 教程步骤
   const [tutorialStep, setTutorialStep] = useState(0);
+  // v0.9.0：教程完成——引导消失，露出胜利弹窗
+  const [tutorialDone, setTutorialDone] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
   const directionSwitchRef = useRef<HTMLDivElement>(null);
 
@@ -139,11 +141,14 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
     game.reset();
     if (levelId === 0) {
       setTutorialStep(0);
+      setTutorialDone(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelId]);
 
-  // 教程步骤自动推进
+  // v0.9.0：教程步骤自动推进（含对换动画和重置检测）
+  const prevSwapAnimatingRef = useRef<SwapAnimationState | null>(null);
+  const prevMoveCountRef = useRef(0);
   useEffect(() => {
     if (levelId !== 0) return;
     if (tutorialStep === 1 && game.rotationDirection === 'CCW') {
@@ -152,19 +157,33 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
     if (tutorialStep === 2 && game.moveCount >= 1) {
       setTutorialStep(3);
     }
-    if (tutorialStep === 3 && game.won) {
+    if (tutorialStep === 3 && game.swapMode) {
       setTutorialStep(4);
     }
-  }, [levelId, tutorialStep, game.rotationDirection, game.moveCount, game.won]);
+    // 对换动画结束后（从非 null 变为 null）前进
+    if (tutorialStep === 4 && prevSwapAnimatingRef.current !== null && game.swapAnimating === null) {
+      setTutorialStep(5);
+    }
+    // 重置后（moveCount 从 >0 变为 0）前进
+    if (tutorialStep === 5 && prevMoveCountRef.current > 0 && game.moveCount === 0) {
+      setTutorialStep(6);
+    }
+    if (tutorialStep === 6 && game.won) {
+      setTutorialStep(7);
+    }
+    prevSwapAnimatingRef.current = game.swapAnimating;
+    prevMoveCountRef.current = game.moveCount;
+  }, [levelId, tutorialStep, game.rotationDirection, game.moveCount, game.won, game.swapMode, game.swapAnimating]);
 
   const handleTutorialBubbleClick = useCallback(() => {
     if (levelId !== 0) return;
     if (tutorialStep === 0) {
       setTutorialStep(1);
-    } else if (tutorialStep === 4) {
-      onTutorialComplete();
+    } else if (tutorialStep === 6) {
+      // 点击"继续" → 引导全部消失，用户自由拼图，胜利后走正常弹窗
+      setTutorialDone(true);
     }
-  }, [levelId, tutorialStep, onTutorialComplete]);
+  }, [levelId, tutorialStep]);
 
   // 通关时通知父组件
   useEffect(() => {
@@ -184,10 +203,20 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
   const isTutorial = levelId === 0;
   const isLastLevel = levelId === 51;
 
-  // 教程步骤对应的禁用状态
-  const tutorialDisableKnobs = isTutorial && (tutorialStep === 0 || tutorialStep === 1 || tutorialStep === 4);
-  const tutorialDisableSwitch = isTutorial && (tutorialStep === 0 || tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 4);
-  const tutorialDisableControls = isTutorial;
+  // 教程步骤对应的禁用状态（v0.9.0：细分对换和重置按钮）
+  const tutorialDisableKnobs = isTutorial && [0, 1, 3, 4, 5, 7].includes(tutorialStep);
+  const tutorialDisableSwitch = isTutorial && [0, 2, 3, 4, 5, 7].includes(tutorialStep);
+  const tutorialDisableSwap = isTutorial && [0, 1, 2, 4, 5, 7].includes(tutorialStep);
+  const tutorialDisableReset = isTutorial && [0, 1, 2, 3, 4, 7].includes(tutorialStep);
+
+  // v0.9.0：引导定位——提及底部按钮（对换/重置）时移至顶部，避免覆盖
+  const guidePosition: GuidePosition = isTutorial && [3, 5].includes(tutorialStep) ? 'top' : 'bottom';
+
+  // v0.9.0：对换（3）和重置（5）步骤单独高亮对应按钮，其余部分暗化
+  const tutorialHighlightSwapButton = isTutorial && tutorialStep === 3;
+  const tutorialHighlightResetButton = isTutorial && tutorialStep === 5;
+  // v0.9.0：最后一步显示"→ 继续"提示
+  const tutorialNextHint = isTutorial && tutorialStep === 6 ? '→ 继续' : undefined;
 
   const tutorialConfig = useMemo(() => {
     if (levelId !== 0) return null;
@@ -199,29 +228,47 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
       showRotateIcon?: boolean;
     }> = [
       {
+        // Step 0：欢迎介绍（点气泡前进）
         pose: 'talk',
-        text: '你好呀！我是菲比。欢迎来到 Rotrix！\n目标很简单：把左边的大地图，转成右边目标地图的样子。\n每个象限都要变成同一种颜色哦！',
+        text: '你好！我是菲比。欢迎来到 Rotrix！\n目标：把上面的操作地图，转成下面目标地图的样子。\n颜色和图标都要完全一致哦！\n比如有图标图案的格子，也要转到对应位置！',
       },
       {
+        // Step 1：切换方向
         pose: 'talk',
-        text: '首先，看到这个金色的硬币开关了吗？\n点击它，把旋转方向切换成「逆时针 ↺」。',
+        text: '首先，点击这个金色开关，\n把旋转方向切换成「逆时针 ↺」。',
         highlightDirectionSwitch: true,
       },
       {
+        // Step 2：第一次旋转
         pose: 'talk',
-        text: '很好！现在点击右上角这个闪亮的旋钮，\n让它逆时针转一次。',
+        text: '很好！现在点击右上角这个旋钮，\n让它逆时针转一次。',
         highlightKnobId: 'K02',
         showRotateIcon: true,
       },
       {
-        pose: 'happy',
-        text: '太棒了！左上角已经变红了！\n接下来点击中间这个旋钮，再逆时针转一次。',
-        highlightKnobId: 'K11',
-        showRotateIcon: true,
+        // Step 3：进入对换模式
+        pose: 'talk',
+        text: '有时候你需要交换两个方块的位置。\n点击底部的「对换」按钮，进入对换模式。',
       },
       {
+        // Step 4：选择两个格子对换
+        pose: 'talk',
+        text: '现在点击两个颜色不同的方块，\n它们就会互换位置。试试看！',
+      },
+      {
+        // Step 5：重置操作
+        pose: 'normal',
+        text: '如果玩乱了，可以点击「重置」按钮\n重新开始。试试看！',
+      },
+      {
+        // Step 6：自由完成拼图
+        pose: 'talk',
+        text: '现在试试自己完成剩下的拼图吧！\n旋转和对换都可以用哦。',
+      },
+      {
+        // Step 7：完成（点气泡结束）
         pose: 'happy',
-        text: '完美！你成功了！🎉\n这就是 Rotrix 的基本玩法。接下来进入第 1 关，\n继续挑战吧！',
+        text: '完美！你学会了旋转、对换和重置三种操作！\n这些操作在所有玩法中都能用到。\n去第 1 关继续挑战吧！🎉',
       },
     ];
     return steps[tutorialStep] ?? steps[0];
@@ -358,16 +405,18 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
         <div className="gs-controls-panel">
           <div className="gs-controls-panel-outer">
             <div className="gs-controls-panel-inner">
+              <div data-tutorial-id="swap-btn">
               <SwapButton
                 active={game.swapMode}
                 swapsLeft={game.swapsLeft}
                 swapCost={game.swapCost}
                 coins={coins}
                 developerMode={developerMode}
-                disabled={game.won || tutorialDisableControls}
+                disabled={game.won || tutorialDisableSwap}
                 onClick={game.toggleSwapMode}
               />
-              <button className="gs-reset-btn" onClick={game.reset} disabled={tutorialDisableControls}>
+              </div>
+              <button className="gs-reset-btn" onClick={game.reset} disabled={tutorialDisableReset} data-tutorial-id="reset-btn">
                 重置
               </button>
             </div>
@@ -375,7 +424,7 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
         </div>
 
         {/* ===== 教程引导 ===== */}
-        {tutorialConfig && (
+        {tutorialConfig && !tutorialDone && (
           <TutorialGuide
             step={tutorialStep}
             pose={tutorialConfig.pose}
@@ -386,6 +435,10 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
             boardRef={boardRef}
             directionSwitchRef={directionSwitchRef}
             onBubbleClick={handleTutorialBubbleClick}
+            position={guidePosition}
+            highlightSwapButton={tutorialHighlightSwapButton}
+            highlightResetButton={tutorialHighlightResetButton}
+            nextHint={tutorialNextHint}
           />
         )}
 

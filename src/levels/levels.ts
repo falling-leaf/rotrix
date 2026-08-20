@@ -100,7 +100,7 @@ const LEVEL_SPECS: LevelSpec[] = [
   { id: 51, topologyKind: 'square-4x4-dice', scramble: 8, seed: 501 },
   // 第 0 关：新手教程（v0.4.5）——4x4 仅两次旋转即可通关，
   // 配合 TutorialGuide 组件逐步引导玩家学习旋转操作。
-  { id: 0,  topologyKind: 'square-4x4', scramble: 2, seed: 1 },
+  { id: 0,  topologyKind: 'square-4x4', scramble: 3, seed: 1 },
 ];
 
 let _cache: Level[] | null = null;

@@ -6,16 +6,25 @@ import poseNormal from '../../pics/normal_state.png';
 
 export type TutorialPose = 'talk' | 'happy' | 'wand' | 'normal';
 
+/** v0.9.0：引导定位——当提及底部按钮时移到顶部，避免覆盖 */
+export type GuidePosition = 'bottom' | 'top';
+
 interface TutorialGuideProps {
   step: number;
   pose: TutorialPose;
   text: string;
   highlightKnobId?: string | null;
   highlightDirectionSwitch?: boolean;
+  highlightSwapButton?: boolean;
+  highlightResetButton?: boolean;
   showRotateIcon?: boolean;
   boardRef: React.RefObject<HTMLDivElement>;
   directionSwitchRef?: React.RefObject<HTMLDivElement>;
   onBubbleClick?: () => void;
+  /** v0.9.0：自适应定位，避免覆盖被提及的 UI 元素 */
+  position?: GuidePosition;
+  /** v0.9.0：气泡底部提示文字（如"→ 继续"），仅在有值时显示 */
+  nextHint?: string;
 }
 
 const POSE_MAP: Record<TutorialPose, string> = {
@@ -37,15 +46,23 @@ export function TutorialGuide({
   text,
   highlightKnobId,
   highlightDirectionSwitch = false,
+  highlightSwapButton = false,
+  highlightResetButton = false,
   showRotateIcon = false,
   boardRef,
   directionSwitchRef,
   onBubbleClick,
+  position = 'bottom',
+  nextHint,
 }: TutorialGuideProps) {
   // 2x2 旋转区域（旋钮 + 周围四个色块）
   const [rotateAreaRect, setRotateAreaRect] = useState<DOMRect | null>(null);
   // 方向切换组件区域
   const [switchRect, setSwitchRect] = useState<DOMRect | null>(null);
+  // 对换按钮区域
+  const [swapBtnRect, setSwapBtnRect] = useState<DOMRect | null>(null);
+  // 重置按钮区域
+  const [resetBtnRect, setResetBtnRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     if (!boardRef.current) return;
@@ -87,12 +104,36 @@ export function TutorialGuide({
     } else {
       setSwitchRect(null);
     }
-  }, [highlightKnobId, highlightDirectionSwitch, boardRef, directionSwitchRef, step]);
+
+    // 对换按钮高亮
+    if (highlightSwapButton) {
+      const swapEl = document.querySelector('[data-tutorial-id="swap-btn"]');
+      if (swapEl) {
+        setSwapBtnRect(swapEl.getBoundingClientRect());
+      } else {
+        setSwapBtnRect(null);
+      }
+    } else {
+      setSwapBtnRect(null);
+    }
+
+    // 重置按钮高亮
+    if (highlightResetButton) {
+      const resetEl = document.querySelector('[data-tutorial-id="reset-btn"]');
+      if (resetEl) {
+        setResetBtnRect(resetEl.getBoundingClientRect());
+      } else {
+        setResetBtnRect(null);
+      }
+    } else {
+      setResetBtnRect(null);
+    }
+  }, [highlightKnobId, highlightDirectionSwitch, highlightSwapButton, highlightResetButton, boardRef, directionSwitchRef, step]);
 
   return (
     <>
       {/* 角色 + 气泡 */}
-      <div className="tutorial-guide">
+      <div className={`tutorial-guide position-${position}`}>
         <img
           src={POSE_MAP[pose]}
           alt="引导角色"
@@ -101,18 +142,18 @@ export function TutorialGuide({
         />
         <div className="tutorial-bubble" onClick={onBubbleClick}>
           <div className="tutorial-text">{text}</div>
-          {(step === 0 || step === 4) && (
-            <div className="tutorial-next-hint">点击继续 →</div>
+          {nextHint && (
+            <div className="tutorial-next-hint">{nextHint}</div>
           )}
         </div>
       </div>
 
-      {/* 全屏暗化遮罩：无高亮目标时（step 0 介绍/step 4 完成），整个界面暗化 */}
-      {!rotateAreaRect && !switchRect && (
+      {/* 全屏暗化遮罩：无任何高亮目标时显示 */}
+      {!rotateAreaRect && !switchRect && !swapBtnRect && !resetBtnRect && (
         <div className="tutorial-overlay-full" />
       )}
 
-      {/* 遮罩挖洞：暗色遮罩覆盖全屏，仅高亮区域（挖洞）露出组件本色 */}
+      {/* 遮罩挖洞：暗色遮罩覆盖全屏，仅高亮区域露出组件本色 */}
       {rotateAreaRect && (
         <div
           className="tutorial-overlay-hole"
@@ -138,6 +179,38 @@ export function TutorialGuide({
             top: switchRect.top - 8,
             width: switchRect.width + 16,
             height: switchRect.height + 16,
+            borderRadius: 14,
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+            zIndex: 999,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {swapBtnRect && (
+        <div
+          className="tutorial-overlay-hole"
+          style={{
+            position: 'fixed',
+            left: swapBtnRect.left - 8,
+            top: swapBtnRect.top - 8,
+            width: swapBtnRect.width + 16,
+            height: swapBtnRect.height + 16,
+            borderRadius: 14,
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+            zIndex: 999,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {resetBtnRect && (
+        <div
+          className="tutorial-overlay-hole"
+          style={{
+            position: 'fixed',
+            left: resetBtnRect.left - 8,
+            top: resetBtnRect.top - 8,
+            width: resetBtnRect.width + 16,
+            height: resetBtnRect.height + 16,
             borderRadius: 14,
             boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
             zIndex: 999,

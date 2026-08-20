@@ -939,6 +939,7 @@ button, .knob, .level-chip, .btn {
   padding: 32px 28px;
   text-align: center;
   animation: popIn 0.3s ease-out forwards;
+  width: 330px;
 }
 
 @keyframes popIn {
@@ -958,6 +959,7 @@ button, .knob, .level-chip, .btn {
   font-weight: 700;
   color: var(--color-green);
   margin-bottom: 8px;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .win-stats {
@@ -965,6 +967,8 @@ button, .knob, .level-chip, .btn {
   margin-bottom: 20px;
   /* v0.1.3：14px → 18px → 22px */
   font-size: 22px;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
 }
 
 .win-coins {
@@ -977,6 +981,7 @@ button, .knob, .level-chip, .btn {
   font-weight: 700;
   margin-bottom: 16px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 .win-coin-icon {
   width: 28px;
@@ -986,8 +991,14 @@ button, .knob, .level-chip, .btn {
 
 .win-actions {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   justify-content: center;
+  align-items: center;
+}
+.win-actions .btn {
+  white-space: nowrap;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Responsive
@@ -1472,6 +1483,7 @@ button, .knob, .level-chip, .btn {
   font-size: 14px;
   color: var(--accent);
   text-align: right;
+  padding-right: 8px;
   animation: tutorial-hint-blink 1.2s ease-in-out infinite;
 }
 
@@ -2936,6 +2948,22 @@ button, .knob, .level-chip, .btn {
   justify-content: center;
   gap: 8px;
   padding: 8px 12px;
+}
+/* v0.9.0：引导移至顶部——当提及底部按钮（对换/重置）时启用，避免覆盖 */
+.game-screen-v6 .tutorial-guide.position-top {
+  bottom: auto;
+  top: 0;
+  padding: 4px 12px;
+}
+.game-screen-v6 .tutorial-guide.position-top .tutorial-character {
+  width: 60px;
+}
+.game-screen-v6 .tutorial-guide.position-top .tutorial-bubble {
+  max-width: 70vw;
+  padding: 8px 12px;
+}
+.game-screen-v6 .tutorial-guide.position-top .tutorial-text {
+  font-size: 12px;
 }
 .game-screen-v6 .tutorial-character {
   width: 80px;
