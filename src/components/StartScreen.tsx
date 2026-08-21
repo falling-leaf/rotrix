@@ -3,6 +3,8 @@ import { useState } from 'react';
 interface StartScreenProps {
   onStart: (mode: 'campaign') => void;
   onEndless: () => void;
+  /** v0.9.0：拼图模式 */
+  onJigsaw: () => void;
   /** v0.5.1：开发者模式——所有关卡解锁，始终提示新手教程 */
   developerMode: boolean;
   onToggleDeveloperMode: () => void;
@@ -22,7 +24,7 @@ interface StartScreenProps {
  * 设计参考：docs/v0.6.0_homepage_design.svg
  */
 export function StartScreen({
-  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache, onAchievements, onOpenVolume,
+  onStart, onEndless, onJigsaw, developerMode, onToggleDeveloperMode, onResetCache, onAchievements, onOpenVolume,
 }: StartScreenProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -71,7 +73,7 @@ export function StartScreen({
         </div>
 
         {/* ===== 三个黄色胶囊按钮（1.5x） ===== */}
-        <button className="mode-btn" style={{ top: '250px' }} onClick={() => onStart('campaign')}>
+        <button className="mode-btn" style={{ top: '197px' }} onClick={() => onStart('campaign')}>
           <div className="mode-btn-outer">
             <div className="mode-btn-inner">
               <div className="mode-btn-fill">
@@ -82,11 +84,22 @@ export function StartScreen({
           </div>
         </button>
 
-        <button className="mode-btn" style={{ top: '397px' }} onClick={onEndless}>
+        <button className="mode-btn" style={{ top: '344px' }} onClick={onEndless}>
           <div className="mode-btn-outer">
             <div className="mode-btn-inner">
               <div className="mode-btn-fill">
                 <span className="mode-btn-label">无尽模式</span>
+                <span className="btn-highlight" />
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button className="mode-btn" style={{ top: '491px' }} onClick={onJigsaw}>
+          <div className="mode-btn-outer">
+            <div className="mode-btn-inner">
+              <div className="mode-btn-fill">
+                <span className="mode-btn-label">拼图模式</span>
                 <span className="btn-highlight" />
               </div>
             </div>

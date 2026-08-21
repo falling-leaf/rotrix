@@ -6,12 +6,15 @@ import { EndlessScreen } from './components/EndlessScreen';
 import { EndlessSelectScreen } from './components/EndlessSelectScreen';
 import { LevelSelectScreen } from './components/LevelSelectScreen';
 import { GameScreen } from './components/GameScreen';
+import { JigsawScreen } from './components/JigsawScreen';
+import { JigsawPlayScreen } from './components/JigsawPlayScreen';
 import { useProgress, computeStars } from './hooks/useProgress';
 import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
 import { VolumeControl } from './components/VolumeControl';
 import type { AchievementProgress } from './core/achievements';
 import { getLevel, getLevels } from './levels/levels';
+import { createJigsawState, saveJigsawState, loadJigsawState, type JigsawTileId, type JigsawState } from './core/jigsaw';
 
 /** 无尽模式子类型 */
 export type EndlessKind = '4x4' | '6x6' | 'hex-small' | 'hex-triangle';
@@ -105,8 +108,14 @@ export function App() {
   // v0.9.0：音频系统
   const audio = useAudio();
   const [showVolume, setShowVolume] = useState(false);
+  // v0.9.0：拼图模式状态（localStorage 持久化）
+  const [jigsawState, setJigsawState] = useState<JigsawState>(() => {
+    return loadJigsawState() ?? createJigsawState(8);
+  });
+  // v0.9.0：拼图模式——当前正在玩的区块 ID（null 表示在总览页面）
+  const [jigsawPlayingTile, setJigsawPlayingTile] = useState<JigsawTileId | null>(null);
 
-  // v0.8.1：金币持久化
+  // v0.9.0：金币持久化
   useEffect(() => {
     try {
       localStorage.setItem('rotrix:coins', String(coins));
@@ -114,6 +123,11 @@ export function App() {
       // localStorage 不可用时静默
     }
   }, [coins]);
+
+  // v0.9.0：拼图模式 state 持久化
+  useEffect(() => {
+    saveJigsawState(jigsawState);
+  }, [jigsawState]);
 
   // v0.8.4：成就解锁时发放金币奖励
   const prevUnlockedLenRef = useRef(0);
@@ -202,6 +216,9 @@ export function App() {
         <StartScreen
           onStart={() => setView({ mode: 'levelSelect' })}
           onEndless={() => setView({ mode: 'endlessSelect' })}
+          onJigsaw={() => {
+            setView({ mode: 'jigsaw' });
+          }}
           developerMode={developerMode}
           onToggleDeveloperMode={() => setDeveloperMode((d) => !d)}
           onResetCache={handleResetCache}
@@ -359,6 +376,69 @@ export function App() {
       );
     }
 
+    // v0.9.0：拼图模式——总览页面
+    if (view.mode === 'jigsaw') {
+      return (
+        <JigsawScreen
+          jigsawState={jigsawState}
+          onBack={() => setView({ mode: 'start' })}
+          onSelectTile={(tileId) => {
+            setJigsawPlayingTile(tileId);
+            setView({ mode: 'jigsawPlaying', tileId });
+          }}
+        />
+      );
+    }
+
+    // v0.9.0：拼图模式——单个区块玩法
+    if (view.mode === 'jigsawPlaying') {
+      const tile = jigsawState.tiles[view.tileId];
+      // 创建修改后的关卡，使用当前棋盘作为 initial（保留进度）
+      const modifiedLevel: typeof tile.level = {
+        ...tile.level,
+        initial: {
+          dims: [...tile.board.dims],
+          cells: tile.board.cells.map((c) => ({ ...c })),
+        },
+      };
+      return (
+        <JigsawPlayScreen
+          key={view.tileId}
+          tile={tile}
+          coins={coins}
+          modifiedLevel={modifiedLevel}
+          onBack={() => setView({ mode: 'jigsaw' })}
+          onTileComplete={(tileId, moveCount) => {
+            setJigsawState((prev) => {
+              const tiles = [...prev.tiles];
+              tiles[tileId] = {
+                ...tiles[tileId],
+                completed: true,
+                moveCount,
+              };
+              const allCompleted = tiles.every((t) => t.completed);
+              return { ...prev, tiles, allCompleted };
+            });
+          }}
+          onBoardChange={(tileId, board, moveCount) => {
+            setJigsawState((prev) => {
+              const tiles = [...prev.tiles];
+              tiles[tileId] = {
+                ...tiles[tileId],
+                board: {
+                  dims: [...board.dims],
+                  cells: board.cells.map((c) => ({ ...c })),
+                },
+                moveCount,
+              };
+              return { ...prev, tiles };
+            });
+          }}
+          onPlaySfx={audio.playSfx}
+        />
+      );
+    }
+
     // endless 模式
     return (
       <EndlessScreen
@@ -389,6 +469,7 @@ export function App() {
     showTutorialPrompt, achievements, audio.playSfx,
     endlessStats4x4, endlessStats6x6, endlessStatsHexSmall, endlessStatsHexTri,
     handleSelectLevel, handleResetCache, handleTutorialYes, handleTutorialNo,
+    jigsawState, jigsawPlayingTile,
   ]);
 
   return (
@@ -418,4 +499,6 @@ type View =
   | { mode: 'endlessSelect' }
   | { mode: 'levelSelect' }
   | { mode: 'playing'; levelId: number }
-  | { mode: 'endless'; kind: EndlessKind };
+  | { mode: 'endless'; kind: EndlessKind }
+  | { mode: 'jigsaw' }
+  | { mode: 'jigsawPlaying'; tileId: JigsawTileId };
