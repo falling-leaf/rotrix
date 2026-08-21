@@ -10,18 +10,22 @@ interface StartScreenProps {
   onResetCache: () => void;
   /** v0.8.3：成就 */
   onAchievements: () => void;
+  /** v0.9.0：音量 */
+  onOpenVolume: () => void;
 }
 
 /**
  * v0.6.0：首页视觉重设计。
  * v0.9.0：无尽模式改为单入口，选择页分离。
+ * v0.9.1：底部三个按钮合并为菜单按钮 + 上拉菜单。
  * 固定 375×667 画布，缩放适配屏幕。
  * 设计参考：docs/v0.6.0_homepage_design.svg
  */
 export function StartScreen({
-  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache, onAchievements,
+  onStart, onEndless, developerMode, onToggleDeveloperMode, onResetCache, onAchievements, onOpenVolume,
 }: StartScreenProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   return (
     <div className="start-screen-v6">
@@ -97,25 +101,39 @@ export function StartScreen({
           <span className="dev-toggle-label">开发者模式</span>
         </div>
 
-        {/* ===== v0.8.1：清空缓存按钮（右下角） ===== */}
-        <div className="gs-reset-cache-btn" onClick={() => setShowResetConfirm(true)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            {/* 重置/刷新图标 */}
-            <path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8h-2c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v2l4-3-4-3v2z" fill="#FFFFFF" />
+        {/* ===== v0.9.1：菜单按钮（左下角）——点击弹出上拉菜单 ===== */}
+        <div className="gs-menu-btn" onClick={() => setShowMenu(true)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 6h18M3 12h18M3 18h18" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
+          <span className="gs-menu-label">菜单</span>
         </div>
 
-        {/* ===== v0.8.3：成就入口按钮（左下角，紫色胶囊） ===== */}
-        <div className="gs-ach-home-btn" onClick={onAchievements}>
-          <div className="gs-ach-home-outer">
-            <div className="gs-ach-home-inner">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C10.9 2 10 2.9 10 4v1H6C4.9 5 4 5.9 4 7v1c0 2.21 1.79 4 4 4h.42c.75 1.76 2.36 3 4.25 3.44V18H10c-1.1 0-2 .9-2 2v1h8v-1c0-1.1-.9-2-2-2h-2.67v-2.56c1.88-.44 3.5-1.68 4.25-3.44H16c2.21 0 4-1.79 4-4V7c0-1.1-.9-2-2-2h-4V4c0-1.1-.9-2-2-2zM7 10.5c-1.1 0-2-.9-2-2V7h2v3.5zm10 0V7h2v1.5c0 1.1-.9 2-2 2z" fill="#FFFFFF" />
-              </svg>
-              <span className="gs-ach-home-label">成就</span>
+        {/* ===== v0.9.1：上拉菜单弹窗 ===== */}
+        {showMenu && (
+          <div className="bottom-sheet-overlay" onClick={() => setShowMenu(false)}>
+            <div className="bottom-sheet-card" onClick={(e) => e.stopPropagation()}>
+              <div className="bottom-sheet-item" onClick={() => { setShowMenu(false); onAchievements(); }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C10.9 2 10 2.9 10 4v1H6C4.9 5 4 5.9 4 7v1c0 2.21 1.79 4 4 4h.42c.75 1.76 2.36 3 4.25 3.44V18H10c-1.1 0-2 .9-2 2v1h8v-1c0-1.1-.9-2-2-2h-2.67v-2.56c1.88-.44 3.5-1.68 4.25-3.44H16c2.21 0 4-1.79 4-4V7c0-1.1-.9-2-2-2h-4V4c0-1.1-.9-2-2-2z" fill="#A900D0" />
+                </svg>
+                <span className="bottom-sheet-item-text">成就</span>
+              </div>
+              <div className="bottom-sheet-item" onClick={() => { setShowMenu(false); onOpenVolume(); }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="#E154EF" />
+                </svg>
+                <span className="bottom-sheet-item-text">音乐</span>
+              </div>
+              <div className="bottom-sheet-item" onClick={() => { setShowMenu(false); setShowResetConfirm(true); }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8h-2c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v2l4-3-4-3v2z" fill="#FF7029" />
+                </svg>
+                <span className="bottom-sheet-item-text">清除缓存</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ===== v0.8.1：清空缓存确认弹窗 ===== */}
         {showResetConfirm && (

@@ -380,28 +380,75 @@ html, body, #root {
   font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ===== v0.8.1：清空缓存按钮（右下角） ===== */
-.gs-reset-cache-btn {
+/* ===== v0.9.1：菜单按钮（首页左下角） ===== */
+.gs-menu-btn {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  left: 14px;
+  bottom: 14px;
   cursor: pointer;
   z-index: 10;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #3A0066;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
   transition: background 0.15s, transform 0.15s;
   touch-action: manipulation;
 }
-.gs-reset-cache-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+.gs-menu-btn:active {
+  transform: scale(0.93);
 }
-.gs-reset-cache-btn:active {
-  transform: scale(0.92);
+.gs-menu-label {
+  font-size: 14px;
+  color: #FFFFFF;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ===== v0.9.1：上拉菜单弹窗 ===== */
+.bottom-sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+.bottom-sheet-card {
+  width: 375px;
+  max-width: 100vw;
+  background: #FFFFFF;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  animation: bottomSheetSlideUp 0.25s ease;
+}
+.bottom-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  touch-action: manipulation;
+}
+.bottom-sheet-item:active {
+  background: #f0f0f0;
+}
+.bottom-sheet-item-text {
+  font-size: 16px;
+  color: #333333;
+  font-weight: 600;
+}
+
+@keyframes bottomSheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 /* ===== 移动端适配 ===== */
@@ -939,12 +986,12 @@ button, .knob, .level-chip, .btn {
   padding: 32px 28px;
   text-align: center;
   animation: popIn 0.3s ease-out forwards;
-  width: 330px;
+  width: 321px;
 }
 
 @keyframes popIn {
-  from { transform: scale(0.375); opacity: 0; }
-  to { transform: scale(0.75); opacity: 1; }
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* 弹出遮罩时，将父容器白色背景同暗化，消除外围白边 */
@@ -965,10 +1012,9 @@ button, .knob, .level-chip, .btn {
 .win-stats {
   color: var(--text-dim);
   margin-bottom: 20px;
-  /* v0.1.3：14px → 18px → 22px */
-  font-size: 22px;
+  /* v0.1.3：14px → 18px → 22px → v0.9.1：18px */
+  font-size: 18px;
   font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  white-space: nowrap;
 }
 
 .win-coins {
@@ -1068,14 +1114,14 @@ button, .knob, .level-chip, .btn {
     border-radius: 50%;
   }
   /* 胜利弹窗在窄屏收紧 */
-    .win-card {
-      padding: 24px 20px;
-      animation: popInMobile 0.3s ease-out forwards;
-    }
-    .win-title {
-      font-size: 40px;
-    }
-    .win-stats {
+      .win-card {
+        padding: 24px 20px;
+        animation: popInMobile 0.3s ease-out forwards;
+      }
+      .win-title {
+        font-size: 40px;
+      }
+      .win-stats {
       font-size: 18px;
     }
     .win-actions {
@@ -1084,9 +1130,9 @@ button, .knob, .level-chip, .btn {
   }
 
   @keyframes popInMobile {
-    from { transform: scale(0.325); opacity: 0; }
-    to { transform: scale(0.65); opacity: 1; }
-  }
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
 
   @media (max-width: 320px) {
     .boards-layout {
@@ -2983,42 +3029,107 @@ button, .knob, .level-chip, .btn {
   font-size: 24px;
 }
 
-/* ===== v0.8.3：成就系统 ===== */
-
-/* ===== v0.8.3：成就入口按钮（首页左下角，紫色胶囊） ===== */
-.gs-ach-home-btn {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  cursor: pointer;
-  z-index: 10;
+/* ===== v0.9.0：音量调节弹窗卡片 ===== */
+.volume-card {
+  background: var(--panel);
+  border: 2px solid var(--grid-line);
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 316px;
+  text-align: center;
+  animation: popIn 0.3s ease-out forwards;
 }
-.gs-ach-home-outer {
-  padding: 3px;
-  border-radius: 20px;
-  background: #A900D0;
+.volume-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-.gs-ach-home-inner {
+.volume-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 17px;
-  background: linear-gradient(135deg, #C900D7, #A900D0);
-  transition: transform 0.15s, opacity 0.15s;
+  gap: 10px;
+  margin-bottom: 16px;
 }
-.gs-ach-home-btn:active .gs-ach-home-inner {
-  transform: scale(0.93);
+.volume-label {
+  font-size: 18px;
+  color: var(--text);
+  min-width: 60px;
+  text-align: left;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-.gs-ach-home-btn:hover .gs-ach-home-inner {
-  opacity: 0.85;
+.volume-slider {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--panel-light);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
 }
-.gs-ach-home-label {
-  font-size: 14px;
-  color: #FFFFFF;
-  font-weight: 700;
-  letter-spacing: 1px;
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
 }
+.volume-slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.volume-value {
+  font-size: 16px;
+  color: var(--text-dim);
+  min-width: 40px;
+  text-align: right;
+  font-family: 'GameFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.volume-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.volume-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.volume-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--panel-light);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.volume-toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+}
+.volume-toggle input:checked + .volume-toggle-slider {
+  background: var(--accent);
+}
+.volume-toggle input:checked + .volume-toggle-slider::before {
+  transform: translateX(20px);
+}
+.volume-close-btn {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* ===== v0.8.3：成就系统 ===== */
 
 /* ===== v0.8.3：成就页面头部行（返回 + 统计数据） ===== */
 .ach-header-row {

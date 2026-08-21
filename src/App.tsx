@@ -8,6 +8,8 @@ import { LevelSelectScreen } from './components/LevelSelectScreen';
 import { GameScreen } from './components/GameScreen';
 import { useProgress, computeStars } from './hooks/useProgress';
 import { useAchievements } from './hooks/useAchievements';
+import { useAudio } from './hooks/useAudio';
+import { VolumeControl } from './components/VolumeControl';
 import type { AchievementProgress } from './core/achievements';
 import { getLevel, getLevels } from './levels/levels';
 
@@ -100,6 +102,9 @@ export function App() {
   const [coinsEarned, setCoinsEarned] = useState(0);
   // v0.8.3：成就系统
   const achievements = useAchievements();
+  // v0.9.0：音频系统
+  const audio = useAudio();
+  const [showVolume, setShowVolume] = useState(false);
 
   // v0.8.1：金币持久化
   useEffect(() => {
@@ -201,6 +206,7 @@ export function App() {
           onToggleDeveloperMode={() => setDeveloperMode((d) => !d)}
           onResetCache={handleResetCache}
           onAchievements={() => setView({ mode: 'achievements' })}
+          onOpenVolume={() => setShowVolume(true)}
         />
       );
     }
@@ -334,6 +340,7 @@ export function App() {
           onFreeSwap={() => {
             achievements.addSwap();
           }}
+          onPlaySfx={audio.playSfx}
         />
       );
     }
@@ -379,7 +386,7 @@ export function App() {
     );
   }, [
     view, completed, stars, coins, coinsEarned, developerMode,
-    showTutorialPrompt, achievements,
+    showTutorialPrompt, achievements, audio.playSfx,
     endlessStats4x4, endlessStats6x6, endlessStatsHexSmall, endlessStatsHexTri,
     handleSelectLevel, handleResetCache, handleTutorialYes, handleTutorialNo,
   ]);
@@ -391,6 +398,15 @@ export function App() {
       <AchievementToast
         newIds={achievements.newlyUnlocked}
         onDismiss={achievements.clearNewlyUnlocked}
+      />
+      {/* v0.9.0：音量调节弹窗 */}
+      <VolumeControl
+        visible={showVolume}
+        settings={audio.settings}
+        onClose={() => setShowVolume(false)}
+        onMusicVolumeChange={audio.setMusicVolume}
+        onSfxVolumeChange={audio.setSfxVolume}
+        onToggleMute={audio.toggleMute}
       />
     </>
   );

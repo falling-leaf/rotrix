@@ -20,6 +20,8 @@ interface GameScreenProps {
   onBuySwap: () => boolean;
   /** v0.8.3：免费对换——记录成就用 */
   onFreeSwap?: () => void;
+  /** v0.9.0：播放音效 */
+  onPlaySfx?: (name: 'complete' | 'finish' | 'tutorial') => void;
 }
 
 /**
@@ -120,7 +122,7 @@ function StarProgressBar({
  * v0.8.0：顶部栏上移，新增星级进度条。
  * v0.8.1：步数移至进度条下方，原位置显示金币。
  */
-export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, onBack, onNext, onTutorialComplete, onBuySwap, onFreeSwap }: GameScreenProps) {
+export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, onBack, onNext, onTutorialComplete, onBuySwap, onFreeSwap, onPlaySfx }: GameScreenProps) {
   const levels = getLevels();
   const level = levels.find((l) => l.id === levelId) ?? levels[0];
   const game = useGame(level, coins, developerMode, onBuySwap, onFreeSwap);
@@ -142,6 +144,7 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
     if (levelId === 0) {
       setTutorialStep(0);
       setTutorialDone(false);
+      tutorialSoundPlayedRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelId]);
@@ -149,6 +152,8 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
   // v0.9.0：教程步骤自动推进（含对换动画和重置检测）
   const prevSwapAnimatingRef = useRef<SwapAnimationState | null>(null);
   const prevMoveCountRef = useRef(0);
+  // v0.9.0：教程对话框弹出音效——追踪上一次 step，避免首次挂载触发
+  const prevTutorialStepRef = useRef<number | null>(null);
   useEffect(() => {
     if (levelId !== 0) return;
     if (tutorialStep === 1 && game.rotationDirection === 'CCW') {
@@ -175,6 +180,18 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
     prevMoveCountRef.current = game.moveCount;
   }, [levelId, tutorialStep, game.rotationDirection, game.moveCount, game.won, game.swapMode, game.swapAnimating]);
 
+  // v0.9.0：每次教程对话框弹出时播放音效（仅第一次）
+  const tutorialSoundPlayedRef = useRef(false);
+  useEffect(() => {
+    if (levelId !== 0) return;
+    if (tutorialSoundPlayedRef.current) return;
+    if (prevTutorialStepRef.current !== null && tutorialStep !== prevTutorialStepRef.current) {
+      onPlaySfx?.('tutorial');
+      tutorialSoundPlayedRef.current = true;
+    }
+    prevTutorialStepRef.current = tutorialStep;
+  }, [levelId, tutorialStep, onPlaySfx]);
+
   const handleTutorialBubbleClick = useCallback(() => {
     if (levelId !== 0) return;
     if (tutorialStep === 0) {
@@ -192,6 +209,20 @@ export function GameScreen({ levelId, coins, coinsEarned, developerMode, onWin, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.won, game.celebrating]);
+
+  // v0.9.0：胜利动画开始时播放 complete.mp3
+  useEffect(() => {
+    if (game.celebrating) {
+      onPlaySfx?.('complete');
+    }
+  }, [game.celebrating, onPlaySfx]);
+
+  // v0.9.0：通关弹窗显示时播放 finish.mp3
+  useEffect(() => {
+    if (game.won && !game.celebrating) {
+      onPlaySfx?.('finish');
+    }
+  }, [game.won, game.celebrating, onPlaySfx]);
 
   const nextLevelId = useMemo(() => {
     if (levelId === 0) return 1;
